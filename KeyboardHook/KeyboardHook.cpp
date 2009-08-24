@@ -101,7 +101,7 @@ static LRESULT CALLBACK msghook(UINT nCode, WPARAM wParam, LPARAM lParam)
 
 	KeyboardProcLParam l;
 	memset(&l, 0, sizeof(l));
-	l.lParam = lParam;
+	l.lParam = (unsigned int)lParam;
 
 	LRESULT result;
 	result = ::SendMessage(s_hWndServer, s_message, newWParam, lParam);
