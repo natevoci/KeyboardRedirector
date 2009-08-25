@@ -7,8 +7,9 @@
     <ProjectGuid>{90F3D697-BCE4-46E1-BD22-78B10CE6AB8A}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>RawInput</RootNamespace>
-    <AssemblyName>RawInput</AssemblyName>
+    <RootNamespace>KeyboardRedirector</RootNamespace>
+    <AssemblyName>KeyboardRedirector</AssemblyName>
+    <ApplicationIcon>Icon.ico</ApplicationIcon>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -51,6 +52,9 @@
     <Compile Include="KeyboardRedirectorForm.Designer.cs">
       <DependentUpon>KeyboardRedirectorForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="MinimizeToTrayForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Form1.resx">
@@ -80,6 +84,12 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <Compile Include="Settings.cs" />
+    <Compile Include="Win32.cs" />
+    <Compile Include="XMLFileStore.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Icon.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

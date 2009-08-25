@@ -4,7 +4,7 @@ using System.Threading;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
 
-namespace RawInput
+namespace KeyboardRedirector
 {
     public partial class Form1 : Form
     {
@@ -34,8 +34,6 @@ namespace RawInput
         // messages to the window and thus catch WM_INPUT messages
         protected override void WndProc(ref Message message)
         {
-            InputDevice.WindowsMessage msgId = (InputDevice.WindowsMessage)message.Msg;
-
             if (_inputDevice != null)
             {
                 //Message msg;

@@ -1,4 +1,4 @@
-namespace RawInput
+namespace KeyboardRedirector
 {
     partial class Form1
     {

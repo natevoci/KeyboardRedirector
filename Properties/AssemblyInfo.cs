@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("RawInput")]
+[assembly: AssemblyTitle("KeyboardRedirector")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Retestrak")]
-[assembly: AssemblyProduct("RawInput")]
-[assembly: AssemblyCopyright("Copyright © Retestrak 2006")]
+[assembly: AssemblyCompany("")]
+[assembly: AssemblyProduct("KeyboardRedirector")]
+[assembly: AssemblyCopyright("")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

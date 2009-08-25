@@ -6,16 +6,13 @@ using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
 
-namespace RawInput
+namespace KeyboardRedirector
 {
-    public partial class KeyboardRedirectorForm : Form
+    public partial class KeyboardRedirectorForm : MinimizeToTrayForm
     {
         InputDevice _inputDevice;
         List<DeviceInformation> _keyboards;
         List<KeyToHookInformation> _keysToHook;
-        List<int> _capturingHandles;
-
-        bool _detectKeyboard;
 
         class DeviceInformation
         {
@@ -44,29 +41,28 @@ namespace RawInput
             }
         }
 
-
         public KeyboardRedirectorForm()
         {
             _keyboards = new List<DeviceInformation>();
             _keysToHook = new List<KeyToHookInformation>();
-            _capturingHandles = new List<int>();
 
             InitializeComponent();
+            treeViewKeys.Nodes.Clear();
+            panelKeyboardProperties.Location = new Point(3, 3);
+            panelKeyProperties.Location = new Point(3, 3);
 
             _inputDevice = new InputDevice(Handle);
             _inputDevice.DeviceEvent += new InputDevice.DeviceEventHandler(InputDevice_DeviceEvent);
 
-            foreach (InputDevice.DeviceInfo info in _inputDevice.DeviceList.Values)
+            RefreshDevices();
+
+            NotifyIcon.ContextMenuStrip = contextMenuStripNotifyIcon;
+
+            if (Settings.Current.MinimizeOnStart)
             {
-                if (info.DeviceType != InputDevice.DeviceType.Keyboard)
-                    continue;
-                if (info.DeviceHandle == IntPtr.Zero)
-                    continue;
-
-                _keyboards.Add(new DeviceInformation(info));
+                SendToTray();
+                this.ShowInTaskbar = false;
             }
-
-            comboBoxKeyboards.DataSource = _keyboards;
 
             bool result = KeyboardHook.SetHook(this);
             if (result == false)
@@ -76,6 +72,60 @@ namespace RawInput
         private void KeyboardRedirectorForm_FormClosing(object sender, FormClosingEventArgs e)
         {
             KeyboardHook.ClearHook();
+        }
+
+        private void RefreshDevices()
+        {
+            List<string> keyboardsBeforeRefresh = new List<string>();
+            foreach (DeviceInformation deviceInformation in _keyboards)
+            {
+                keyboardsBeforeRefresh.Add(deviceInformation.DeviceInfo.DeviceName);
+            }
+
+            _inputDevice.EnumerateDevices();
+            foreach (InputDevice.DeviceInfo info in _inputDevice.DeviceList.Values)
+            {
+                if (info.DeviceType != InputDevice.DeviceType.Keyboard)
+                    continue;
+                if (info.DeviceHandle == IntPtr.Zero)
+                    continue;
+
+                if (keyboardsBeforeRefresh.Contains(info.DeviceName) == false)
+                {
+                    _keyboards.Add(new DeviceInformation(info));
+
+                    SettingsKeyboard keyboard = Settings.Current.FindKeyboardByDeviceName(info.DeviceName);
+                    if (keyboard == null)
+                    {
+                        keyboard = new SettingsKeyboard();
+                        keyboard.Name = info.Name;
+                        //keyboard.Handle = (uint)info.DeviceHandle.ToInt32();
+                        keyboard.DeviceName = info.DeviceName;
+                        Settings.Current.Keyboards.Add(keyboard);
+                        Settings.Save();
+                        richTextBoxEvents.AppendText("New Keyboard Added : " + keyboard.Name + Environment.NewLine);
+                    }
+                    else
+                    {
+                        richTextBoxEvents.AppendText("Keyboard Added : " + keyboard.Name + Environment.NewLine);
+                    }
+                }
+                else
+                {
+                    keyboardsBeforeRefresh.Remove(info.DeviceName);
+                }
+            }
+
+            foreach (string deviceName in keyboardsBeforeRefresh)
+            {
+                DeviceInformation deviceInformation = FindKeyboardDevice(deviceName);
+                _keyboards.Remove(deviceInformation);
+
+                SettingsKeyboard keyboard = Settings.Current.FindKeyboardByDeviceName(deviceName);
+                richTextBoxEvents.AppendText("Keyboard Removed : " + keyboard.Name + Environment.NewLine);
+            }
+
+            RefreshTreeView();
         }
 
         protected override void WndProc(ref Message message)
@@ -149,6 +199,12 @@ namespace RawInput
 
                 return;
             }
+
+            if (message.Msg == (int)Win32.WindowsMessage.DEVICECHANGE)
+            {
+                //System.Diagnostics.Debug.WriteLine(message.ToString());
+                RefreshDevices();
+            }
             
             base.WndProc(ref message);
         }
@@ -157,137 +213,391 @@ namespace RawInput
         {
             if (rawInput.header.dwType == InputDevice.DeviceType.Keyboard)
             {
-                Keys key = (Keys)rawInput.data.keyboard.VKey;
-                string text = string.Format("{0} 0x{1:x}({2}) 0x{3:x} {4}",
-                    rawInput.header.dwType,
-                    rawInput.data.keyboard.VKey,
-                    key,
-                    rawInput.data.keyboard.MakeCode,
-                    rawInput.data.keyboard.Message);
+                {
+                    Keys key = (Keys)rawInput.data.keyboard.VKey;
+                    string text = string.Format("{0} 0x{1:x}({2}) 0x{3:x} {4}",
+                        rawInput.header.dwType,
+                        rawInput.data.keyboard.VKey,
+                        key,
+                        rawInput.data.keyboard.MakeCode,
+                        rawInput.data.keyboard.Message);
 
-                System.Diagnostics.Debug.WriteLine("WM_INPUT: 0x" + dInfo.DeviceHandle.ToInt32().ToString("x8") + " " + text);
+                    System.Diagnostics.Debug.WriteLine("WM_INPUT: 0x" + dInfo.DeviceHandle.ToInt32().ToString("x8") + " " + text);
+                }
 
-                if (_detectKeyboard)
+                if (richTextBoxKeyDetector.Focused)
                 {
                     lock (_keysToHook)
                     {
                         _keysToHook.Add(new KeyToHookInformation(rawInput.data.keyboard.VKey));
                     }
-                    _detectKeyboard = false;
 
-                    foreach (DeviceInformation info in _keyboards)
-                    {
-                        if (info.DeviceInfo.DeviceHandle == dInfo.DeviceHandle)
-                        {
-                            comboBoxKeyboards.SelectedItem = null;
-                            comboBoxKeyboards.SelectedItem = info;
-                            break;
-                        }
-                    }
+                    AddAndSelectKey(dInfo.DeviceName, rawInput.data.keyboard.VKey);
+
                     return;
                 }
 
-                lock (_capturingHandles)
+                lock (Settings.Current)
                 {
-                    int handle = dInfo.DeviceHandle.ToInt32();
-                    if (_capturingHandles.Contains(handle))
+                    SettingsKeyboard keyboard = Settings.Current.FindKeyboardByDeviceName(dInfo.DeviceName);
+                    if (keyboard != null)
                     {
-                        lock (_keysToHook)
+                        if (keyboard.CaptureAllKeys)
                         {
-                            _keysToHook.Add(new KeyToHookInformation(rawInput.data.keyboard.VKey));
+                            lock (_keysToHook)
+                            {
+                                _keysToHook.Add(new KeyToHookInformation(rawInput.data.keyboard.VKey));
+                            }
                         }
-
-                        if (richTextBoxEvents.Text.Length > 0)
-                            richTextBoxEvents.AppendText(Environment.NewLine);
-                        richTextBoxEvents.AppendText(rawInput.data.keyboard.Message.ToString().PadRight(7) + " 0x" + rawInput.data.keyboard.VKey.ToString("x2") + " (" + key.ToString() + ")");
+                        else
+                        {
+                            SettingsKeyboardKey key = keyboard.FindKey(rawInput.data.keyboard.VKey);
+                            if (key != null)
+                            {
+                                if (key.Capture)
+                                {
+                                    lock (_keysToHook)
+                                    {
+                                        _keysToHook.Add(new KeyToHookInformation(rawInput.data.keyboard.VKey));
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
-
             }
-            
+        }
+
+        private DeviceInformation FindKeyboardDevice(string deviceName)
+        {
+            foreach (DeviceInformation info in _keyboards)
+            {
+                if (info.DeviceInfo.DeviceName == deviceName)
+                    return info;
+            }
+            return null;
         }
 
 
-        private void RefreshKeyboardDetails()
+
+
+        private void restoreToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            DeviceInformation deviceInformation = comboBoxKeyboards.SelectedItem as DeviceInformation;
-            if (deviceInformation == null)
+            RestoreFromTray();
+        }
+
+        private void exitToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            this.Close();
+        }
+
+
+        private void RefreshTreeView()
+        {
+            lock (treeViewKeys)
             {
-                labelDeviceDetails.Text = "";
-                return;
+                treeViewKeys.BeginUpdate();
+
+                // Update the keyboard nodes
+
+                List<TreeNode> staleKeyboardNodes = new List<TreeNode>();
+                foreach (TreeNode node in treeViewKeys.Nodes)
+                {
+                    staleKeyboardNodes.Add(node);
+                }
+
+                foreach (SettingsKeyboard keyboard in Settings.Current.Keyboards)
+                {
+                    // Find existing node and remove it from the stale list
+                    TreeNode keyboardNode = FindTreeNode(keyboard, treeViewKeys.Nodes, false);
+                    if (keyboardNode != null)
+                    {
+                        staleKeyboardNodes.Remove(keyboardNode);
+                    }
+                    else
+                    {
+                        // No keyboard node. We'll create one.
+                        keyboardNode = new TreeNode(keyboard.Name);
+                        keyboardNode.Tag = keyboard;
+
+                        treeViewKeys.Nodes.Add(keyboardNode);
+                    }
+
+                    // Update node data
+                    keyboardNode.Text = keyboard.Name;
+
+                    DeviceInformation deviceInformation = FindKeyboardDevice(keyboard.DeviceName);
+                    int imageIndex = 0;
+                    if (deviceInformation == null)
+                        imageIndex = 1;
+                    else if (keyboard.CaptureAllKeys)
+                        imageIndex = 3;
+                    keyboardNode.ImageIndex = imageIndex;
+                    keyboardNode.SelectedImageIndex = imageIndex;
+
+
+                    // Update keys
+                    List<TreeNode> staleKeyNodes = new List<TreeNode>();
+                    foreach (TreeNode node in keyboardNode.Nodes)
+                    {
+                        staleKeyNodes.Add(node);
+                    }
+
+                    foreach (SettingsKeyboardKey key in keyboard.Keys)
+                    {
+                        // Find existing node and remove it from the stale list
+                        TreeNode keyNode = FindTreeNode(key, keyboardNode.Nodes, false);
+                        if (keyNode != null)
+                        {
+                            staleKeyNodes.Remove(keyNode);
+                        }
+                        else
+                        {
+                            // No key node. We'll create one.
+                            keyNode = new TreeNode("0x" + key.VirtualKeyCode.ToString("x2") + " - " + key.Name);
+                            keyNode.Tag = key;
+
+                            bool expand = (keyboardNode.Nodes.Count == 0);
+                            keyboardNode.Nodes.Add(keyNode);
+                            if (expand)
+                                keyboardNode.Expand();
+                        }
+
+                        // Update node data
+                        keyNode.Text = "0x" + key.VirtualKeyCode.ToString("x2") + " - " + key.Name;
+                        imageIndex = 2;
+                        if (key.Capture)
+                            imageIndex = 3;
+                        else if (keyboard.CaptureAllKeys)
+                            imageIndex = 4;
+
+                        keyNode.ImageIndex = imageIndex;
+                        keyNode.SelectedImageIndex = imageIndex;
+                    }
+
+                    // Remove stale key nodes.
+                    foreach (TreeNode node in staleKeyNodes)
+                    {
+                        keyboardNode.Nodes.Remove(node);
+                    }
+
+                }
+
+                // Remove stale keyboard nodes.
+                foreach (TreeNode node in staleKeyboardNodes)
+                {
+                    treeViewKeys.Nodes.Remove(node);
+                }
+
+
+                treeViewKeys.EndUpdate();
             }
-            InputDevice.DeviceInfo info = deviceInformation.DeviceInfo;
-            if (info == null)
+        }
+
+        private TreeNode FindTreeNode(object tag, TreeNodeCollection baseCollection, bool includeChildren)
+        {
+            lock (treeViewKeys)
             {
-                labelDeviceDetails.Text = "";
-                return;
+                List<TreeNodeCollection> collections = new List<TreeNodeCollection>();
+                collections.Add(baseCollection);
+                while (collections.Count > 0)
+                {
+                    foreach (TreeNode node in collections[0])
+                    {
+                        if (node.Tag.Equals(tag))
+                            return node;
+
+                        if (includeChildren && (node.Nodes.Count > 0))
+                            collections.Add(node.Nodes);
+                    }
+                    collections.RemoveAt(0);
+                }
             }
+            return null;
+        }
 
-            StringBuilder details = new StringBuilder();
+        private void AddAndSelectKey(string deviceName, ushort VirtualKeyCode)
+        {
+            SettingsKeyboard keyboard = Settings.Current.FindKeyboardByDeviceName(deviceName);
+            if (keyboard == null)
+                return;
 
-            details.Append("Handle: 0x" + info.DeviceHandle.ToInt32().ToString("x8") + Environment.NewLine);
-            details.Append("DeviceName: " + info.DeviceName + Environment.NewLine);
-            details.Append("DeviceDesc: " + info.DeviceDesc + Environment.NewLine);
-
-            labelDeviceDetails.Text = details.ToString();
-
-            if (_capturingHandles.Contains(info.DeviceHandle.ToInt32()))
+            SettingsKeyboardKey key = keyboard.FindKey(VirtualKeyCode);
+            if (key != null)
             {
-                buttonStartCapturing.Enabled = false;
-                buttonStopCapturing.Enabled = true;
+                lock (treeViewKeys)
+                {
+                    TreeNode node = FindTreeNode(key, treeViewKeys.Nodes, true);
+                    if (node != null)
+                        treeViewKeys.SelectedNode = node;
+                }
             }
             else
             {
-                buttonStartCapturing.Enabled = true;
-                buttonStopCapturing.Enabled = false;
-            }
-        }
+                key = new SettingsKeyboardKey(VirtualKeyCode);
+                keyboard.Keys.Add(key);
+                Settings.Save();
 
-
-        private void comboBoxKeyboards_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            RefreshKeyboardDetails();
-        }
-
-        private void buttonDetect_Click(object sender, EventArgs e)
-        {
-            comboBoxKeyboards.Text = "";
-            labelDeviceDetails.Text = "press any key on the keyboard you want to select...";
-            _detectKeyboard = true;
-        }
-
-        private void buttonStartCapturing_Click(object sender, EventArgs e)
-        {
-            DeviceInformation deviceInformation = comboBoxKeyboards.SelectedItem as DeviceInformation;
-            if (deviceInformation != null)
-            {
-                if (deviceInformation.DeviceInfo != null)
+                lock (treeViewKeys)
                 {
-                    lock (_capturingHandles)
-                    {
-                        int handle = deviceInformation.DeviceInfo.DeviceHandle.ToInt32();
-                        if (!_capturingHandles.Contains(handle))
-                            _capturingHandles.Add(handle);
-                    }
-                    RefreshKeyboardDetails();
+                    RefreshTreeView();
+
+                    TreeNode node = FindTreeNode(key, treeViewKeys.Nodes, true);
+                    if (node != null)
+                        treeViewKeys.SelectedNode = node;
                 }
             }
+
         }
 
-        private void buttonStopCapturing_Click(object sender, EventArgs e)
+
+        private void treeViewKeys_AfterSelect(object sender, TreeViewEventArgs e)
         {
-            DeviceInformation deviceInformation = comboBoxKeyboards.SelectedItem as DeviceInformation;
-            if (deviceInformation != null)
+            SettingsKeyboard keyboard = e.Node.Tag as SettingsKeyboard;
+            SettingsKeyboardKey key = e.Node.Tag as SettingsKeyboardKey;
+
+            panelKeyboardProperties.Visible = false;
+            panelKeyProperties.Visible = false;
+
+            if (keyboard != null)
             {
-                if (deviceInformation.DeviceInfo != null)
+                panelKeyboardProperties.Visible = true;
+
+                StringBuilder details = new StringBuilder();
+                details.AppendLine("DeviceName: " + keyboard.DeviceName);
+
+                DeviceInformation deviceInformation = FindKeyboardDevice(keyboard.DeviceName);
+                if ((deviceInformation == null) || (deviceInformation.DeviceInfo == null))
                 {
-                    lock (_capturingHandles)
+                    details.Append("Device not present.");
+                }
+                else
+                {
+                    details.Append("DeviceDesc: " + deviceInformation.DeviceInfo.DeviceDesc);
+                }
+
+                textBoxKeyboardDetails.Text = details.ToString();
+                textBoxKeyboardName.Text = keyboard.Name;
+
+                checkBoxCaptureAllKeys.Checked = keyboard.CaptureAllKeys;
+            }
+            else if (key != null)
+            {
+                panelKeyProperties.Visible = true;
+
+                StringBuilder details = new StringBuilder();
+                details.AppendLine("Virtual Key Code: 0x" + key.VirtualKeyCode.ToString("x2"));
+
+                labelKeyDetails.Text = details.ToString();
+                textBoxKeyName.Text = key.Name;
+
+                checkBoxCaptureKey.Checked = key.Capture;
+            }
+        }
+
+        private void checkBoxCaptureAllKeys_CheckedChanged(object sender, EventArgs e)
+        {
+            TreeNode node = treeViewKeys.SelectedNode;
+            if (node == null)
+                return;
+
+            SettingsKeyboard keyboard = node.Tag as SettingsKeyboard;
+            if (keyboard != null)
+            {
+                keyboard.CaptureAllKeys = checkBoxCaptureAllKeys.Checked;
+                Settings.Save();
+                RefreshTreeView();
+            }
+
+        }
+
+        private void checkBoxCaptureKey_CheckedChanged(object sender, EventArgs e)
+        {
+            TreeNode node = treeViewKeys.SelectedNode;
+            if (node == null)
+                return;
+
+            SettingsKeyboardKey key = node.Tag as SettingsKeyboardKey;
+            if (key != null)
+            {
+                key.Capture = checkBoxCaptureKey.Checked;
+                Settings.Save();
+                RefreshTreeView();
+            }
+
+        }
+
+        private void textBoxKeyboardName_TextChanged(object sender, EventArgs e)
+        {
+            if (textBoxKeyboardName.Text.Length == 0)
+                return;
+
+            TreeNode node = treeViewKeys.SelectedNode;
+            if (node == null)
+                return;
+
+            SettingsKeyboard keyboard = node.Tag as SettingsKeyboard;
+            if (keyboard != null)
+            {
+                keyboard.Name = textBoxKeyboardName.Text;
+                Settings.Save();
+                RefreshTreeView();
+            }
+
+        }
+
+        private void textBoxKeyName_TextChanged(object sender, EventArgs e)
+        {
+            if (textBoxKeyName.Text.Length == 0)
+                return;
+
+            TreeNode node = treeViewKeys.SelectedNode;
+            if (node == null)
+                return;
+
+            SettingsKeyboardKey key = node.Tag as SettingsKeyboardKey;
+            if (key != null)
+            {
+                key.Name = textBoxKeyName.Text;
+                Settings.Save();
+                RefreshTreeView();
+            }
+
+        }
+
+
+        private void treeViewKeys_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.Modifiers == Keys.None)
+            {
+                if (e.KeyCode == Keys.Delete)
+                {
+                    TreeNode node = treeViewKeys.SelectedNode;
+                    if (node == null)
+                        return;
+
+                    SettingsKeyboard keyboard = node.Tag as SettingsKeyboard;
+                    SettingsKeyboardKey key = node.Tag as SettingsKeyboardKey;
+                    if (keyboard != null)
                     {
-                        int handle = deviceInformation.DeviceInfo.DeviceHandle.ToInt32();
-                        if (_capturingHandles.Contains(handle))
-                            _capturingHandles.Remove(handle);
+                        DialogResult result = MessageBox.Show(this, "Are you sure you want to delete this keyboard?" + Environment.NewLine + keyboard.Name, "Confirm Delete", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2);
+                        if (result != DialogResult.Yes)
+                            return;
+                        Settings.Current.Keyboards.Remove(keyboard);
+                        Settings.Save();
+                        RefreshTreeView();
                     }
-                    RefreshKeyboardDetails();
+                    else if (key != null)
+                    {
+                        DialogResult result = MessageBox.Show(this, "Are you sure you want to delete this key?" + Environment.NewLine + key.Name, "Confirm Delete", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2);
+                        if (result != DialogResult.Yes)
+                            return;
+                        keyboard = node.Parent.Tag as SettingsKeyboard;
+                        keyboard.Keys.Remove(key);
+                        Settings.Save();
+                        RefreshTreeView();
+                    }
+
                 }
             }
         }
