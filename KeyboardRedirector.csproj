@@ -51,12 +51,15 @@
     <Compile Include="KeyboardRedirectorForm.Designer.cs">
       <DependentUpon>KeyboardRedirectorForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="NativeMethods.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Form1.resx">
       <SubType>Designer</SubType>
       <DependentUpon>Form1.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="KeyboardRedirectorForm.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>KeyboardRedirectorForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

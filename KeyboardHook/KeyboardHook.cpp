@@ -94,7 +94,10 @@ static LRESULT CALLBACK msghook(UINT nCode, WPARAM wParam, LPARAM lParam)
 	WPARAM newWParam = wParam;
 	if (nCode == HC_NOREMOVE)
 	{
+		// I was originally sending HC_NOREMOVE message to my app, but they weren't necessary and were causing problems
+		// with debugging in visual studio.
 		//newWParam = wParam | 0x80000000;
+
 		CallNextHookEx(hook, nCode, wParam, lParam);
 		return 0;
 	}
@@ -107,32 +110,31 @@ static LRESULT CALLBACK msghook(UINT nCode, WPARAM wParam, LPARAM lParam)
 	result = ::SendMessage(s_hWndServer, s_message, newWParam, lParam);
 	if (result != 0)
 	{
+		//INPUT input[1];
+		//memset(input, 0, sizeof(input));
+		//input[0].type = INPUT_KEYBOARD;
 
-		INPUT input[1];
-		memset(input, 0, sizeof(input));
-		input[0].type = INPUT_KEYBOARD;
+		//input[0].ki.wVk = VK_NUMPAD7;
+		////input[0].ki.wScan = l.values.scanCode | 0xE100;
+		//input[0].ki.dwFlags = (l.values.transitionCode == 1) ? KEYEVENTF_KEYUP : 0;
+		//input[0].ki.dwFlags |= KEYEVENTF_EXTENDEDKEY;
+		//input[0].ki.time = 0;
+		//input[0].ki.dwExtraInfo = 0;
 
-		input[0].ki.wVk = VK_NUMPAD7;
-		//input[0].ki.wScan = l.values.scanCode | 0xE100;
-		input[0].ki.dwFlags = (l.values.transitionCode == 1) ? KEYEVENTF_KEYUP : 0;
-		input[0].ki.dwFlags |= KEYEVENTF_EXTENDEDKEY;
-		input[0].ki.time = 0;
-		input[0].ki.dwExtraInfo = 0;
-
-		SendInput(1, input, sizeof(INPUT));
+		//SendInput(1, input, sizeof(INPUT));
 
 
-		memset(input, 0, sizeof(input));
-		input[0].type = INPUT_KEYBOARD;
+		//memset(input, 0, sizeof(input));
+		//input[0].type = INPUT_KEYBOARD;
 
-		input[0].ki.wVk = 200;
-		input[0].ki.wScan = 0;
-		input[0].ki.dwFlags = (l.values.transitionCode == 1) ? KEYEVENTF_KEYUP : 0;
-		input[0].ki.dwFlags |= KEYEVENTF_EXTENDEDKEY;
-		input[0].ki.time = 0;
-		input[0].ki.dwExtraInfo = 0;
+		//input[0].ki.wVk = 200;
+		//input[0].ki.wScan = 0;
+		//input[0].ki.dwFlags = (l.values.transitionCode == 1) ? KEYEVENTF_KEYUP : 0;
+		//input[0].ki.dwFlags |= KEYEVENTF_EXTENDEDKEY;
+		//input[0].ki.time = 0;
+		//input[0].ki.dwExtraInfo = 0;
 
-		SendInput(1, input, sizeof(INPUT));
+		//SendInput(1, input, sizeof(INPUT));
 
 		return -1;
 	}

@@ -8,7 +8,7 @@ namespace RawInput
 {
     public partial class Form1 : Form
     {
-        InputDevice id;
+        InputDevice _inputDevice;
         int NumberOfKeyboards;
 
         public Form1()
@@ -19,10 +19,10 @@ namespace RawInput
             // keyboards, and register the method which will handle the 
             // InputDevice KeyPressed event
             //_handle = Handle;
-            id = new InputDevice(Handle);
-            NumberOfKeyboards = id.EnumerateDevices();
-            id.KeyPressed += new InputDevice.KeyPressedEventHandler(m_KeyPressed);
-            id.DeviceEvent += new InputDevice.DeviceEventHandler(id_DeviceEvent);
+            _inputDevice = new InputDevice(Handle);
+            NumberOfKeyboards = _inputDevice.EnumerateDevices();
+            _inputDevice.KeyPressed += new InputDevice.KeyPressedEventHandler(m_KeyPressed);
+            _inputDevice.DeviceEvent += new InputDevice.DeviceEventHandler(id_DeviceEvent);
 
             //Thread worker = new Thread(ThreadProc);
             //worker.Name = "worker";
@@ -36,7 +36,7 @@ namespace RawInput
         {
             InputDevice.WindowsMessage msgId = (InputDevice.WindowsMessage)message.Msg;
 
-            if (id != null)
+            if (_inputDevice != null)
             {
                 //Message msg;
                 //NativeMethods.PeekMessage(out msg, _handle, NativeMethods.WM_INPUT, NativeMethods.WM_INPUT, NativeMethods.PeekMessageRemoveFlag.PM_NOREMOVE);
@@ -46,7 +46,7 @@ namespace RawInput
                 //    id.ProcessMessage(msg);
                 //}
 
-                id.ProcessMessage(message);
+                _inputDevice.ProcessMessage(message);
             }
             if (message.Msg == KeyboardHook.HookMessage)
             {
@@ -115,7 +115,7 @@ namespace RawInput
         {
             richTextBoxList.Clear();
             richTextBoxList.AppendText("Number of Keyboards: " + NumberOfKeyboards.ToString() + Environment.NewLine);
-            foreach (InputDevice.DeviceInfo info in id.DeviceList.Values)
+            foreach (InputDevice.DeviceInfo info in _inputDevice.DeviceList.Values)
             {
                 richTextBoxList.AppendText(Environment.NewLine);
                 richTextBoxList.AppendText("Handle: 0x" + info.DeviceHandle.ToInt32().ToString("x8") + Environment.NewLine);

@@ -1463,6 +1463,7 @@ namespace RawInput
                         // Filter for Key Down events and then retrieve information 
                         // about the keystroke
                         //if (raw.data.keyboard.Message == WM_KEYDOWN || raw.data.keyboard.Message == WM_SYSKEYDOWN)
+                        if (KeyPressed != null)
                         {
 
                             ushort key = raw.data.keyboard.VKey;
@@ -1491,7 +1492,7 @@ namespace RawInput
                             // If the key that was pressed is valid and there
                             // was no problem retrieving information on the device,
                             // raise the KeyPressed event.
-                            if (KeyPressed != null && dInfo != null)
+                            if (dInfo != null)
                             {
                                 KeyPressed(this, new KeyControlEventArgs(dInfo, GetDevice(message.LParam.ToInt32())));
                             }
