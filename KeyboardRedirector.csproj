@@ -45,6 +45,12 @@
     </Compile>
     <Compile Include="InputDevice.cs" />
     <Compile Include="KeyboardHook.cs" />
+    <Compile Include="KeyboardRedirectorForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="KeyboardRedirectorForm.Designer.cs">
+      <DependentUpon>KeyboardRedirectorForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="NativeMethods.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

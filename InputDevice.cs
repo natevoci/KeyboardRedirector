@@ -25,15 +25,8 @@ namespace RawInput
         private const int FAPPCOMMAND_MOUSE = 0x8000;
         private const int FAPPCOMMAND_OEM   = 0x1000;
 
-        //private const int RIM_TYPEMOUSE     = 0;
-        //private const int RIM_TYPEKEYBOARD  = 1;
-        //private const int RIM_TYPEHID       = 2;
-
         private const int RIDI_DEVICENAME   = 0x20000007;
         
-        //private const int WM_KEYDOWN	    = 0x0100;
-        //private const int WM_SYSKEYDOWN     = 0x0104;
-        //private const int WM_INPUT		    = 0x00FF;
         private const int VK_OEM_CLEAR      = 0xFE;
         private const int VK_LAST_KEY       = VK_OEM_CLEAR; // this is a made up value used as a sentinel
        
@@ -430,13 +423,13 @@ namespace RawInput
             /// </summary>
             INPUT = 0x00FF,
             /// <summary>
-            /// This message filters for keyboard messages.
-            /// </summary>
-            KEYFIRST = 0x0100,
-            /// <summary>
             /// The WM_KEYDOWN message is posted to the window with the keyboard focus when a nonsystem key is pressed. A nonsystem key is a key that is pressed when the ALT key is not pressed. 
             /// </summary>
             KEYDOWN = 0x0100,
+            /// <summary>
+            /// This message filters for keyboard messages.
+            /// </summary>
+            KEYFIRST = 0x0100,
             /// <summary>
             /// The WM_KEYUP message is posted to the window with the keyboard focus when a nonsystem key is released. A nonsystem key is a key that is pressed when the ALT key is not pressed, or a keyboard key that is pressed when a window has the keyboard focus. 
             /// </summary>
@@ -979,13 +972,14 @@ namespace RawInput
         /// </summary>
         public class DeviceInfo
         {
-            public string deviceName;
-            public DeviceType deviceType;
-            public IntPtr deviceHandle;
+            public IntPtr DeviceHandle;
+            public DeviceType DeviceType;
+            public string DeviceName;
+            public string DeviceDesc;
             public string Name;
+
             public string source;
             public Keys keys;
-            //public string vKey;
         }
 
         #region Windows.h structure declarations
@@ -1289,29 +1283,48 @@ namespace RawInput
 
                 // Iterate through the list, discarding undesired items
                 // and retrieving further information on keyboard devices
-                for (int i = 0; i < deviceCount; i++)
+                for (int i = -1; i < deviceCount; i++)
                 {
                     DeviceInfo dInfo;
                     string deviceName;
                     uint pcbSize = 0;
 
+                    IntPtr hDevice = IntPtr.Zero;
+                    int deviceType = 0;
+
+                    if (i == -1)
+                    {
+                        dInfo = new DeviceInfo();
+
+                        dInfo.DeviceName = "SendInput";
+                        dInfo.DeviceHandle = IntPtr.Zero;
+                        dInfo.DeviceType = DeviceType.Keyboard;
+                        dInfo.Name = "SendInput (Keystrokes simulated by applications)";
+
+                        NumberOfDevices++;
+                        deviceList.Add(IntPtr.Zero, dInfo);
+                        continue;
+                    }
+
                     RAWINPUTDEVICELIST rid = (RAWINPUTDEVICELIST)Marshal.PtrToStructure(
                                                new IntPtr((pRawInputDeviceList.ToInt32() + (dwSize * i))),
                                                typeof(RAWINPUTDEVICELIST));
+                    hDevice = rid.hDevice;
+                    deviceType = rid.dwType;
 
-                    GetRawInputDeviceInfo(rid.hDevice, RIDI_DEVICENAME, IntPtr.Zero, ref pcbSize);
+                    GetRawInputDeviceInfo(hDevice, RIDI_DEVICENAME, IntPtr.Zero, ref pcbSize);
 
                     if (pcbSize > 0)
                     {
                         IntPtr pData = Marshal.AllocHGlobal((int)pcbSize);
-                        GetRawInputDeviceInfo(rid.hDevice, RIDI_DEVICENAME, pData, ref pcbSize);
+                        GetRawInputDeviceInfo(hDevice, RIDI_DEVICENAME, pData, ref pcbSize);
                         deviceName = (string)Marshal.PtrToStringAnsi(pData);
 
                         // Drop the "root" keyboard and mouse devices used for Terminal 
                         // Services and the Remote Desktop
-                        if (deviceName.ToUpper().Contains("ROOT"))
+                        if (deviceName.ToUpper().StartsWith(@"\\?\ROOT"))
                         {
-                            //continue;
+                            continue;
                         }
 
                         // If the device is identified in the list as a keyboard or 
@@ -1321,23 +1334,24 @@ namespace RawInput
                         {
                             dInfo = new DeviceInfo();
 
-                            dInfo.deviceName = (string)Marshal.PtrToStringAnsi(pData);
-                            dInfo.deviceHandle = rid.hDevice;
-                            dInfo.deviceType = GetDeviceType(rid.dwType);
+                            dInfo.DeviceHandle = hDevice;
+                            dInfo.DeviceType = GetDeviceType(deviceType);
+                            dInfo.DeviceName = (string)Marshal.PtrToStringAnsi(pData);
 
                             // Check the Registry to see whether this is actually a 
                             // keyboard, and to retrieve a more friendly description.
                             bool IsKeyboardDevice = false;
-                            string DeviceDesc = ReadReg(deviceName, ref IsKeyboardDevice);
-                            dInfo.Name = DeviceDesc;
+                            dInfo.DeviceDesc = ReadReg(deviceName, ref IsKeyboardDevice);
+                            dInfo.Name = dInfo.DeviceDesc.Substring(dInfo.DeviceDesc.LastIndexOf(";") + 1);
 
                             // If it is a keyboard and it isn't already in the list,
                             // add it to the deviceList hashtable and increase the
                             // NumberOfDevices count
-                            if (!deviceList.Contains(rid.hDevice) && IsKeyboardDevice)
+                            //if (!deviceList.Contains(hDevice) && IsKeyboardDevice)
+                            if (!deviceList.Contains(hDevice))
                             {
                                 NumberOfDevices++;
-                                deviceList.Add(rid.hDevice, dInfo);
+                                deviceList.Add(hDevice, dInfo);
                             }
                         }
                         Marshal.FreeHGlobal(pData);
@@ -1359,63 +1373,6 @@ namespace RawInput
 
         #endregion EnumerateDevices()
 
-        public void ProcessBuffer()
-        {
-            uint dwSize = 0;
-
-            GetRawInputBuffer(IntPtr.Zero, ref dwSize, (uint)Marshal.SizeOf(typeof(RAWINPUTHEADER)));
-
-            if (dwSize == 0)
-            {
-                //Debug.WriteLine("No input events waiting");
-                return;
-            }
-
-            IntPtr buffer = Marshal.AllocHGlobal((int)dwSize);
-            try
-            {
-                if (buffer == IntPtr.Zero)
-                    return;
-
-                uint size = GetRawInputBuffer(buffer, ref dwSize, (uint)Marshal.SizeOf(typeof(RAWINPUTHEADER)));
-                if (size != dwSize)
-                    return;
-
-                RAWINPUT raw = (RAWINPUT)Marshal.PtrToStructure(buffer, typeof(RAWINPUT));
-
-                DeviceInfo dInfo = null;
-
-                if (deviceList.Contains(raw.header.hDevice))
-                {
-                    dInfo = (DeviceInfo)deviceList[raw.header.hDevice];
-                }
-                if (dInfo == null)
-                {
-                    string errMessage = String.Format("Handle :{0} was not in hashtable. The device may support more than one handle or usage page, and is probably not a standard keyboard.", raw.header.hDevice);
-                    throw new ApplicationException(errMessage);
-                }
-
-                //Debug.WriteLine("input: " + dInfo.Name);
-                //Debug.WriteLine(string.Format("  {0,8} {1,8} {2,16} | {3,4} {4,4} {5,4} ({6,4}) {7,8} {8,8}",
-                //    raw.header.hDevice,
-                //    raw.header.dwType,
-                //    raw.header.wParam,
-                //    raw.data.keyboard.MakeCode,
-                //    raw.data.keyboard.Flags,
-                //    raw.data.keyboard.Reserved,
-                //    raw.data.keyboard.VKey,
-                //    raw.data.keyboard.Message,
-                //    raw.data.keyboard.ExtraInformation));
-
-
-            }
-            finally
-            {
-                Marshal.FreeHGlobal(buffer);
-            }
-
-        }
-
         #region ProcessInputCommand( Message message )
         
         /// <summary>
@@ -1436,6 +1393,9 @@ namespace RawInput
                              RID_INPUT, IntPtr.Zero, 
                              ref dwSize, 
                              (uint)Marshal.SizeOf( typeof( RAWINPUTHEADER )));
+
+            if (dwSize == 0)
+                return;
 
             IntPtr buffer = Marshal.AllocHGlobal( (int)dwSize );
             try
@@ -1461,7 +1421,7 @@ namespace RawInput
                     //{
                     //    bytes[offset] = Marshal.ReadByte(buffer, offset);
                     //}
-                    //Debug.WriteLine(ByteArrayToHexString(bytes));
+                    //Debug.WriteLine(Environment.NewLine + ByteArrayToHexString(bytes));
 
                     // Retrieve information about the device and the
                     // key that was pressed.
@@ -1475,6 +1435,7 @@ namespace RawInput
                     {
                         string errMessage = String.Format("Handle :{0} was not in hashtable. The device may support more than one handle or usage page, and is probably not a standard keyboard.", raw.header.hDevice);
                         //throw new ApplicationException(errMessage);
+                        Debug.WriteLine(errMessage);
                         return;
                     }
 
@@ -1485,7 +1446,7 @@ namespace RawInput
                     }
 
 
-                    if (raw.header.dwType != DeviceType.Mouse)
+                    if (raw.header.dwType == DeviceType.Keyboard)
                     {
                         //Debug.WriteLine("input: " + dInfo.Name);
                         //Debug.WriteLine(string.Format("  {0,8} {1,8} {2,16} | {3,4} {4,4} {5,4} ({6,4}) {7} {8,8}",
@@ -1517,7 +1478,11 @@ namespace RawInput
                             }
 
                             Keys myKey;
-                            myKey = (Keys)Enum.Parse(typeof(Keys), Enum.GetName(typeof(Keys), key));
+                            string name = Enum.GetName(typeof(Keys), key);
+                            if (name != null)
+                                myKey = (Keys)Enum.Parse(typeof(Keys), name);
+                            else
+                                myKey = (Keys)key;
                             //dInfo.vKey = myKey.ToString();
                             dInfo.keys = myKey;
 

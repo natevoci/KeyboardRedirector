@@ -1,9 +1,17 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 9.00
 # Visual Studio 2005
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RawInput", "RawInput.csproj", "{90F3D697-BCE4-46E1-BD22-78B10CE6AB8A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KeyboardRedirector", "KeyboardRedirector.csproj", "{90F3D697-BCE4-46E1-BD22-78B10CE6AB8A}"
+	ProjectSection(WebsiteProperties) = preProject
+		Debug.AspNetCompiler.Debug = "True"
+		Release.AspNetCompiler.Debug = "False"
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "KeyboardHook", "KeyboardHook\KeyboardHook.vcproj", "{80DB73B0-F170-434B-BAE2-330D74A9D717}"
+	ProjectSection(WebsiteProperties) = preProject
+		Debug.AspNetCompiler.Debug = "True"
+		Release.AspNetCompiler.Debug = "False"
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

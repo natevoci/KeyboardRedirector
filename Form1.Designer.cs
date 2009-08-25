@@ -251,6 +251,7 @@ namespace RawInput
             this.richTextBoxList.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
                         | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
+            this.richTextBoxList.DetectUrls = false;
             this.richTextBoxList.Location = new System.Drawing.Point(20, 224);
             this.richTextBoxList.Name = "richTextBoxList";
             this.richTextBoxList.Size = new System.Drawing.Size(593, 227);
