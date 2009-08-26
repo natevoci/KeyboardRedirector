@@ -13,6 +13,7 @@ namespace KeyboardRedirector
         InputDevice _inputDevice;
         List<DeviceInformation> _keyboards;
         List<KeyToHookInformation> _keysToHook;
+        Dictionary<string, Keys> _keyModifiers;
 
         class DeviceInformation
         {
@@ -45,6 +46,7 @@ namespace KeyboardRedirector
         {
             _keyboards = new List<DeviceInformation>();
             _keysToHook = new List<KeyToHookInformation>();
+            _keyModifiers = new Dictionary<string, Keys>();
 
             InitializeComponent();
             treeViewKeys.Nodes.Clear();
@@ -64,9 +66,14 @@ namespace KeyboardRedirector
                 this.ShowInTaskbar = false;
             }
 
-            bool result = KeyboardHook.SetHook(this);
-            if (result == false)
-                richTextBoxEvents.AppendText("Failed to set hook" + Environment.NewLine);
+            // Only start the keyboard hook if we're not debugging.
+            string exeFilename = System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName;
+            if (exeFilename.EndsWith(".vshost.exe") == false)
+            {
+                bool result = KeyboardHook.SetHook(this);
+                if (result == false)
+                    richTextBoxEvents.AppendText("Failed to set hook" + Environment.NewLine);
+            }
         }
 
         private void KeyboardRedirectorForm_FormClosing(object sender, FormClosingEventArgs e)
@@ -213,17 +220,53 @@ namespace KeyboardRedirector
         {
             if (rawInput.header.dwType == InputDevice.DeviceType.Keyboard)
             {
-                {
-                    Keys key = (Keys)rawInput.data.keyboard.VKey;
-                    string text = string.Format("{0} 0x{1:x}({2}) 0x{3:x} {4}",
-                        rawInput.header.dwType,
-                        rawInput.data.keyboard.VKey,
-                        key,
-                        rawInput.data.keyboard.MakeCode,
-                        rawInput.data.keyboard.Message);
+                Keys key = (Keys)rawInput.data.keyboard.VKey;
+                bool keyDown = ((rawInput.data.keyboard.Message == Win32.WindowsMessage.KEYDOWN) ||
+                                (rawInput.data.keyboard.Message == Win32.WindowsMessage.SYSKEYDOWN));
 
-                    System.Diagnostics.Debug.WriteLine("WM_INPUT: 0x" + dInfo.DeviceHandle.ToInt32().ToString("x8") + " " + text);
+                string text = string.Format("{0} 0x{1:x}({2}) 0x{3:x} 0x{4:x} 0x{5:x} {6}",
+                    rawInput.header.dwType,
+                    rawInput.data.keyboard.VKey,
+                    key,
+                    rawInput.data.keyboard.MakeCode,
+                    rawInput.data.keyboard.Flags,
+                    rawInput.data.keyboard.ExtraInformation,
+                    rawInput.data.keyboard.Message);
+
+                System.Diagnostics.Debug.WriteLine("WM_INPUT: 0x" + dInfo.DeviceHandle.ToInt32().ToString("x8") + " " + text);
+
+                if (_keyModifiers.ContainsKey(dInfo.DeviceName) == false)
+                {
+                    _keyModifiers.Add(dInfo.DeviceName, Keys.None);
                 }
+                Keys modifiers = _keyModifiers[dInfo.DeviceName];
+
+                if ((key == Keys.ShiftKey) || (key == Keys.LShiftKey) || (key == Keys.RShiftKey))
+                {
+                    if (keyDown)
+                        _keyModifiers[dInfo.DeviceName] |= Keys.Shift;
+                    else
+                        _keyModifiers[dInfo.DeviceName] &= ~Keys.Shift;
+                    return;
+                }
+                if ((key == Keys.ControlKey) || (key == Keys.LControlKey) || (key == Keys.RControlKey))
+                {
+                    if (keyDown)
+                        _keyModifiers[dInfo.DeviceName] |= Keys.Control;
+                    else
+                        _keyModifiers[dInfo.DeviceName] &= ~Keys.Control;
+                    return;
+                }
+                if ((key == Keys.Menu) || (key == Keys.LMenu) || (key == Keys.RMenu))
+                {
+                    if (keyDown)
+                        _keyModifiers[dInfo.DeviceName] |= Keys.Alt;
+                    else
+                        _keyModifiers[dInfo.DeviceName] &= ~Keys.Alt;
+                    return;
+                }
+
+                key |= modifiers;
 
                 if (richTextBoxKeyDetector.Focused)
                 {
@@ -232,7 +275,8 @@ namespace KeyboardRedirector
                         _keysToHook.Add(new KeyToHookInformation(rawInput.data.keyboard.VKey));
                     }
 
-                    AddAndSelectKey(dInfo.DeviceName, rawInput.data.keyboard.VKey);
+                    if (keyDown)
+                        AddAndSelectKey(dInfo.DeviceName, key);
 
                     return;
                 }
@@ -249,12 +293,12 @@ namespace KeyboardRedirector
                                 _keysToHook.Add(new KeyToHookInformation(rawInput.data.keyboard.VKey));
                             }
                         }
-                        else
+                        else if (keyDown)
                         {
-                            SettingsKeyboardKey key = keyboard.FindKey(rawInput.data.keyboard.VKey);
-                            if (key != null)
+                            SettingsKeyboardKey settingsKey = keyboard.FindKey(key);
+                            if (settingsKey != null)
                             {
-                                if (key.Capture)
+                                if (settingsKey.Capture)
                                 {
                                     lock (_keysToHook)
                                     {
@@ -354,7 +398,7 @@ namespace KeyboardRedirector
                         else
                         {
                             // No key node. We'll create one.
-                            keyNode = new TreeNode("0x" + key.VirtualKeyCode.ToString("x2") + " - " + key.Name);
+                            keyNode = new TreeNode(key.ToString());
                             keyNode.Tag = key;
 
                             bool expand = (keyboardNode.Nodes.Count == 0);
@@ -364,7 +408,7 @@ namespace KeyboardRedirector
                         }
 
                         // Update node data
-                        keyNode.Text = "0x" + key.VirtualKeyCode.ToString("x2") + " - " + key.Name;
+                        keyNode.Text = key.ToString();
                         imageIndex = 2;
                         if (key.Capture)
                             imageIndex = 3;
@@ -416,33 +460,34 @@ namespace KeyboardRedirector
             return null;
         }
 
-        private void AddAndSelectKey(string deviceName, ushort VirtualKeyCode)
+        private void AddAndSelectKey(string deviceName, Keys KeyCode)
         {
             SettingsKeyboard keyboard = Settings.Current.FindKeyboardByDeviceName(deviceName);
             if (keyboard == null)
                 return;
 
-            SettingsKeyboardKey key = keyboard.FindKey(VirtualKeyCode);
-            if (key != null)
+            lock (treeViewKeys)
             {
-                lock (treeViewKeys)
+                TreeNode keyboardNode = FindTreeNode(keyboard, treeViewKeys.Nodes, false);
+                if (keyboardNode == null)
+                    return;
+
+                SettingsKeyboardKey key = keyboard.FindKey(KeyCode);
+                if (key != null)
                 {
-                    TreeNode node = FindTreeNode(key, treeViewKeys.Nodes, true);
+                    TreeNode node = FindTreeNode(key, keyboardNode.Nodes, true);
                     if (node != null)
                         treeViewKeys.SelectedNode = node;
                 }
-            }
-            else
-            {
-                key = new SettingsKeyboardKey(VirtualKeyCode);
-                keyboard.Keys.Add(key);
-                Settings.Save();
-
-                lock (treeViewKeys)
+                else
                 {
+                    key = new SettingsKeyboardKey(KeyCode);
+                    keyboard.Keys.Add(key);
+                    Settings.Save();
+
                     RefreshTreeView();
 
-                    TreeNode node = FindTreeNode(key, treeViewKeys.Nodes, true);
+                    TreeNode node = FindTreeNode(key, keyboardNode.Nodes, true);
                     if (node != null)
                         treeViewKeys.SelectedNode = node;
                 }
@@ -486,7 +531,7 @@ namespace KeyboardRedirector
                 panelKeyProperties.Visible = true;
 
                 StringBuilder details = new StringBuilder();
-                details.AppendLine("Virtual Key Code: 0x" + key.VirtualKeyCode.ToString("x2"));
+                details.AppendLine("Key Code: " + key.KeyCode.ToString("x6") + " - " + key.Keys.ToString());
 
                 labelKeyDetails.Text = details.ToString();
                 textBoxKeyName.Text = key.Name;
@@ -580,7 +625,7 @@ namespace KeyboardRedirector
                     SettingsKeyboardKey key = node.Tag as SettingsKeyboardKey;
                     if (keyboard != null)
                     {
-                        DialogResult result = MessageBox.Show(this, "Are you sure you want to delete this keyboard?" + Environment.NewLine + keyboard.Name, "Confirm Delete", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2);
+                        DialogResult result = MessageBox.Show(this, "Are you sure you want to delete this keyboard?" + Environment.NewLine + keyboard.Name, "Confirm Delete", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1);
                         if (result != DialogResult.Yes)
                             return;
                         Settings.Current.Keyboards.Remove(keyboard);
@@ -589,7 +634,7 @@ namespace KeyboardRedirector
                     }
                     else if (key != null)
                     {
-                        DialogResult result = MessageBox.Show(this, "Are you sure you want to delete this key?" + Environment.NewLine + key.Name, "Confirm Delete", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2);
+                        DialogResult result = MessageBox.Show(this, "Are you sure you want to delete this key?" + Environment.NewLine + key.Name, "Confirm Delete", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1);
                         if (result != DialogResult.Yes)
                             return;
                         keyboard = node.Parent.Tag as SettingsKeyboard;
@@ -600,6 +645,12 @@ namespace KeyboardRedirector
 
                 }
             }
+        }
+
+        private void richTextBoxKeyDetector_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Menu)
+                e.Handled = true;
         }
 
     }

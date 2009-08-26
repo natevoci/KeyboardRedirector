@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Runtime.InteropServices;
+using System.Windows.Forms;
 
 namespace KeyboardRedirector
 {
@@ -924,6 +926,20 @@ namespace KeyboardRedirector
             /// </summary>
             SYSTIMER = 0x118
         }
+
+
+        // Import GetFocus() from user32.dll
+        [DllImport("user32.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.Winapi)]
+        internal static extern IntPtr GetFocus();
+
+        public static Control GetFocusControl()
+        {
+            Control focusControl = null;
+            IntPtr focusHandle = GetFocus();
+            if (focusHandle != IntPtr.Zero)
+                focusControl = Control.FromHandle(focusHandle);
+            return focusControl;
+        } 
 
     }
 }

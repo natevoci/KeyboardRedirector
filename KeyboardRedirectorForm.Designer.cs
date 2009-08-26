@@ -129,6 +129,7 @@ namespace KeyboardRedirector
             // 
             // richTextBoxKeyDetector
             // 
+            this.richTextBoxKeyDetector.AcceptsTab = true;
             this.richTextBoxKeyDetector.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
             this.richTextBoxKeyDetector.Font = new System.Drawing.Font("Verdana", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
@@ -137,6 +138,7 @@ namespace KeyboardRedirector
             this.richTextBoxKeyDetector.Size = new System.Drawing.Size(285, 29);
             this.richTextBoxKeyDetector.TabIndex = 1;
             this.richTextBoxKeyDetector.Text = "Type here to detect keys";
+            this.richTextBoxKeyDetector.KeyDown += new System.Windows.Forms.KeyEventHandler(this.richTextBoxKeyDetector_KeyDown);
             // 
             // treeViewKeys
             // 

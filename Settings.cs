@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Windows.Forms;
+using System.Xml.Serialization;
 
 namespace KeyboardRedirector
 {
@@ -56,11 +58,11 @@ namespace KeyboardRedirector
 
         public List<SettingsKeyboardKey> Keys = new List<SettingsKeyboardKey>();
 
-        public SettingsKeyboardKey FindKey(ushort VirtualKeyCode)
+        public SettingsKeyboardKey FindKey(Keys KeyCode)
         {
             foreach (SettingsKeyboardKey key in Keys)
             {
-                if (key.VirtualKeyCode == VirtualKeyCode)
+                if (key.Keys == KeyCode)
                     return key;
             }
             return null;
@@ -83,7 +85,21 @@ namespace KeyboardRedirector
 
     public class SettingsKeyboardKey
     {
-        public uint VirtualKeyCode = 0x00;
+        private uint _keyCode = 0;
+
+        public uint KeyCode
+        {
+            get { return _keyCode; }
+            set { _keyCode = value; }
+        }
+
+        [XmlIgnore()]
+        public Keys Keys
+        {
+            get { return (Keys)_keyCode; }
+            set { _keyCode = (uint)value; }
+        }
+
         public bool Capture = false;
         public string Name = "";
 
@@ -91,28 +107,27 @@ namespace KeyboardRedirector
         {
         }
 
-        public SettingsKeyboardKey(uint VirtualKeyCode)
+        public SettingsKeyboardKey(Keys KeyCode)
         {
-            this.VirtualKeyCode = VirtualKeyCode;
-            System.Windows.Forms.Keys key = (System.Windows.Forms.Keys)VirtualKeyCode;
-            Name = key.ToString();
+            this.Keys = KeyCode;
+            Name = KeyCode.ToString();
         }
 
         public override bool Equals(object obj)
         {
             SettingsKeyboardKey objTyped = obj as SettingsKeyboardKey;
-            return ((objTyped != null) && (VirtualKeyCode == objTyped.VirtualKeyCode));
+            return ((objTyped != null) && (Keys == objTyped.Keys));
         }
         public override int GetHashCode()
         {
-            return VirtualKeyCode.GetHashCode();
+            return Keys.GetHashCode();
         }
         public override string ToString()
         {
             if (Name.Length == 0)
-                return "0x" + VirtualKeyCode.ToString("x2");
+                return "0x" + KeyCode.ToString("x6");
             else
-                return "0x" + VirtualKeyCode.ToString("x2") + " - " + Name;
+                return "0x" + KeyCode.ToString("x6") + " - " + Name;
         }
     }
 
