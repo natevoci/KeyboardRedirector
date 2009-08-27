@@ -51,7 +51,9 @@ namespace KeyboardRedirector
             InitializeComponent();
             treeViewKeys.Nodes.Clear();
             panelKeyboardProperties.Location = new Point(3, 3);
+            panelKeyboardProperties.Size = new Size(panelKeyboardProperties.Parent.Size.Width - 6, panelKeyboardProperties.Parent.Size.Height - 6);
             panelKeyProperties.Location = new Point(3, 3);
+            panelKeyProperties.Size = new Size(panelKeyProperties.Parent.Size.Width - 6, panelKeyProperties.Parent.Size.Height - 6);
 
             _inputDevice = new InputDevice(Handle);
             _inputDevice.DeviceEvent += new InputDevice.DeviceEventHandler(InputDevice_DeviceEvent);
@@ -60,12 +62,6 @@ namespace KeyboardRedirector
 
             NotifyIcon.ContextMenuStrip = contextMenuStripNotifyIcon;
 
-            if (Settings.Current.MinimizeOnStart)
-            {
-                SendToTray();
-                this.ShowInTaskbar = false;
-            }
-
             // Only start the keyboard hook if we're not debugging.
             string exeFilename = System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName;
             if (exeFilename.EndsWith(".vshost.exe") == false)
@@ -73,6 +69,18 @@ namespace KeyboardRedirector
                 bool result = KeyboardHook.SetHook(this);
                 if (result == false)
                     richTextBoxEvents.AppendText("Failed to set hook" + Environment.NewLine);
+            }
+
+            timerMinimiseOnStart.Start();
+        }
+
+        private void timerMinimiseOnStart_Tick(object sender, EventArgs e)
+        {
+            timerMinimiseOnStart.Stop();
+            if (Settings.Current.MinimizeOnStart)
+            {
+                checkBoxMinimiseOnStart.Checked = Settings.Current.MinimizeOnStart;
+                SendToTray();
             }
         }
 
@@ -654,33 +662,42 @@ namespace KeyboardRedirector
             {
                 if (e.KeyCode == Keys.Delete)
                 {
-                    TreeNode node = treeViewKeys.SelectedNode;
-                    if (node == null)
-                        return;
-
-                    SettingsKeyboard keyboard = node.Tag as SettingsKeyboard;
-                    SettingsKeyboardKey key = node.Tag as SettingsKeyboardKey;
-                    if (keyboard != null)
-                    {
-                        DialogResult result = MessageBox.Show(this, "Are you sure you want to delete this keyboard?" + Environment.NewLine + keyboard.Name, "Confirm Delete", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1);
-                        if (result != DialogResult.Yes)
-                            return;
-                        Settings.Current.Keyboards.Remove(keyboard);
-                        Settings.Save();
-                        RefreshTreeView();
-                    }
-                    else if (key != null)
-                    {
-                        DialogResult result = MessageBox.Show(this, "Are you sure you want to delete this key?" + Environment.NewLine + key.Name, "Confirm Delete", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1);
-                        if (result != DialogResult.Yes)
-                            return;
-                        keyboard = node.Parent.Tag as SettingsKeyboard;
-                        keyboard.Keys.Remove(key);
-                        Settings.Save();
-                        RefreshTreeView();
-                    }
-
+                    DeleteSelectedTreeViewEvent();
                 }
+            }
+        }
+
+        private void deleteToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            DeleteSelectedTreeViewEvent();
+        }
+
+        private void DeleteSelectedTreeViewEvent()
+        {
+            TreeNode node = treeViewKeys.SelectedNode;
+            if (node == null)
+                return;
+
+            SettingsKeyboard keyboard = node.Tag as SettingsKeyboard;
+            SettingsKeyboardKey key = node.Tag as SettingsKeyboardKey;
+            if (keyboard != null)
+            {
+                DialogResult result = MessageBox.Show(this, "Are you sure you want to delete this keyboard?" + Environment.NewLine + keyboard.Name, "Confirm Delete", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1);
+                if (result != DialogResult.Yes)
+                    return;
+                Settings.Current.Keyboards.Remove(keyboard);
+                Settings.Save();
+                RefreshTreeView();
+            }
+            else if (key != null)
+            {
+                DialogResult result = MessageBox.Show(this, "Are you sure you want to delete this key?" + Environment.NewLine + key.Name, "Confirm Delete", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1);
+                if (result != DialogResult.Yes)
+                    return;
+                keyboard = node.Parent.Tag as SettingsKeyboard;
+                keyboard.Keys.Remove(key);
+                Settings.Save();
+                RefreshTreeView();
             }
         }
 
@@ -729,6 +746,24 @@ namespace KeyboardRedirector
                 RefreshTreeView();
             }
 
+        }
+
+        private void treeViewKeys_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Right)
+            {
+                TreeNode node = treeViewKeys.GetNodeAt(e.Location);
+                treeViewKeys.SelectedNode = node;
+            }
+        }
+
+        private void checkBoxMinimiseOnStart_CheckedChanged(object sender, EventArgs e)
+        {
+            if (Settings.Current.MinimizeOnStart != checkBoxMinimiseOnStart.Checked)
+            {
+                Settings.Current.MinimizeOnStart = checkBoxMinimiseOnStart.Checked;
+                Settings.Save();
+            }
         }
 
     }
