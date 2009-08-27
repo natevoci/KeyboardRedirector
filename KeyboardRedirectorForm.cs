@@ -286,6 +286,9 @@ namespace KeyboardRedirector
                     SettingsKeyboard keyboard = Settings.Current.FindKeyboardByDeviceName(dInfo.DeviceName);
                     if (keyboard != null)
                     {
+                        SettingsKeyboardKey settingsKey = keyboard.FindKey(key);
+
+                        // Intercept key if we need to
                         if (keyboard.CaptureAllKeys)
                         {
                             lock (_keysToHook)
@@ -293,17 +296,50 @@ namespace KeyboardRedirector
                                 _keysToHook.Add(new KeyToHookInformation(rawInput.data.keyboard.VKey));
                             }
                         }
-                        else if (keyDown)
+                        else if (keyDown && (settingsKey != null) && settingsKey.Capture)
                         {
-                            SettingsKeyboardKey settingsKey = keyboard.FindKey(key);
-                            if (settingsKey != null)
+                            lock (_keysToHook)
                             {
-                                if (settingsKey.Capture)
+                                _keysToHook.Add(new KeyToHookInformation(rawInput.data.keyboard.VKey));
+                            }
+                        }
+
+                        // Perform action if we need to
+                        if (keyDown && (settingsKey != null))
+                        {
+                            if (settingsKey.LaunchApplication.Length > 0)
+                            {
+                                try
                                 {
-                                    lock (_keysToHook)
+                                    richTextBoxEvents.AppendText("Launching application: " + settingsKey.LaunchApplication + Environment.NewLine);
+
+                                    string exe = settingsKey.LaunchApplication.Trim();
+                                    string args = "";
+
+                                    if (exe[0] == '"')
                                     {
-                                        _keysToHook.Add(new KeyToHookInformation(rawInput.data.keyboard.VKey));
+                                        int endOfExeIndex = exe.IndexOf("\" ", 1);
+                                        if (endOfExeIndex != -1)
+                                        {
+                                            endOfExeIndex++;
+                                            args = exe.Substring(endOfExeIndex + 1).TrimStart();
+                                            exe = exe.Substring(0, endOfExeIndex);
+                                        }
                                     }
+                                    else
+                                    {
+                                        int endOfExeIndex = exe.IndexOf(" ");
+                                        if (endOfExeIndex != -1)
+                                        {
+                                            args = exe.Substring(endOfExeIndex + 1).TrimStart();
+                                            exe = exe.Substring(0, endOfExeIndex);
+                                        }
+                                    }
+
+                                    System.Diagnostics.Process.Start(exe, args);
+                                }
+                                catch (Exception)
+                                {
                                 }
                             }
                         }
@@ -535,6 +571,7 @@ namespace KeyboardRedirector
 
                 labelKeyDetails.Text = details.ToString();
                 textBoxKeyName.Text = key.Name;
+                textBoxLaunchApplication.Text = key.LaunchApplication;
 
                 checkBoxCaptureKey.Checked = key.Capture;
             }
@@ -651,6 +688,47 @@ namespace KeyboardRedirector
         {
             if (e.KeyCode == Keys.Menu)
                 e.Handled = true;
+        }
+
+        private void buttonLaunchAppBrowse_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog ofd = new OpenFileDialog();
+            ofd.Multiselect = false;
+            if (textBoxLaunchApplication.Text.Length > 0)
+            {
+                if (System.IO.Directory.Exists(textBoxLaunchApplication.Text))
+                {
+                    ofd.InitialDirectory = textBoxLaunchApplication.Text;
+                }
+                else if (System.IO.File.Exists(textBoxLaunchApplication.Text))
+                {
+                    ofd.FileName = textBoxLaunchApplication.Text;
+                }
+            }
+            DialogResult result = ofd.ShowDialog(this);
+            if (result == DialogResult.OK)
+            {
+                textBoxLaunchApplication.Text = ofd.FileName;
+            }
+        }
+
+        private void textBoxLaunchApplication_TextChanged(object sender, EventArgs e)
+        {
+            if (textBoxLaunchApplication.Text.Length == 0)
+                return;
+
+            TreeNode node = treeViewKeys.SelectedNode;
+            if (node == null)
+                return;
+
+            SettingsKeyboardKey key = node.Tag as SettingsKeyboardKey;
+            if (key != null)
+            {
+                key.LaunchApplication = textBoxLaunchApplication.Text;
+                Settings.Save();
+                RefreshTreeView();
+            }
+
         }
 
     }

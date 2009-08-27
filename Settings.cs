@@ -103,6 +103,8 @@ namespace KeyboardRedirector
         public bool Capture = false;
         public string Name = "";
 
+        public string LaunchApplication = "";
+
         public SettingsKeyboardKey()
         {
         }
