@@ -6,11 +6,11 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("KeyboardRedirector")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("Application to read keys from specific keyboards")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("KeyboardRedirector")]
-[assembly: AssemblyCopyright("")]
+[assembly: AssemblyCopyright("GPL")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

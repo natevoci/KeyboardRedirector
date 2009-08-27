@@ -403,9 +403,9 @@ namespace KeyboardRedirector
                         // Drop the "root" keyboard and mouse devices used for Terminal 
                         // Services and the Remote Desktop
                         if (deviceName.ToUpper().StartsWith(@"\\?\ROOT"))
-                        {
                             continue;
-                        }
+                        if (deviceName.ToUpper().StartsWith(@"\??\ROOT"))
+                            continue;
 
                         // If the device is identified in the list as a keyboard or 
                         // HID device, create a DeviceInfo object to store information 
