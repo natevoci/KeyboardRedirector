@@ -964,7 +964,48 @@ namespace KeyboardRedirector
             if (focusHandle != IntPtr.Zero)
                 focusControl = Control.FromHandle(focusHandle);
             return focusControl;
-        } 
+        }
+
+        [DllImport("User32")]
+        public static extern int SetForegroundWindow(IntPtr hwnd);
+
+        [DllImportAttribute("User32.DLL")]
+        public static extern bool ShowWindow(IntPtr hWnd, SW nCmdShow);
+        //public const int SW_SHOW = 5;
+        //public const int SW_MINIMIZE = 6;
+        //public const int SW_RESTORE = 9;
+
+        public enum SW : int
+        {
+            HIDE = 0,
+            SHOWNORMAL = 1,
+            NORMAL = 1,
+            SHOWMINIMIZED = 2,
+            SHOWMAXIMIZED = 3,
+            MAXIMIZE = 3,
+            SHOWNOACTIVATE = 4,
+            SHOW = 5,
+            MINIMIZE = 6,
+            SHOWMINNOACTIVE = 7,
+            SHOWNA = 8,
+            RESTORE = 9,
+            SHOWDEFAULT = 10,
+            FORCEMINIMIZE = 11
+        }
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        public static extern IntPtr SendMessage(IntPtr hWnd, UInt32 Msg, IntPtr wParam, IntPtr lParam);
+
+
+        [DllImport("user32.dll")]
+        public static extern int EnumWindows(EnumWindowsProc ewp, int lParam);
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
+        public delegate bool EnumWindowsProc(IntPtr hWnd, int lParam);
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        public static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
+
 
     }
 }

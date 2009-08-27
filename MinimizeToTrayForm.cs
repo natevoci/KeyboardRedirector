@@ -77,7 +77,10 @@ namespace KeyboardRedirector
             if (this.WindowState == FormWindowState.Minimized)
                 SendToTray();
             else
+            {
                 _previousWindowState = this.WindowState;
+                RestoreFromTray();
+            }
 
             base.OnResize(e);
         }
@@ -99,6 +102,8 @@ namespace KeyboardRedirector
                 this.WindowState = FormWindowState.Minimized;
             this._notifyIcon.Visible = true;
             this.Hide();
+            // Do not use ShowInTaskbar = false. It kills the WM_INPUT messages.
+            //this.ShowInTaskbar = false;
         }
 
         protected void RestoreFromTray()
@@ -106,7 +111,7 @@ namespace KeyboardRedirector
             if (_notifyIcon == null)
                 return;
 
-            this.ShowInTaskbar = true;
+            //this.ShowInTaskbar = true;
             this.Show();
             this.WindowState = _previousWindowState;
             this._notifyIcon.Visible = false;

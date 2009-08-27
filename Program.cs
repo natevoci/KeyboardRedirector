@@ -27,6 +27,8 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
+using System.Diagnostics;
+using System.Text;
 
 namespace KeyboardRedirector
 {
@@ -38,10 +40,78 @@ namespace KeyboardRedirector
         [STAThread]
         static void Main()
         {
+            if (IsThereAnInstanceOfThisProgramAlreadyRunning(true))
+            {
+                Application.Exit();
+                return;
+            }
+
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             //Application.Run(new Form1());
             Application.Run(new KeyboardRedirectorForm());
+        }
+
+        static bool IsThereAnInstanceOfThisProgramAlreadyRunning(bool activateThePreviousInstance)
+        {
+            Process thisProcess = Process.GetCurrentProcess();
+            Process[] processList = Process.GetProcessesByName(thisProcess.ProcessName);
+
+            if (processList.Length == 1)
+                return false; // There's just the current process.
+
+            if (activateThePreviousInstance)
+            {
+                foreach (Process process in processList)
+                {
+                    if (process.Id != thisProcess.Id)
+                    {
+                        // Activate the previous instance.
+                        List<IntPtr> windowHandles = ProcessWindowHandleObtainer.GetWindowHandle(process.Id);
+                        foreach (IntPtr handle in windowHandles)
+                        {
+                            StringBuilder windowText = new StringBuilder(260);
+                            Win32.GetWindowText(handle, windowText, 260);
+                            if (windowText.ToString() == "Keyboard Redirector")
+                            {
+                                Win32.ShowWindow(handle, Win32.SW.RESTORE);
+                                Win32.SetForegroundWindow(handle);
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+
+            return true;
+        }
+
+
+    }
+
+    class ProcessWindowHandleObtainer
+    {
+        public static List<IntPtr> GetWindowHandle(int processId)
+        {
+            ProcessWindowHandleObtainer obtainer = new ProcessWindowHandleObtainer();
+            obtainer._processId = (uint)processId;
+            Win32.EnumWindowsProc proc = new Win32.EnumWindowsProc(obtainer.EnumWindowsCallback);
+            Win32.EnumWindows(proc, 0);
+            return obtainer._windowHandles;
+        }
+
+        uint _processId = 0;
+        List<IntPtr> _windowHandles = new List<IntPtr>();
+
+        private bool EnumWindowsCallback(IntPtr hwnd, int lParam)
+        {
+            uint pid;
+            Win32.GetWindowThreadProcessId(hwnd, out pid);
+            if (pid == _processId)
+            {
+                _windowHandles.Add(hwnd);
+            }
+            return true;
         }
     }
 }
