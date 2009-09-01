@@ -36,40 +36,73 @@ namespace KeyboardRedirector
         private class KeyboardHook32
         {
             [DllImport("KeyboardHook32.dll", SetLastError = true)]
-            private static extern bool SetHook(IntPtr hwnd, uint message);
+            public static extern bool SetHook(IntPtr hwnd, uint message);
 
             [DllImport("KeyboardHook32.dll", SetLastError = true)]
-            private static extern bool ClearHook(IntPtr hwnd);
+            public static extern bool ClearHook(IntPtr hwnd);
 
             [DllImport("KeyboardHook32.dll", SetLastError = true)]
-            private static extern bool SetHook_LL(IntPtr hwnd, uint message);
+            public static extern bool SetHook_LL(IntPtr hwnd, uint message);
 
             [DllImport("KeyboardHook32.dll", SetLastError = true)]
-            private static extern bool ClearHook_LL(IntPtr hwnd);
+            public static extern bool ClearHook_LL(IntPtr hwnd);
         }
 
         private class KeyboardHook64
         {
             [DllImport("KeyboardHook64.dll", SetLastError = true)]
-            private static extern bool SetHook(IntPtr hwnd, uint message);
+            public static extern bool SetHook(IntPtr hwnd, uint message);
 
             [DllImport("KeyboardHook64.dll", SetLastError = true)]
-            private static extern bool ClearHook(IntPtr hwnd);
+            public static extern bool ClearHook(IntPtr hwnd);
 
             [DllImport("KeyboardHook64.dll", SetLastError = true)]
-            private static extern bool SetHook_LL(IntPtr hwnd, uint message);
+            public static extern bool SetHook_LL(IntPtr hwnd, uint message);
 
             [DllImport("KeyboardHook64.dll", SetLastError = true)]
-            private static extern bool ClearHook_LL(IntPtr hwnd);
+            public static extern bool ClearHook_LL(IntPtr hwnd);
         }
 
-        private static bool Is64Bit()
+        private static bool SetHook(IntPtr hwnd, uint message)
+        {
+            if (Is64Bit())
+                return KeyboardHook64.SetHook(hwnd, message);
+            else
+                return KeyboardHook32.SetHook(hwnd, message);
+        }
+
+        private static bool ClearHook(IntPtr hwnd)
+        {
+            if (Is64Bit())
+                return KeyboardHook64.ClearHook(hwnd);
+            else
+                return KeyboardHook32.ClearHook(hwnd);
+        }
+
+        private static bool SetHook_LL(IntPtr hwnd, uint message)
+        {
+            if (Is64Bit())
+                return KeyboardHook64.SetHook_LL(hwnd, message);
+            else
+                return KeyboardHook32.SetHook_LL(hwnd, message);
+        }
+
+        private static bool ClearHook_LL(IntPtr hwnd)
+        {
+            if (Is64Bit())
+                return KeyboardHook64.ClearHook_LL(hwnd);
+            else
+                return KeyboardHook32.ClearHook_LL(hwnd);
+        }
+
+        public static bool Is64Bit()
         {
             if (Marshal.SizeOf(typeof(IntPtr)) == 8)
                 return true;
 
             return false;
         }
+
 
         private uint _hookMessage;
         private Form _form;

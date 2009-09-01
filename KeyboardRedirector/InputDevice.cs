@@ -92,7 +92,7 @@ namespace KeyboardRedirector
         // The following structures are defined in Windows.h
 
         [StructLayout(LayoutKind.Sequential)]
-        internal struct RAWINPUTDEVICELIST
+        public struct RAWINPUTDEVICELIST
         {
             public IntPtr hDevice;
             [MarshalAs(UnmanagedType.U4)]
@@ -100,13 +100,13 @@ namespace KeyboardRedirector
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        internal struct RAWINPUT
+        public struct RAWINPUT
         {
             public RAWINPUTHEADER header;
             public RAWINPUTDATA data;
         }
         [StructLayout(LayoutKind.Explicit)]
-        internal struct RAWINPUTDATA
+        public struct RAWINPUTDATA
         {
             [FieldOffset(0)]
             public RAWMOUSE mouse;
@@ -117,7 +117,7 @@ namespace KeyboardRedirector
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        internal struct RAWINPUTHEADER
+        public struct RAWINPUTHEADER
         {
             [MarshalAs(UnmanagedType.U4)]
             public DeviceType dwType;
@@ -128,7 +128,7 @@ namespace KeyboardRedirector
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        internal struct RAWHID
+        public struct RAWHID
         {
             [MarshalAs(UnmanagedType.U4)]
             public int dwSizHid;
@@ -137,7 +137,7 @@ namespace KeyboardRedirector
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        internal struct BUTTONSSTR
+        public struct BUTTONSSTR
         {
             [MarshalAs(UnmanagedType.U2)]
             public ushort usButtonFlags;
@@ -146,7 +146,7 @@ namespace KeyboardRedirector
         }
 
         [StructLayout(LayoutKind.Explicit)]
-        internal struct RAWMOUSE
+        public struct RAWMOUSE
         {
             [MarshalAs(UnmanagedType.U2)]
             [FieldOffset(0)] 
@@ -167,7 +167,7 @@ namespace KeyboardRedirector
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        internal struct RAWKEYBOARD
+        public struct RAWKEYBOARD
         {
             [MarshalAs(UnmanagedType.U2)]
             public ushort MakeCode;
@@ -184,7 +184,7 @@ namespace KeyboardRedirector
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        internal struct RAWINPUTDEVICE
+        public struct RAWINPUTDEVICE
         {
             [MarshalAs(UnmanagedType.U2)]
             public ushort usUsagePage;

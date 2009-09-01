@@ -20,6 +20,7 @@
  */
 
 #include "stdafx.h"
+// #define KEYBOARDHOOK_EXPORTS  this is done in the project
 #include "KeyboardHook.h"
 
 #pragma data_seg(".KEYBOARDHOOK")
@@ -129,6 +130,7 @@ static LRESULT CALLBACK msghook(UINT nCode, WPARAM wParam, LPARAM lParam)
 	//KeyboardProcLParam l;
 	//memset(&l, 0, sizeof(l));
 	//l.lParam = (unsigned int)lParam;
+	OutputDebugString(L"msghook\n");
 
 	LRESULT result;
 	result = ::SendMessage(s_hWndServer, s_message, newWParam, lParam);

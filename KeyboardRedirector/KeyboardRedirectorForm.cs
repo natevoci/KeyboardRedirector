@@ -78,6 +78,7 @@ namespace KeyboardRedirector
             _keyModifiers = new Dictionary<string, Keys>();
 
             InitializeComponent();
+
             treeViewKeys.Nodes.Clear();
             panelKeyboardProperties.Location = new Point(3, 3);
             panelKeyboardProperties.Size = new Size(panelKeyboardProperties.Parent.Size.Width - 6, panelKeyboardProperties.Parent.Size.Height - 6);
@@ -103,8 +104,8 @@ namespace KeyboardRedirector
             _keyboardHookLowLevel.KeyDown += new KeyEventHandler(_keyboardHookLowLevel_KeyDown);
             _keyboardHookLowLevel.KeyUp += new KeyEventHandler(_keyboardHookLowLevel_KeyUp);
 
-            //_inputDevice = new InputDevice(Handle);
-            //_inputDevice.DeviceEvent += new InputDevice.DeviceEventHandler(InputDevice_DeviceEvent);
+            _inputDevice = new InputDevice(Handle);
+            _inputDevice.DeviceEvent += new InputDevice.DeviceEventHandler(InputDevice_DeviceEvent);
 
             RefreshDevices();
 
@@ -112,11 +113,12 @@ namespace KeyboardRedirector
 
             // Only start the keyboard hook if we're not debugging.
             string exeFilename = System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName;
-            if (exeFilename.EndsWith(".vshost.exe") == false)
+            //if (exeFilename.EndsWith(".vshost.exe") == false)
+            if (false)
             {
                 bool result = _keyboardHook.SetHook();
                 if (result == false)
-                    richTextBoxEvents.AppendText("Failed to set hook" + Environment.NewLine);
+                    DebugWrite("Failed to set hook" + Environment.NewLine);
             }
 
             timerMinimiseOnStart.Start();
@@ -196,6 +198,12 @@ namespace KeyboardRedirector
             }
         }
 
+        private void DebugWrite(string message)
+        {
+            System.Diagnostics.Debug.Write(message);
+            richTextBoxEvents.AppendText(message);
+        }
+
         protected override void WndProc(ref Message message)
         {
             //System.Diagnostics.Debug.WriteLine(message.ToString());
@@ -213,23 +221,31 @@ namespace KeyboardRedirector
                 _inputDevice.ProcessMessage(message);
             }
 
+            if ((_keyboardHook != null) && (message.Msg == _keyboardHook.HookMessage + 1))
+            {
+                DebugWrite(message.ToString() + Environment.NewLine);
+            }
+
             if ((_keyboardHook != null) && (message.Msg == _keyboardHook.HookMessage))
             {
                 uint wParam = (uint)message.WParam.ToInt32();
                 bool peekMessage = ((wParam >> 31) != 0);
                 wParam = wParam & 0x7FFFFFFF;
 
-                Win32.KeyboardParams parameters = new Win32.KeyboardParams(message.LParam.ToInt32());
-                //System.Diagnostics.Debug.WriteLine(
-                //    "HookMsg: " + (peekMessage ? "Peek" : "    ") +
-                //    " wparam=0x" + wParam.ToString("x") + " (" + ((Keys)wParam).ToString() + ")" +
-                //    " repeatCount=0x" + parameters.repeatCount.ToString("x") +
-                //    " scanCode=0x" + parameters.scanCode.ToString("x") +
-                //    " transitionState=" + parameters.transitionState.ToString() +
-                //    " extendedKey=" + parameters.extendedKey.ToString() +
-                //    " contextCode=" + parameters.contextCode.ToString() +
-                //    " previousKeyState=" + parameters.previousKeyState.ToString()
-                //    );
+                long lParam = message.LParam.ToInt64();
+                Win32.KeyboardParams parameters = new Win32.KeyboardParams(((int)(lParam & 0xFFFFFFFF)));
+                //System.Diagnostics.Debug.Write(
+                DebugWrite(
+                    "HookMsg: " + (peekMessage ? "Peek" : "    ") +
+                    " wparam=0x" + wParam.ToString("x") + " (" + ((Keys)wParam).ToString() + ")" +
+                    " repeatCount=0x" + parameters.repeatCount.ToString("x") +
+                    " scanCode=0x" + parameters.scanCode.ToString("x") +
+                    " transitionState=" + parameters.transitionState.ToString() +
+                    " extendedKey=" + parameters.extendedKey.ToString() +
+                    " contextCode=" + parameters.contextCode.ToString() +
+                    " previousKeyState=" + parameters.previousKeyState.ToString() +
+                    Environment.NewLine
+                    );
 
                 bool block = false;
                 lock (_keysToHook)
@@ -250,6 +266,9 @@ namespace KeyboardRedirector
                     }
                 }
 
+                //DEBUG: Disable blocking for testing purposes.
+                block = false;
+
                 if (block)
                 {
                     System.Diagnostics.Debug.WriteLine(
@@ -266,8 +285,6 @@ namespace KeyboardRedirector
                     message.Result = new IntPtr(-1);
                     return;
                 }
-
-                return;
             }
 
             if (message.Msg == (int)Win32.WM.DEVICECHANGE)
@@ -280,11 +297,11 @@ namespace KeyboardRedirector
 
         void _keyboardHookLowLevel_KeyDown(object sender, KeyEventArgs e)
         {
-            System.Diagnostics.Debug.WriteLine("LL Down  : 0x" + e.KeyValue.ToString("x8") + " " + e.ToString());
+            DebugWrite("LL Down  : 0x" + e.KeyValue.ToString("x8") + " " + e.KeyCode.ToString() + Environment.NewLine);
         }
         void _keyboardHookLowLevel_KeyUp(object sender, KeyEventArgs e)
         {
-            System.Diagnostics.Debug.WriteLine("LL Up  : 0x" + e.KeyValue.ToString("x8") + " " + e.ToString());
+            DebugWrite("LL Up    : 0x" + e.KeyValue.ToString("x8") + " " + e.KeyCode.ToString() + Environment.NewLine);
         }
 
         void InputDevice_DeviceEvent(object sender, InputDevice.DeviceInfo dInfo, InputDevice.RAWINPUT rawInput)
@@ -304,7 +321,7 @@ namespace KeyboardRedirector
                     rawInput.data.keyboard.ExtraInformation,
                     rawInput.data.keyboard.Message);
 
-                System.Diagnostics.Debug.WriteLine("WM_INPUT: 0x" + dInfo.DeviceHandle.ToInt32().ToString("x8") + " " + text);
+                DebugWrite("WM_INPUT: 0x" + dInfo.DeviceHandle.ToInt32().ToString("x8") + " " + text + Environment.NewLine);
 
                 if (_keyModifiers.ContainsKey(dInfo.DeviceName) == false)
                 {
