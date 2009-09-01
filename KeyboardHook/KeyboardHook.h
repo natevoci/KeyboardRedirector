@@ -45,6 +45,9 @@ extern "C" {
 KEYBOARDHOOK_API BOOL SetHook(HWND hWnd, UINT message);
 KEYBOARDHOOK_API BOOL ClearHook(HWND hWnd);
 
+KEYBOARDHOOK_API BOOL SetHook_LL(HWND hWnd, UINT message);
+KEYBOARDHOOK_API BOOL ClearHook_LL(HWND hWnd);
+
 #ifdef __cplusplus
 }
 #endif

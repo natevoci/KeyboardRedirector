@@ -28,17 +28,20 @@ using System.Collections.Generic;
 using System.Text;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
+using System.Management;
 
 namespace KeyboardRedirector
 {
     class Win32
     {
+        #region Message Handling
+
         /// <summary>
         /// Windows Messages
         /// Defined in winuser.h from Windows SDK v6.1
         /// Documentation pulled from MSDN.
         /// </summary>
-        public enum WindowsMessage : uint
+        public enum WM : uint
         {
             /// <summary>
             /// The WM_NULL message performs no operation. An application sends the WM_NULL message if it wants to post a message that the recipient window will ignore.
@@ -139,7 +142,7 @@ namespace KeyboardRedirector
             /// An application sends the WM_WININICHANGE message to all top-level windows after making a change to the WIN.INI file. The SystemParametersInfo function sends this message after an application uses the function to change a setting in WIN.INI.
             /// Note  The WM_WININICHANGE message is provided only for compatibility with earlier versions of the system. Applications should use the WM_SETTINGCHANGE message.
             /// </summary>
-            SETTINGCHANGE = WindowsMessage.WININICHANGE,
+            SETTINGCHANGE = WM.WININICHANGE,
             /// <summary>
             /// The WM_DEVMODECHANGE message is sent to all top-level windows whenever the user changes device-mode settings. 
             /// </summary>
@@ -952,6 +955,12 @@ namespace KeyboardRedirector
             SYSTIMER = 0x118
         }
 
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        public static extern IntPtr SendMessage(IntPtr hWnd, UInt32 Msg, IntPtr wParam, IntPtr lParam);
+
+        #endregion
+
+        #region Window Handling
 
         // Import GetFocus() from user32.dll
         [DllImport("user32.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.Winapi)]
@@ -993,10 +1002,6 @@ namespace KeyboardRedirector
             FORCEMINIMIZE = 11
         }
 
-        [DllImport("user32.dll", CharSet = CharSet.Auto)]
-        public static extern IntPtr SendMessage(IntPtr hWnd, UInt32 Msg, IntPtr wParam, IntPtr lParam);
-
-
         [DllImport("user32.dll")]
         public static extern int EnumWindows(EnumWindowsProc ewp, int lParam);
         [DllImport("user32.dll", SetLastError = true)]
@@ -1006,6 +1011,210 @@ namespace KeyboardRedirector
         [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         public static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
 
+        
+        [DllImport("user32.dll")]
+        public static extern IntPtr WindowFromPoint(System.Drawing.Point Point);
+
+        [DllImport("user32.dll", ExactSpelling = true)]
+        public static extern IntPtr GetAncestor(IntPtr hwnd, GA gaFlags);
+
+        public enum GA : uint
+        {
+            PARENT = 1,
+            ROOT = 2,
+            ROOTOWNER = 3
+        }
+
+        #endregion
+
+        #region Process Handling
+
+        // Can't use these because a 32bit app can't access 64bit app module details
+        //[DllImport("psapi.dll", EntryPoint="GetModuleFileNameExA")]
+        //public static extern uint GetModuleFileNameEx(
+        //    IntPtr hProcess,
+        //    IntPtr hModule,
+        //    [MarshalAs(UnmanagedType.LPStr)] StringBuilder lpBaseName,
+        //    [In] [MarshalAs(UnmanagedType.U4)] int nSize);
+
+        //[DllImport("psapi.dll")]
+        //public static extern bool EnumProcessModulesEx(
+        //    IntPtr hProcess,
+        //    [Out] IntPtr[] hModule,
+        //    [MarshalAs(UnmanagedType.LPStr)] StringBuilder lpBaseName,
+        //    [In] [MarshalAs(UnmanagedType.U4)] int nSize);
+
+        //[DllImport("psapi.dll", SetLastError = true)]
+        //public static extern bool EnumProcessModulesEx(
+        //    IntPtr hProcess,
+        //    [MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.U4)] [In][Out] uint[] lphModule,
+        //    uint cb,
+        //    [MarshalAs(UnmanagedType.U4)] out uint lpcbNeeded,
+        //    LIST_MODULES dwFilterFlag);
+
+        //public enum LIST_MODULES : int
+        //{
+        //    _32BIT = 1,
+        //    _64BIT = 2,
+        //    ALL = 3,
+        //    DEFAULT = 0
+        //}
+
+        public static string GetProcessExecutableName(int processId)
+        {
+            string select = @"SELECT ExecutablePath FROM Win32_Process WHERE ProcessID = " + processId.ToString();
+            ObjectQuery query = new ObjectQuery(select);
+            ManagementObjectSearcher searcher = new ManagementObjectSearcher(query);
+            ManagementObjectCollection resultCollection = searcher.Get();
+            foreach (ManagementObject result in resultCollection)
+            {
+                return result["ExecutablePath"].ToString();
+            }
+            return "";
+        }
+
+        #endregion
+
+        #region Keyboard Handling
+
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern uint SendInput(int nInputs, INPUT[] pInputs, int cbSize);
+
+        public enum INPUTTYPE
+        {
+            MOUSE = 0,
+            KEYBOARD = 1,
+            HARDWARE = 2
+        }
+        public enum KEYEVENTF : uint
+        {
+            EXTENDEDKEY = 0x0001,
+            KEYUP = 0x0002,
+            UNICODE = 0x0004,
+            SCANCODE = 0x0008
+        }
+        public enum MOUSEDATA : uint
+        {
+            XBUTTON1 = 0x0001,
+            XBUTTON2 = 0x0002
+        }
+        public enum MOUSEEVENTF : uint
+        {
+            MOVE = 0x0001,
+            LEFTDOWN = 0x0002,
+            LEFTUP = 0x0004,
+            RIGHTDOWN = 0x0008,
+            RIGHTUP = 0x0010,
+            MIDDLEDOWN = 0x0020,
+            MIDDLEUP = 0x0040,
+            XDOWN = 0x0080,
+            XUP = 0x0100,
+            WHEEL = 0x0800,
+            VIRTUALDESK = 0x4000,
+            ABSOLUTE = 0x8000
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        internal struct INPUT
+        {
+            public INPUTHEADER header;
+            public INPUTDATA data;
+        }
+        [StructLayout(LayoutKind.Sequential)]
+        internal struct INPUTHEADER
+        {
+            [MarshalAs(UnmanagedType.U4)]
+            public INPUTTYPE dwType;
+        }
+        [StructLayout(LayoutKind.Explicit)]
+        internal struct INPUTDATA
+        {
+            [FieldOffset(0)]
+            public MOUSEINPUT mouse;
+            [FieldOffset(0)]
+            public KEYBOARDINPUT keyboard;
+            [FieldOffset(0)]
+            public HARDWAREINPUT hardware;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        internal struct MOUSEINPUT
+        {
+            public int dx;
+            public int dy;
+            public MOUSEDATA mouseData;
+            public MOUSEEVENTF dwFlags;
+            public uint time;
+            public IntPtr dwExtraInfo;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        internal struct KEYBOARDINPUT
+        {
+            public ushort VKey;
+            public ushort ScanCode;
+            public KEYEVENTF dwFlags;
+            public uint time;
+            public IntPtr ExtraInformation;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        internal struct HARDWAREINPUT
+        {
+            public uint uMsg;
+            public ushort wParamL;
+            public ushort wParamH;
+        }
+
+
+        public class KeyboardParams
+        {
+            public enum ContextCode
+            {
+                ALTUp = 0,
+                ALTDown = 1
+            }
+            public enum PreviousKeyState
+            {
+                Up = 0,
+                Down = 1
+            }
+            public enum TransitionState
+            {
+                Down = 0,
+                Up = 1
+            }
+
+            public Int16 repeatCount;
+            public byte scanCode;
+            public bool extendedKey;
+            public int reserved;
+            public ContextCode contextCode;
+            public PreviousKeyState previousKeyState;
+            public TransitionState transitionState;
+
+            public KeyboardParams(int lParam)
+            {
+                repeatCount = (short)GetValueFromBits(lParam, 0, 16);
+                scanCode = (byte)GetValueFromBits(lParam, 16, 8);
+                extendedKey = (GetValueFromBits(lParam, 24, 1) != 0);
+                reserved = GetValueFromBits(lParam, 25, 4);
+                contextCode = (ContextCode)GetValueFromBits(lParam, 29, 1);
+                previousKeyState = (PreviousKeyState)GetValueFromBits(lParam, 30, 1);
+                transitionState = (TransitionState)GetValueFromBits(lParam, 31, 1);
+            }
+
+            private static int GetValueFromBits(int lParam, int startAtBit, int bitCount)
+            {
+                lParam = lParam >> startAtBit;
+                return lParam & ((1 << bitCount) - 1);
+            }
+
+        }
+
+
+
+        #endregion
 
     }
 }

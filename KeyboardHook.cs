@@ -39,166 +39,63 @@ namespace KeyboardRedirector
         [DllImport("KeyboardHook.dll", SetLastError = true)]
         private static extern bool ClearHook(IntPtr hwnd);
 
-        [DllImport("user32.dll", SetLastError = true)]
-        private static extern uint SendInput(uint nInputs, INPUT[] pInputs, int cbSize);
+        [DllImport("KeyboardHook.dll", SetLastError = true)]
+        private static extern bool SetHook_LL(IntPtr hwnd, uint message);
 
-        #region Constants
-        const int INPUT_MOUSE = 0;
-        const int INPUT_KEYBOARD = 1;
-        const int INPUT_HARDWARE = 2;
-        const uint KEYEVENTF_EXTENDEDKEY = 0x0001;
-        const uint KEYEVENTF_KEYUP = 0x0002;
-        const uint KEYEVENTF_UNICODE = 0x0004;
-        const uint KEYEVENTF_SCANCODE = 0x0008;
-        const uint XBUTTON1 = 0x0001;
-        const uint XBUTTON2 = 0x0002;
-        const uint MOUSEEVENTF_MOVE = 0x0001;
-        const uint MOUSEEVENTF_LEFTDOWN = 0x0002;
-        const uint MOUSEEVENTF_LEFTUP = 0x0004;
-        const uint MOUSEEVENTF_RIGHTDOWN = 0x0008;
-        const uint MOUSEEVENTF_RIGHTUP = 0x0010;
-        const uint MOUSEEVENTF_MIDDLEDOWN = 0x0020;
-        const uint MOUSEEVENTF_MIDDLEUP = 0x0040;
-        const uint MOUSEEVENTF_XDOWN = 0x0080;
-        const uint MOUSEEVENTF_XUP = 0x0100;
-        const uint MOUSEEVENTF_WHEEL = 0x0800;
-        const uint MOUSEEVENTF_VIRTUALDESK = 0x4000;
-        const uint MOUSEEVENTF_ABSOLUTE = 0x8000;
-        #endregion
+        [DllImport("KeyboardHook.dll", SetLastError = true)]
+        private static extern bool ClearHook_LL(IntPtr hwnd);
 
-        #region Structs
 
-        [StructLayout(LayoutKind.Sequential)]
-        internal struct INPUT
+        private uint _hookMessage;
+        private Form _form;
+        private bool _hooked;
+        private bool _lowLevel = false;
+
+        public KeyboardHook(Form form, uint hookMessage)
+            : this(form, hookMessage, false)
         {
-            public INPUTHEADER header;
-            public INPUTDATA data;
         }
-        [StructLayout(LayoutKind.Sequential)]
-        internal struct INPUTHEADER
+        public KeyboardHook(Form form, uint hookMessage, bool lowLevel)
         {
-            [MarshalAs(UnmanagedType.U4)]
-            public int dwType;
-        }
-        [StructLayout(LayoutKind.Explicit)]
-        internal struct INPUTDATA
-        {
-            [FieldOffset(0)]
-            public MOUSEINPUT mouse;
-            [FieldOffset(0)]
-            public KEYBOARDINPUT keyboard;
-            [FieldOffset(0)]
-            public HARDWAREINPUT hardware;
+            _form = form;
+            _hookMessage = hookMessage;
+            _hooked = false;
+            _lowLevel = lowLevel;
         }
 
-        [StructLayout(LayoutKind.Sequential)]
-        internal struct MOUSEINPUT
+        public uint HookMessage
         {
-            public int dx;
-            public int dy;
-            public uint mouseData;
-            public uint dwFlags;
-            public uint time;
-            public IntPtr dwExtraInfo;
+            get { return _hookMessage; }
         }
 
-        [StructLayout(LayoutKind.Sequential)]
-        internal struct KEYBOARDINPUT
+        public bool SetHook()
         {
-            public ushort VKey;
-            public ushort ScanCode;
-            public uint dwFlags;
-            public uint time;
-            public IntPtr ExtraInformation;
-        }
+            bool result;
+            if (_lowLevel)
+                result = KeyboardHook.SetHook_LL(_form.Handle, _hookMessage);
+            else
+                result = KeyboardHook.SetHook(_form.Handle, _hookMessage);
 
-        [StructLayout(LayoutKind.Sequential)]
-        internal struct HARDWAREINPUT
-        {
-            public uint uMsg;
-            public ushort wParamL;
-            public ushort wParamH;
-        }
-
-
-
-        public enum KeyboardParamsContextCode
-        {
-            ALTUp = 0,
-            ALTDown = 1
-        }
-        public enum KeyboardParamsPreviousKeyState
-        {
-            Up = 0,
-            Down = 1
-        }
-        public enum KeyboardParamsTransitionState
-        {
-            Down = 0,
-            Up = 1
-        }
-
-        public struct KeyboardParams
-        {
-            public Int16 repeatCount;
-            public byte scanCode;
-            public bool extendedKey;
-            public int reserved;
-            public KeyboardParamsContextCode contextCode;
-            public KeyboardParamsPreviousKeyState previousKeyState;
-            public KeyboardParamsTransitionState transitionState;
-        }
-
-        #endregion
-
-        private const uint _hookMessage = 0x0401;
-        private static Form _form;
-
-        public static uint HookMessage
-        {
-            get
-            {
-                return _hookMessage;
-            }
-        }
-
-        public static bool SetHook(Form form)
-        {
-            bool result = KeyboardHook.SetHook(form.Handle, _hookMessage);
             if (result)
-                _form = form;
+                _hooked = true;
             return result;
         }
 
-        public static bool ClearHook()
+        public bool ClearHook()
         {
-            if (_form == null)
+            if (_hooked == false)
                 return false;
-            bool result = ClearHook(_form.Handle);
+
+            bool result;
+            if (_lowLevel)
+                result = ClearHook_LL(_form.Handle);
+            else
+                result = ClearHook(_form.Handle);
+
             if (result)
-                _form = null;
+                _hooked = false;
             return result;
         }
-
-        public static KeyboardParams ConvertLParamToKeyboardParams(int lParam)
-        {
-            KeyboardParams result;
-            result.repeatCount = (short)GetValueFromBits(lParam, 0, 16);
-            result.scanCode = (byte)GetValueFromBits(lParam, 16, 8);
-            result.extendedKey = (GetValueFromBits(lParam, 24, 1) != 0);
-            result.reserved = GetValueFromBits(lParam, 25, 4);
-            result.contextCode = (KeyboardParamsContextCode)GetValueFromBits(lParam, 29, 1);
-            result.previousKeyState = (KeyboardParamsPreviousKeyState)GetValueFromBits(lParam, 30, 1);
-            result.transitionState = (KeyboardParamsTransitionState)GetValueFromBits(lParam, 31, 1);
-            return result;
-        }
-
-        private static int GetValueFromBits(int lParam, int startAtBit, int bitCount)
-        {
-            lParam = lParam >> startAtBit;
-            return lParam & ((1 << bitCount) - 1);
-        }
-
 
     }
 }

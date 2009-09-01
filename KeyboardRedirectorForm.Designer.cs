@@ -45,17 +45,20 @@ namespace KeyboardRedirector
             this.deleteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.imageListTreeViewKey = new System.Windows.Forms.ImageList(this.components);
             this.panelKeyProperties = new System.Windows.Forms.Panel();
-            this.buttonLaunchAppBrowse = new System.Windows.Forms.Button();
-            this.textBoxLaunchApplication = new System.Windows.Forms.TextBox();
+            this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.splitContainer4 = new System.Windows.Forms.SplitContainer();
+            this.listViewApplicationsInFocus = new KeyboardRedirector.BindingListView();
+            this.imageListApplications = new System.Windows.Forms.ImageList(this.components);
+            this.buttonEditApplications = new System.Windows.Forms.Button();
+            this.buttonAddAction = new System.Windows.Forms.Button();
+            this.listViewActions = new System.Windows.Forms.ListView();
+            this.columnHeader1 = new System.Windows.Forms.ColumnHeader();
+            this.columnHeader2 = new System.Windows.Forms.ColumnHeader();
+            this.buttonRemoveAction = new System.Windows.Forms.Button();
+            this.buttonEditAction = new System.Windows.Forms.Button();
             this.textBoxKeyName = new System.Windows.Forms.TextBox();
             this.labelKeyDetails = new System.Windows.Forms.Label();
-            this.label5 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
-            this.label10 = new System.Windows.Forms.Label();
-            this.label9 = new System.Windows.Forms.Label();
-            this.label8 = new System.Windows.Forms.Label();
-            this.label7 = new System.Windows.Forms.Label();
-            this.label6 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.checkBoxCaptureKey = new System.Windows.Forms.CheckBox();
             this.panelKeyboardProperties = new System.Windows.Forms.Panel();
@@ -75,6 +78,10 @@ namespace KeyboardRedirector
             this.splitContainer1.SuspendLayout();
             this.contextMenuStripTreeViewEvents.SuspendLayout();
             this.panelKeyProperties.SuspendLayout();
+            this.groupBox1.SuspendLayout();
+            this.splitContainer4.Panel1.SuspendLayout();
+            this.splitContainer4.Panel2.SuspendLayout();
+            this.splitContainer4.SuspendLayout();
             this.panelKeyboardProperties.SuspendLayout();
             this.splitContainer2.Panel1.SuspendLayout();
             this.splitContainer2.Panel2.SuspendLayout();
@@ -140,7 +147,7 @@ namespace KeyboardRedirector
             // 
             this.splitContainer1.Panel2.Controls.Add(this.panelKeyProperties);
             this.splitContainer1.Panel2.Controls.Add(this.panelKeyboardProperties);
-            this.splitContainer1.Size = new System.Drawing.Size(702, 440);
+            this.splitContainer1.Size = new System.Drawing.Size(702, 446);
             this.splitContainer1.SplitterDistance = 291;
             this.splitContainer1.TabIndex = 0;
             // 
@@ -169,7 +176,7 @@ namespace KeyboardRedirector
             treeNode2,
             treeNode3});
             this.treeViewKeys.SelectedImageIndex = 0;
-            this.treeViewKeys.Size = new System.Drawing.Size(281, 430);
+            this.treeViewKeys.Size = new System.Drawing.Size(281, 436);
             this.treeViewKeys.TabIndex = 1;
             this.treeViewKeys.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.treeViewKeys_AfterSelect);
             this.treeViewKeys.MouseDown += new System.Windows.Forms.MouseEventHandler(this.treeViewKeys_MouseDown);
@@ -205,45 +212,157 @@ namespace KeyboardRedirector
             this.panelKeyProperties.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
                         | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
-            this.panelKeyProperties.Controls.Add(this.buttonLaunchAppBrowse);
-            this.panelKeyProperties.Controls.Add(this.textBoxLaunchApplication);
+            this.panelKeyProperties.Controls.Add(this.groupBox1);
             this.panelKeyProperties.Controls.Add(this.textBoxKeyName);
             this.panelKeyProperties.Controls.Add(this.labelKeyDetails);
-            this.panelKeyProperties.Controls.Add(this.label5);
             this.panelKeyProperties.Controls.Add(this.label4);
-            this.panelKeyProperties.Controls.Add(this.label10);
-            this.panelKeyProperties.Controls.Add(this.label9);
-            this.panelKeyProperties.Controls.Add(this.label8);
-            this.panelKeyProperties.Controls.Add(this.label7);
-            this.panelKeyProperties.Controls.Add(this.label6);
             this.panelKeyProperties.Controls.Add(this.label3);
             this.panelKeyProperties.Controls.Add(this.checkBoxCaptureKey);
             this.panelKeyProperties.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.panelKeyProperties.Location = new System.Drawing.Point(3, 149);
+            this.panelKeyProperties.Location = new System.Drawing.Point(3, 113);
             this.panelKeyProperties.Name = "panelKeyProperties";
-            this.panelKeyProperties.Size = new System.Drawing.Size(397, 284);
+            this.panelKeyProperties.Size = new System.Drawing.Size(397, 326);
             this.panelKeyProperties.TabIndex = 1;
+            this.panelKeyProperties.Visible = false;
             // 
-            // buttonLaunchAppBrowse
+            // groupBox1
             // 
-            this.buttonLaunchAppBrowse.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonLaunchAppBrowse.Location = new System.Drawing.Point(366, 148);
-            this.buttonLaunchAppBrowse.Name = "buttonLaunchAppBrowse";
-            this.buttonLaunchAppBrowse.Size = new System.Drawing.Size(28, 23);
-            this.buttonLaunchAppBrowse.TabIndex = 7;
-            this.buttonLaunchAppBrowse.Text = "...";
-            this.buttonLaunchAppBrowse.UseVisualStyleBackColor = true;
-            this.buttonLaunchAppBrowse.Click += new System.EventHandler(this.buttonLaunchAppBrowse_Click);
-            // 
-            // textBoxLaunchApplication
-            // 
-            this.textBoxLaunchApplication.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+            this.groupBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+                        | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBoxLaunchApplication.Location = new System.Drawing.Point(6, 150);
-            this.textBoxLaunchApplication.Name = "textBoxLaunchApplication";
-            this.textBoxLaunchApplication.Size = new System.Drawing.Size(350, 21);
-            this.textBoxLaunchApplication.TabIndex = 6;
-            this.textBoxLaunchApplication.TextChanged += new System.EventHandler(this.textBoxLaunchApplication_TextChanged);
+            this.groupBox1.Controls.Add(this.splitContainer4);
+            this.groupBox1.Location = new System.Drawing.Point(3, 115);
+            this.groupBox1.Name = "groupBox1";
+            this.groupBox1.Size = new System.Drawing.Size(391, 208);
+            this.groupBox1.TabIndex = 16;
+            this.groupBox1.TabStop = false;
+            this.groupBox1.Text = "Actions";
+            // 
+            // splitContainer4
+            // 
+            this.splitContainer4.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.splitContainer4.Location = new System.Drawing.Point(3, 17);
+            this.splitContainer4.Name = "splitContainer4";
+            this.splitContainer4.Orientation = System.Windows.Forms.Orientation.Horizontal;
+            // 
+            // splitContainer4.Panel1
+            // 
+            this.splitContainer4.Panel1.Controls.Add(this.listViewApplicationsInFocus);
+            this.splitContainer4.Panel1.Controls.Add(this.buttonEditApplications);
+            // 
+            // splitContainer4.Panel2
+            // 
+            this.splitContainer4.Panel2.Controls.Add(this.buttonAddAction);
+            this.splitContainer4.Panel2.Controls.Add(this.listViewActions);
+            this.splitContainer4.Panel2.Controls.Add(this.buttonRemoveAction);
+            this.splitContainer4.Panel2.Controls.Add(this.buttonEditAction);
+            this.splitContainer4.Size = new System.Drawing.Size(385, 188);
+            this.splitContainer4.SplitterDistance = 87;
+            this.splitContainer4.TabIndex = 19;
+            // 
+            // listViewApplicationsInFocus
+            // 
+            this.listViewApplicationsInFocus.AllowColumnSort = false;
+            this.listViewApplicationsInFocus.AllowDrop = true;
+            this.listViewApplicationsInFocus.AllowReorder = false;
+            this.listViewApplicationsInFocus.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+                        | System.Windows.Forms.AnchorStyles.Left)
+                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.listViewApplicationsInFocus.DataSource = null;
+            this.listViewApplicationsInFocus.Filter = "";
+            this.listViewApplicationsInFocus.FullRowSelect = true;
+            this.listViewApplicationsInFocus.HideSelection = false;
+            this.listViewApplicationsInFocus.Location = new System.Drawing.Point(3, 3);
+            this.listViewApplicationsInFocus.MultiSelect = false;
+            this.listViewApplicationsInFocus.Name = "listViewApplicationsInFocus";
+            this.listViewApplicationsInFocus.OwnerDraw = true;
+            this.listViewApplicationsInFocus.SelectedIndex = -1;
+            this.listViewApplicationsInFocus.SelectedItem = null;
+            this.listViewApplicationsInFocus.Size = new System.Drawing.Size(144, 81);
+            this.listViewApplicationsInFocus.SmallImageList = this.imageListApplications;
+            this.listViewApplicationsInFocus.TabIndex = 18;
+            this.listViewApplicationsInFocus.UseCompatibleStateImageBehavior = false;
+            this.listViewApplicationsInFocus.View = System.Windows.Forms.View.Details;
+            this.listViewApplicationsInFocus.SelectedIndexChanged += new System.EventHandler(this.listViewApplicationsInFocus_SelectedIndexChanged);
+            // 
+            // imageListApplications
+            // 
+            this.imageListApplications.ImageStream = ((System.Windows.Forms.ImageListStreamer)(resources.GetObject("imageListApplications.ImageStream")));
+            this.imageListApplications.TransparentColor = System.Drawing.Color.Transparent;
+            this.imageListApplications.Images.SetKeyName(0, "DefaultApplication.png");
+            this.imageListApplications.Images.SetKeyName(1, "DefaultApplicationNotFound.png");
+            // 
+            // buttonEditApplications
+            // 
+            this.buttonEditApplications.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.buttonEditApplications.Location = new System.Drawing.Point(153, 3);
+            this.buttonEditApplications.Name = "buttonEditApplications";
+            this.buttonEditApplications.Size = new System.Drawing.Size(99, 23);
+            this.buttonEditApplications.TabIndex = 17;
+            this.buttonEditApplications.Text = "Edit Applications";
+            this.buttonEditApplications.UseVisualStyleBackColor = true;
+            this.buttonEditApplications.Click += new System.EventHandler(this.buttonEditApplications_Click);
+            // 
+            // buttonAddAction
+            // 
+            this.buttonAddAction.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.buttonAddAction.Location = new System.Drawing.Point(172, 71);
+            this.buttonAddAction.Name = "buttonAddAction";
+            this.buttonAddAction.Size = new System.Drawing.Size(66, 23);
+            this.buttonAddAction.TabIndex = 16;
+            this.buttonAddAction.Text = "Add";
+            this.buttonAddAction.UseVisualStyleBackColor = true;
+            this.buttonAddAction.Click += new System.EventHandler(this.buttonAddAction_Click);
+            // 
+            // listViewActions
+            // 
+            this.listViewActions.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+                        | System.Windows.Forms.AnchorStyles.Left)
+                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.listViewActions.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+            this.columnHeader1,
+            this.columnHeader2});
+            this.listViewActions.FullRowSelect = true;
+            this.listViewActions.GridLines = true;
+            this.listViewActions.Location = new System.Drawing.Point(3, 3);
+            this.listViewActions.Name = "listViewActions";
+            this.listViewActions.Size = new System.Drawing.Size(379, 62);
+            this.listViewActions.TabIndex = 0;
+            this.listViewActions.UseCompatibleStateImageBehavior = false;
+            this.listViewActions.View = System.Windows.Forms.View.Details;
+            this.listViewActions.SelectedIndexChanged += new System.EventHandler(this.listViewActions_SelectedIndexChanged);
+            // 
+            // columnHeader1
+            // 
+            this.columnHeader1.Text = "Action";
+            this.columnHeader1.Width = 120;
+            // 
+            // columnHeader2
+            // 
+            this.columnHeader2.Text = "";
+            this.columnHeader2.Width = 220;
+            // 
+            // buttonRemoveAction
+            // 
+            this.buttonRemoveAction.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.buttonRemoveAction.Location = new System.Drawing.Point(316, 71);
+            this.buttonRemoveAction.Name = "buttonRemoveAction";
+            this.buttonRemoveAction.Size = new System.Drawing.Size(66, 23);
+            this.buttonRemoveAction.TabIndex = 16;
+            this.buttonRemoveAction.Text = "Remove";
+            this.buttonRemoveAction.UseVisualStyleBackColor = true;
+            this.buttonRemoveAction.Click += new System.EventHandler(this.buttonRemove_Click);
+            // 
+            // buttonEditAction
+            // 
+            this.buttonEditAction.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.buttonEditAction.Location = new System.Drawing.Point(244, 71);
+            this.buttonEditAction.Name = "buttonEditAction";
+            this.buttonEditAction.Size = new System.Drawing.Size(66, 23);
+            this.buttonEditAction.TabIndex = 16;
+            this.buttonEditAction.Text = "Edit";
+            this.buttonEditAction.UseVisualStyleBackColor = true;
+            this.buttonEditAction.Click += new System.EventHandler(this.buttonEdit_Click);
             // 
             // textBoxKeyName
             // 
@@ -264,15 +383,6 @@ namespace KeyboardRedirector
             this.labelKeyDetails.TabIndex = 0;
             this.labelKeyDetails.Text = "Key Details";
             // 
-            // label5
-            // 
-            this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(3, 134);
-            this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(96, 13);
-            this.label5.TabIndex = 5;
-            this.label5.Text = "Launch Application";
-            // 
             // label4
             // 
             this.label4.AutoSize = true;
@@ -282,61 +392,11 @@ namespace KeyboardRedirector
             this.label4.TabIndex = 1;
             this.label4.Text = "Name";
             // 
-            // label10
-            // 
-            this.label10.AutoSize = true;
-            this.label10.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label10.Location = new System.Drawing.Point(58, 226);
-            this.label10.Name = "label10";
-            this.label10.Size = new System.Drawing.Size(124, 13);
-            this.label10.TabIndex = 12;
-            this.label10.Text = "http://nate.dynalias.net";
-            // 
-            // label9
-            // 
-            this.label9.AutoSize = true;
-            this.label9.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label9.Location = new System.Drawing.Point(58, 213);
-            this.label9.Name = "label9";
-            this.label9.Size = new System.Drawing.Size(225, 13);
-            this.label9.TabIndex = 11;
-            this.label9.Text = "notepad C:\\Users\\Nate\\Documents\\notes.txt";
-            // 
-            // label8
-            // 
-            this.label8.AutoSize = true;
-            this.label8.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label8.Location = new System.Drawing.Point(58, 200);
-            this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(25, 13);
-            this.label8.TabIndex = 10;
-            this.label8.Text = "calc";
-            // 
-            // label7
-            // 
-            this.label7.AutoSize = true;
-            this.label7.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label7.Location = new System.Drawing.Point(39, 187);
-            this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(178, 13);
-            this.label7.TabIndex = 9;
-            this.label7.Text = "eg. C:\\Windows\\system32\\calc.exe";
-            // 
-            // label6
-            // 
-            this.label6.AutoSize = true;
-            this.label6.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label6.Location = new System.Drawing.Point(39, 174);
-            this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(285, 13);
-            this.label6.TabIndex = 8;
-            this.label6.Text = "This can be anything that will work in the Start->Run box.";
-            // 
             // label3
             // 
             this.label3.AutoSize = true;
             this.label3.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label3.Location = new System.Drawing.Point(39, 101);
+            this.label3.Location = new System.Drawing.Point(39, 85);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(321, 13);
             this.label3.TabIndex = 4;
@@ -345,7 +405,7 @@ namespace KeyboardRedirector
             // checkBoxCaptureKey
             // 
             this.checkBoxCaptureKey.AutoSize = true;
-            this.checkBoxCaptureKey.Location = new System.Drawing.Point(6, 81);
+            this.checkBoxCaptureKey.Location = new System.Drawing.Point(6, 65);
             this.checkBoxCaptureKey.Name = "checkBoxCaptureKey";
             this.checkBoxCaptureKey.Size = new System.Drawing.Size(86, 17);
             this.checkBoxCaptureKey.TabIndex = 3;
@@ -367,6 +427,7 @@ namespace KeyboardRedirector
             this.panelKeyboardProperties.Name = "panelKeyboardProperties";
             this.panelKeyboardProperties.Size = new System.Drawing.Size(397, 140);
             this.panelKeyboardProperties.TabIndex = 0;
+            this.panelKeyboardProperties.Visible = false;
             // 
             // textBoxKeyboardName
             // 
@@ -450,8 +511,8 @@ namespace KeyboardRedirector
             // splitContainer2.Panel2
             // 
             this.splitContainer2.Panel2.Controls.Add(this.richTextBoxEvents);
-            this.splitContainer2.Size = new System.Drawing.Size(702, 578);
-            this.splitContainer2.SplitterDistance = 473;
+            this.splitContainer2.Size = new System.Drawing.Size(702, 584);
+            this.splitContainer2.SplitterDistance = 479;
             this.splitContainer2.TabIndex = 4;
             // 
             // splitContainer3
@@ -471,7 +532,7 @@ namespace KeyboardRedirector
             // splitContainer3.Panel2
             // 
             this.splitContainer3.Panel2.Controls.Add(this.splitContainer1);
-            this.splitContainer3.Size = new System.Drawing.Size(702, 473);
+            this.splitContainer3.Size = new System.Drawing.Size(702, 479);
             this.splitContainer3.SplitterDistance = 29;
             this.splitContainer3.TabIndex = 1;
             // 
@@ -495,7 +556,7 @@ namespace KeyboardRedirector
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(702, 578);
+            this.ClientSize = new System.Drawing.Size(702, 584);
             this.Controls.Add(this.splitContainer2);
             this.Name = "KeyboardRedirectorForm";
             this.Text = "Keyboard Redirector";
@@ -507,6 +568,10 @@ namespace KeyboardRedirector
             this.contextMenuStripTreeViewEvents.ResumeLayout(false);
             this.panelKeyProperties.ResumeLayout(false);
             this.panelKeyProperties.PerformLayout();
+            this.groupBox1.ResumeLayout(false);
+            this.splitContainer4.Panel1.ResumeLayout(false);
+            this.splitContainer4.Panel2.ResumeLayout(false);
+            this.splitContainer4.ResumeLayout(false);
             this.panelKeyboardProperties.ResumeLayout(false);
             this.panelKeyboardProperties.PerformLayout();
             this.splitContainer2.Panel1.ResumeLayout(false);
@@ -544,18 +609,21 @@ namespace KeyboardRedirector
         private System.Windows.Forms.Label labelKeyDetails;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.RichTextBox richTextBoxKeyDetector;
-        private System.Windows.Forms.Button buttonLaunchAppBrowse;
-        private System.Windows.Forms.TextBox textBoxLaunchApplication;
-        private System.Windows.Forms.Label label5;
-        private System.Windows.Forms.Label label7;
-        private System.Windows.Forms.Label label6;
-        private System.Windows.Forms.Label label10;
-        private System.Windows.Forms.Label label9;
-        private System.Windows.Forms.Label label8;
         private System.Windows.Forms.ContextMenuStrip contextMenuStripTreeViewEvents;
         private System.Windows.Forms.ToolStripMenuItem deleteToolStripMenuItem;
         private System.Windows.Forms.SplitContainer splitContainer3;
         private System.Windows.Forms.CheckBox checkBoxMinimiseOnStart;
         private System.Windows.Forms.Timer timerMinimiseOnStart;
+        private System.Windows.Forms.GroupBox groupBox1;
+        private System.Windows.Forms.ListView listViewActions;
+        private System.Windows.Forms.ColumnHeader columnHeader1;
+        private System.Windows.Forms.ColumnHeader columnHeader2;
+        private System.Windows.Forms.Button buttonAddAction;
+        private System.Windows.Forms.Button buttonRemoveAction;
+        private System.Windows.Forms.Button buttonEditAction;
+        private System.Windows.Forms.Button buttonEditApplications;
+        private BindingListView listViewApplicationsInFocus;
+        private System.Windows.Forms.SplitContainer splitContainer4;
+        private System.Windows.Forms.ImageList imageListApplications;
     }
 }

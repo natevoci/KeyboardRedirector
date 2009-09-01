@@ -25,12 +25,18 @@
 #pragma data_seg(".KEYBOARDHOOK")
 HWND s_hWndServer = NULL;
 UINT s_message = 0;
+
+HWND s_hWndServer_LL = NULL;
+UINT s_message_LL = 0;
+
 #pragma data_seg()
 #pragma comment(linker, "/section:.KEYBOARDHOOK,rws")
 
 HINSTANCE hInst;
 HHOOK hook;
+HHOOK hook_LL;
 static LRESULT CALLBACK msghook(UINT nCode, WPARAM wParam, LPARAM lParam);
+static LRESULT CALLBACK msghook_LL(UINT nCode, WPARAM wParam, LPARAM lParam);
 
 #ifdef _MANAGED
 #pragma managed(push, off)
@@ -120,43 +126,77 @@ static LRESULT CALLBACK msghook(UINT nCode, WPARAM wParam, LPARAM lParam)
 		return 0;
 	}
 
-	KeyboardProcLParam l;
-	memset(&l, 0, sizeof(l));
-	l.lParam = (unsigned int)lParam;
+	//KeyboardProcLParam l;
+	//memset(&l, 0, sizeof(l));
+	//l.lParam = (unsigned int)lParam;
 
 	LRESULT result;
 	result = ::SendMessage(s_hWndServer, s_message, newWParam, lParam);
 	if (result != 0)
 	{
-		//INPUT input[1];
-		//memset(input, 0, sizeof(input));
-		//input[0].type = INPUT_KEYBOARD;
-
-		//input[0].ki.wVk = VK_NUMPAD7;
-		////input[0].ki.wScan = l.values.scanCode | 0xE100;
-		//input[0].ki.dwFlags = (l.values.transitionCode == 1) ? KEYEVENTF_KEYUP : 0;
-		//input[0].ki.dwFlags |= KEYEVENTF_EXTENDEDKEY;
-		//input[0].ki.time = 0;
-		//input[0].ki.dwExtraInfo = 0;
-
-		//SendInput(1, input, sizeof(INPUT));
-
-
-		//memset(input, 0, sizeof(input));
-		//input[0].type = INPUT_KEYBOARD;
-
-		//input[0].ki.wVk = 200;
-		//input[0].ki.wScan = 0;
-		//input[0].ki.dwFlags = (l.values.transitionCode == 1) ? KEYEVENTF_KEYUP : 0;
-		//input[0].ki.dwFlags |= KEYEVENTF_EXTENDEDKEY;
-		//input[0].ki.time = 0;
-		//input[0].ki.dwExtraInfo = 0;
-
-		//SendInput(1, input, sizeof(INPUT));
-
 		return -1;
 	}
 
 	return CallNextHookEx(hook, nCode, wParam, lParam);
 
 }
+
+
+
+
+KEYBOARDHOOK_API BOOL SetHook_LL(HWND hWnd, UINT message)
+{
+	if (s_hWndServer_LL != NULL)
+		return FALSE; // already hooked
+
+	hook = SetWindowsHookEx(WH_KEYBOARD_LL, (HOOKPROC)msghook_LL, hInst, 0);
+	if (hook == FALSE)
+		return FALSE;
+
+	s_hWndServer_LL = hWnd;
+	s_message_LL = message;
+	return TRUE;
+}
+
+KEYBOARDHOOK_API BOOL ClearHook_LL(HWND hWnd)
+{
+	if ((hWnd == NULL) || (s_hWndServer_LL == NULL) || (hWnd != s_hWndServer_LL))
+		return FALSE;
+
+	BOOL unhooked = UnhookWindowsHookEx(hook);
+	if (unhooked)
+	{
+		s_hWndServer_LL = NULL;
+		s_message_LL = 0;
+	}
+	return unhooked;
+}
+
+static LRESULT CALLBACK msghook_LL(UINT nCode, WPARAM wParam, LPARAM lParam)
+{
+	if (nCode < 0) // The specs say if nCode is < 0 then we just pass straight on.
+	{
+		CallNextHookEx(hook, nCode, wParam, lParam);
+		return 0;
+	}
+
+	WPARAM newWParam = wParam;
+
+	//KeyboardProcLParam l;
+	//memset(&l, 0, sizeof(l));
+	//l.lParam = (unsigned int)lParam;
+
+	KBDLLHOOKSTRUCT *pHookStruct = (KBDLLHOOKSTRUCT*)lParam;
+
+	//LRESULT result;
+	//result = ::SendMessage(s_hWndServer, s_message, newWParam, pHookStruct->vkCode);
+	//if (result != 0)
+	//{
+	//	return -1;
+	//}
+	::PostMessage(s_hWndServer_LL, s_message_LL, newWParam, pHookStruct->vkCode);
+
+	return CallNextHookEx(hook, nCode, wParam, lParam);
+
+}
+

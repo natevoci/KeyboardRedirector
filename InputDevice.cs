@@ -178,7 +178,7 @@ namespace KeyboardRedirector
             [MarshalAs(UnmanagedType.U2)]
             public ushort VKey;
             [MarshalAs(UnmanagedType.U4)]
-            public Win32.WindowsMessage Message;
+            public Win32.WM Message;
             [MarshalAs(UnmanagedType.U4)]
             public uint ExtraInformation;
         }
@@ -684,7 +684,7 @@ namespace KeyboardRedirector
 		{
 			switch( message.Msg )
 			{
-				case (int)Win32.WindowsMessage.INPUT:
+				case (int)Win32.WM.INPUT:
 		        {
 		            ProcessInputCommand( message );
 		        }

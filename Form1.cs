@@ -35,10 +35,13 @@ namespace KeyboardRedirector
     {
         InputDevice _inputDevice;
         int NumberOfKeyboards;
+        KeyboardHook _keyboardHook;
 
         public Form1()
         {
             InitializeComponent();
+
+            _keyboardHook = new KeyboardHook(this, 0x401);
 
             // Create a new InputDevice object, get the number of
             // keyboards, and register the method which will handle the 
@@ -71,13 +74,13 @@ namespace KeyboardRedirector
 
                 _inputDevice.ProcessMessage(message);
             }
-            if (message.Msg == KeyboardHook.HookMessage)
+            if (message.Msg == _keyboardHook.HookMessage)
             {
                 uint wParam = (uint)message.WParam.ToInt32();
                 bool peekMessage = ((wParam >> 31) != 0);
                 wParam = wParam & 0x7FFFFFFF;
 
-                KeyboardHook.KeyboardParams parameters = KeyboardHook.ConvertLParamToKeyboardParams(message.LParam.ToInt32());
+                Win32.KeyboardParams parameters = new Win32.KeyboardParams(message.LParam.ToInt32());
                 //Debug.WriteLine(message.ToString());
                 Debug.WriteLine("HookMsg:" +
                     " " + (peekMessage ? "Peek" : "    ") +
@@ -168,13 +171,13 @@ namespace KeyboardRedirector
         {
             if (checkBoxHookKeyboard.Checked)
             {
-                bool result = KeyboardHook.SetHook(this);
+                bool result = _keyboardHook.SetHook();
                 if (result == false)
                     richTextBoxList.AppendText("Failed to set hook" + Environment.NewLine);
             }
             else
             {
-                bool result = KeyboardHook.ClearHook();
+                bool result = _keyboardHook.ClearHook();
                 if (result == false)
                     richTextBoxList.AppendText("Failed to set hook" + Environment.NewLine);
             }

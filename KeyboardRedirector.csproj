@@ -35,10 +35,28 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Deployment" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Management" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ActionPerformer.cs" />
+    <Compile Include="ActionPropertiesDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ActionPropertiesDialog.Designer.cs">
+      <DependentUpon>ActionPropertiesDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ExecutableImageList.cs" />
+    <Compile Include="BindingListView.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="EditApplicationsDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="EditApplicationsDialog.Designer.cs">
+      <DependentUpon>EditApplicationsDialog.cs</DependentUpon>
+    </Compile>
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -47,6 +65,7 @@
     </Compile>
     <Compile Include="InputDevice.cs" />
     <Compile Include="KeyboardHook.cs" />
+    <Compile Include="KeyboardHookLowLevel.cs" />
     <Compile Include="KeyboardRedirectorForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -56,8 +75,17 @@
     <Compile Include="MinimizeToTrayForm.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="NiceKeyNames.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="ActionPropertiesDialog.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>ActionPropertiesDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EditApplicationsDialog.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>EditApplicationsDialog.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Form1.resx">
       <SubType>Designer</SubType>
       <DependentUpon>Form1.cs</DependentUpon>
