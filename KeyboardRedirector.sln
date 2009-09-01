@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 9.00
 # Visual Studio 2005
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KeyboardRedirector", "KeyboardRedirector.csproj", "{90F3D697-BCE4-46E1-BD22-78B10CE6AB8A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KeyboardRedirector", "KeyboardRedirector\KeyboardRedirector.csproj", "{90F3D697-BCE4-46E1-BD22-78B10CE6AB8A}"
 	ProjectSection(WebsiteProperties) = preProject
 		Debug.AspNetCompiler.Debug = "True"
 		Release.AspNetCompiler.Debug = "False"
