@@ -11,6 +11,12 @@
 HINSTANCE hInst;								// current instance
 TCHAR szTitle[MAX_LOADSTRING];					// The title bar text
 TCHAR szWindowClass[MAX_LOADSTRING];			// the main window class name
+HWND _hwnd;
+
+UINT hwnd = 0;
+UINT msgId = 0;
+UINT msgId_LL = 0;
+
 
 // Forward declarations of functions included in this code module:
 ATOM				MyRegisterClass(HINSTANCE hInstance);
@@ -35,17 +41,92 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 	LoadString(hInstance, IDC_HOOK, szWindowClass, MAX_LOADSTRING);
 	MyRegisterClass(hInstance);
 
-	// Perform application initialization:
-	if (!InitInstance (hInstance, nCmdShow))
+	int length = lstrlen(lpCmdLine); //_tcslen
+	if (length > 0)
 	{
-		return FALSE;
+		// Perform application initialization:
+		if (!InitInstance (hInstance, SW_HIDE))
+		//if (!InitInstance (hInstance, SW_SHOW))
+		{
+			return FALSE;
+		}
+
+		int pos = 0;
+		int paramIndex = 0;
+		bool paramUsed = false;
+		while (pos < length)
+		{
+			if ((lpCmdLine[pos] >= '0') && (lpCmdLine[pos] <= '9'))
+			{
+				paramUsed = true;
+				int val = (lpCmdLine[pos] - '0');
+				switch (paramIndex)
+				{
+					case 0:
+						hwnd *= 10;
+						hwnd += val;
+						break;
+					case 1:
+						msgId *= 10;
+						msgId += val;
+						break;
+					case 2:
+						msgId_LL *= 10;
+						msgId_LL += val;
+						break;
+					default:
+						break;
+				}
+			}
+			else if (lpCmdLine[pos] == ' ')
+			{
+				if (paramUsed == true)
+				{
+					paramIndex++;
+					paramUsed = false;
+				}
+			}
+			else
+			{
+				return -1; // Invalid characters detected parsing parameters.
+			}
+			pos++;
+		}
+
+		if (paramUsed == false)
+			paramIndex--;
+
+		if (paramIndex != 2)
+			return -2; // Invalid number of arguments
+	}
+	else
+	{
+		// Perform application initialization:
+		if (!InitInstance (hInstance, SW_SHOW))
+		{
+			return FALSE;
+		}
+
+		// No params passed. We'll send to ourself for debugging.
+		hwnd = (UINT)_hwnd;
+		msgId = 0x401;
+		msgId_LL = 0x402;
 	}
 
 	hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_HOOK));
 
-	HWND hwnd = FindWindow(NULL, L"Keyboard Redirector");
-	if (hwnd != NULL)
-		SetHook(hwnd, 0x401);
+
+	//HWND hwnd = FindWindow(NULL, L"Keyboard Redirector");
+	if (hwnd == 1)
+		hwnd = (UINT)FindWindow(NULL, L"Keyboard Redirector");
+	if (hwnd == 0)
+		return -3; // Invalid window handle;
+
+	if (msgId != 0)
+		SetHook((HWND)hwnd, msgId);
+
+	if (msgId_LL != 0)
+		SetHook_LL((HWND)hwnd, msgId_LL);
 
 	// Main message loop:
 	while (GetMessage(&msg, NULL, 0, 0))
@@ -57,7 +138,11 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 		}
 	}
 
-	ClearHook(hwnd);
+	if (msgId != 0)
+		ClearHook((HWND)hwnd);
+
+	if (msgId != 0)
+		ClearHook_LL((HWND)hwnd);
 
 	return (int) msg.wParam;
 }
@@ -114,13 +199,13 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
    hInst = hInstance; // Store instance handle in our global variable
 
-   hWnd = CreateWindow(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
-      CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, NULL, NULL, hInstance, NULL);
+   hWnd = CreateWindow(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, 0, 400, 200, NULL, NULL, hInstance, NULL);
 
    if (!hWnd)
    {
       return FALSE;
    }
+   _hwnd = hWnd;
 
    ShowWindow(hWnd, nCmdShow);
    UpdateWindow(hWnd);
@@ -162,10 +247,37 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			return DefWindowProc(hWnd, message, wParam, lParam);
 		}
 		break;
+	case 0x401:
+		{
+			HDC hdc = GetDC(hWnd);
+			LPWSTR str = new WCHAR[100];
+			memset(str, 0, 100 * sizeof(WCHAR));
+			wsprintf(str, L"msghook: wparam=%#08x %#08x", wParam, lParam);
+			TextOut(hdc, 30, 30, str, 100);
+			ReleaseDC(hWnd, hdc);
+		}
+		break;
+	case 0x402:
+		{
+			HDC hdc = GetDC(hWnd);
+			LPWSTR str = new WCHAR[100];
+			memset(str, 0, 100 * sizeof(WCHAR));
+			wsprintf(str, L"msghook: wparam=%#08x %#08x", wParam, lParam);
+			TextOut(hdc, 30, 80, str, 100);
+			ReleaseDC(hWnd, hdc);
+		}
+		break;
 	case WM_PAINT:
-		hdc = BeginPaint(hWnd, &ps);
-		// TODO: Add any drawing code here...
-		EndPaint(hWnd, &ps);
+		{
+			hdc = BeginPaint(hWnd, &ps);
+
+			LPWSTR str = new WCHAR[100];
+			memset(str, 0, 100 * sizeof(WCHAR));
+			wsprintf(str, L"hwnd: %d msgId=%#x msgId_LL %#x", hwnd, msgId, msgId_LL);
+			TextOut(hdc, 10, 10, str, 100);
+
+			EndPaint(hWnd, &ps);
+		}
 		break;
 	case WM_DESTROY:
 		PostQuitMessage(0);

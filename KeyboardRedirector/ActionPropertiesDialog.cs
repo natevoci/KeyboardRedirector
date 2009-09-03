@@ -1,3 +1,28 @@
+#region Copyright (C) 2009 Nate
+
+/* 
+ *	Copyright (C) 2009 Nate
+ *	http://nate.dynalias.net
+ *
+ *  This Program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2, or (at your option)
+ *  any later version.
+ *   
+ *  This Program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ *  GNU General Public License for more details.
+ *   
+ *  You should have received a copy of the GNU General Public License
+ *  along with GNU Make; see the file COPYING.  If not, write to
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  http://www.gnu.org/copyleft/gpl.html
+ *
+ */
+
+#endregion
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -14,9 +39,6 @@ namespace KeyboardRedirector
         public SettingsKeyboardKeyAction Action = null;
 
         private Dictionary<string, Keys> _virtualKeys = new Dictionary<string, Keys>();
-        private KeyboardHookLowLevel _keyboardHook;
-        //private KeyboardHook _keyboardHook;
-        private uint _hookMessageId = 0x402;
 
         public ActionPropertiesDialog()
         {
@@ -25,10 +47,6 @@ namespace KeyboardRedirector
 
             InitializeComponent();
 
-            _keyboardHook = new KeyboardHookLowLevel();
-            _keyboardHook.KeyDown += new KeyEventHandler(_keyboardHook_KeyDown);
-            //_keyboardHook = new KeyboardHook(this, _hookMessageId, false);
-
             Keys key = (Keys)Enum.Parse(typeof(Keys), "Enter");
             key = (Keys)Enum.Parse(typeof(Keys), "Return");
 
@@ -36,17 +54,6 @@ namespace KeyboardRedirector
 
             tabPageLaunchApplication.Tag = SettingsKeyboardKeyActionType.LaunchApplication;
             tabPageKeyboard.Tag = SettingsKeyboardKeyActionType.Keyboard;
-        }
-
-        protected override void WndProc(ref Message message)
-        {
-            if (message.Msg == (int)_hookMessageId)
-            {
-                message.Result = IntPtr.Zero;
-                return;
-            }
-
-            base.WndProc(ref message);
         }
 
         private void ActionPropertiesDialog_Load(object sender, EventArgs e)
@@ -126,23 +133,35 @@ namespace KeyboardRedirector
             }
         }
 
-        void _keyboardHook_KeyDown(object sender, KeyEventArgs e)
-        {
-            checkBoxKeyboardControl.Checked = ((e.Modifiers & Keys.Control) != 0);
-            checkBoxKeyboardShift.Checked = ((e.Modifiers & Keys.Shift) != 0);
-            checkBoxKeyboardAlt.Checked = ((e.Modifiers & Keys.Alt) != 0);
-            comboBoxKeyboardKey.Text = NiceKeyName.GetName(e.KeyCode);
-            e.Handled = true;
-        }
-
         private void richTextBoxKeyDetector_Enter(object sender, EventArgs e)
         {
-            _keyboardHook.SetHook();
+            KeyboardHookExternal.Current.KeyEventLowLevel += new KeyHookEventHandler(Current_KeyEventLowLevel);
         }
 
         private void richTextBoxKeyDetector_Leave(object sender, EventArgs e)
         {
-            _keyboardHook.ClearHook();
+            KeyboardHookExternal.Current.KeyEventLowLevel -= new KeyHookEventHandler(Current_KeyEventLowLevel);
+        }
+
+        void Current_KeyEventLowLevel(object sender, KeyHookEventArgs e)
+        {
+            if (e.KeyCombination.KeyDown == false)
+                return;
+
+            checkBoxKeyboardControl.Checked = e.KeyCombination.Modifiers.Contains(Keys.ControlKey);
+            checkBoxKeyboardControl.Checked |= e.KeyCombination.Modifiers.Contains(Keys.LControlKey);
+            checkBoxKeyboardControl.Checked |= e.KeyCombination.Modifiers.Contains(Keys.RControlKey);
+
+            checkBoxKeyboardShift.Checked = e.KeyCombination.Modifiers.Contains(Keys.ShiftKey);
+            checkBoxKeyboardShift.Checked |= e.KeyCombination.Modifiers.Contains(Keys.LShiftKey);
+            checkBoxKeyboardShift.Checked |= e.KeyCombination.Modifiers.Contains(Keys.RShiftKey);
+
+            checkBoxKeyboardAlt.Checked = e.KeyCombination.Modifiers.Contains(Keys.Menu);
+            checkBoxKeyboardAlt.Checked |= e.KeyCombination.Modifiers.Contains(Keys.LMenu);
+            checkBoxKeyboardAlt.Checked |= e.KeyCombination.Modifiers.Contains(Keys.RMenu);
+
+            comboBoxKeyboardKey.Text = NiceKeyName.GetName(e.KeyCombination.Key);
+            e.Handled = true;
         }
 
         private void ActionPropertiesDialog_Deactivate(object sender, EventArgs e)

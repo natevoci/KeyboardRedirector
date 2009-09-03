@@ -116,6 +116,11 @@ static LRESULT CALLBACK msghook(UINT nCode, WPARAM wParam, LPARAM lParam)
 		return 0;
 	}
 
+	//LPWSTR str = new WCHAR[100];
+	//memset(str, 0, 100);
+	//wsprintf(str, L"msghook: nCode=%i wparam=%#08x %#08x\n", nCode, wParam, lParam);
+	//OutputDebugString(str);
+
 	WPARAM newWParam = wParam;
 	if (nCode == HC_NOREMOVE)
 	{
@@ -127,16 +132,23 @@ static LRESULT CALLBACK msghook(UINT nCode, WPARAM wParam, LPARAM lParam)
 		return 0;
 	}
 
-	//KeyboardProcLParam l;
-	//memset(&l, 0, sizeof(l));
-	//l.lParam = (unsigned int)lParam;
-	OutputDebugString(L"msghook\n");
-
-	LRESULT result;
-	result = ::SendMessage(s_hWndServer, s_message, newWParam, lParam);
-	if (result != 0)
+	try
 	{
-		return -1;
+		if (IsWindow(s_hWndServer) == TRUE)
+		{
+			LRESULT result;
+			result = ::SendMessage(s_hWndServer, s_message, newWParam, lParam);
+			if (result != 0)
+			{
+				LPWSTR str = new WCHAR[100];
+				memset(str, 0, 100);
+				wsprintf(str, L"blocking: nCode=%i wparam=%#08x %#08x\n", nCode, wParam, lParam);
+				OutputDebugString(str);
+				return -1;
+			}
+		}
+	} catch (...)
+	{
 	}
 
 	return CallNextHookEx(hook, nCode, wParam, lParam);
@@ -190,13 +202,45 @@ static LRESULT CALLBACK msghook_LL(UINT nCode, WPARAM wParam, LPARAM lParam)
 
 	KBDLLHOOKSTRUCT *pHookStruct = (KBDLLHOOKSTRUCT*)lParam;
 
+	//{
+	//	LPWSTR str = new WCHAR[100];
+	//	memset(str, 0, 100);
+	//	wsprintf(str, L"LL: nCode=%i wparam=%#08x vCode=%#08x scanCode=%#08x time=%#08x flags=%#08x\n", nCode, wParam, pHookStruct->vkCode, pHookStruct->scanCode, pHookStruct->time, pHookStruct->flags);
+	//	OutputDebugString(str);
+	//	
+	//}
+
 	//LRESULT result;
 	//result = ::SendMessage(s_hWndServer, s_message, newWParam, pHookStruct->vkCode);
 	//if (result != 0)
 	//{
 	//	return -1;
 	//}
-	::PostMessage(s_hWndServer_LL, s_message_LL, newWParam, pHookStruct->vkCode);
+
+	try
+	{
+		if (IsWindow(s_hWndServer_LL) == TRUE)
+		{
+			LRESULT result;
+			result = ::SendMessage(s_hWndServer_LL, s_message_LL, newWParam, pHookStruct->vkCode);
+			if (result != 0)
+			{
+				LPWSTR str = new WCHAR[100];
+				memset(str, 0, 100);
+				wsprintf(str, L"blocking LL: nCode=%i wparam=%#08x %#08x\n", nCode, wParam, lParam);
+				OutputDebugString(str);
+				return -1;
+			}
+		}
+	} catch (...)
+	{
+	}
+
+
+	//if (IsWindow(s_hWndServer_LL) == TRUE)
+	//{
+	//	::PostMessage(s_hWndServer_LL, s_message_LL, newWParam, pHookStruct->vkCode);
+	//}
 
 	return CallNextHookEx(hook, nCode, wParam, lParam);
 

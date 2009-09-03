@@ -978,6 +978,9 @@ namespace KeyboardRedirector
         [DllImport("User32")]
         public static extern int SetForegroundWindow(IntPtr hwnd);
 
+        [DllImport("User32")]
+        public static extern IntPtr GetForegroundWindow();
+
         [DllImportAttribute("User32.DLL")]
         public static extern bool ShowWindow(IntPtr hWnd, SW nCmdShow);
         //public const int SW_SHOW = 5;

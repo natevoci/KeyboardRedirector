@@ -36,11 +36,9 @@ namespace KeyboardRedirector
     public partial class KeyboardRedirectorForm : MinimizeToTrayForm
     {
         InputDevice _inputDevice;
-        KeyboardHook _keyboardHook;
-        KeyboardHookLowLevel _keyboardHookLowLevel;
         List<DeviceInformation> _keyboards;
         List<KeyToHookInformation> _keysToHook;
-        Dictionary<string, Keys> _keyModifiers;
+        Dictionary<string, KeyCombination> _keyCombinations;
         ActionPerformer _actionPerformer;
         ExecutableImageList _imageList;
 
@@ -61,12 +59,12 @@ namespace KeyboardRedirector
 
         class KeyToHookInformation
         {
-            public ushort VirtualKeyCode;
+            public KeyCombination KeyCombo;
             public DateTime SeenAt;
 
-            public KeyToHookInformation(ushort VirtualKeyCode)
+            public KeyToHookInformation(KeyCombination KeyCombo)
             {
-                this.VirtualKeyCode = VirtualKeyCode;
+                this.KeyCombo = new KeyCombination(KeyCombo);
                 this.SeenAt = DateTime.Now;
             }
         }
@@ -75,7 +73,7 @@ namespace KeyboardRedirector
         {
             _keyboards = new List<DeviceInformation>();
             _keysToHook = new List<KeyToHookInformation>();
-            _keyModifiers = new Dictionary<string, Keys>();
+            _keyCombinations = new Dictionary<string, KeyCombination>();
 
             InitializeComponent();
 
@@ -99,11 +97,6 @@ namespace KeyboardRedirector
             }
             listViewApplicationsInFocus.AddColumn("Application in focus", -1, "Name");
 
-            _keyboardHook = new KeyboardHook(this, 0x401);
-            _keyboardHookLowLevel = new KeyboardHookLowLevel();
-            _keyboardHookLowLevel.KeyDown += new KeyEventHandler(_keyboardHookLowLevel_KeyDown);
-            _keyboardHookLowLevel.KeyUp += new KeyEventHandler(_keyboardHookLowLevel_KeyUp);
-
             _inputDevice = new InputDevice(Handle);
             _inputDevice.DeviceEvent += new InputDevice.DeviceEventHandler(InputDevice_DeviceEvent);
 
@@ -113,12 +106,12 @@ namespace KeyboardRedirector
 
             // Only start the keyboard hook if we're not debugging.
             string exeFilename = System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName;
+
             //if (exeFilename.EndsWith(".vshost.exe") == false)
-            if (false)
             {
-                bool result = _keyboardHook.SetHook();
-                if (result == false)
-                    DebugWrite("Failed to set hook" + Environment.NewLine);
+                KeyboardHookExternal.Current.SetHook(Handle, 0x401, 0x402);
+                KeyboardHookExternal.Current.KeyEvent += new KeyHookEventHandler(Current_KeyEvent);
+                KeyboardHookExternal.Current.KeyEventLowLevel += new KeyHookEventHandler(Current_KeyEventLowLevel);
             }
 
             timerMinimiseOnStart.Start();
@@ -132,14 +125,12 @@ namespace KeyboardRedirector
                 checkBoxMinimiseOnStart.Checked = Settings.Current.MinimizeOnStart;
                 SendToTray();
             }
-
-            _keyboardHookLowLevel.SetHook();
         }
 
         private void KeyboardRedirectorForm_FormClosing(object sender, FormClosingEventArgs e)
         {
             _actionPerformer.StopProcessingThread();
-            _keyboardHook.ClearHook();
+            KeyboardHookExternal.Current.ClearHook();
         }
 
         private void RefreshDevices()
@@ -210,81 +201,14 @@ namespace KeyboardRedirector
 
             if (_inputDevice != null)
             {
-                //Message msg;
-                //NativeMethods.PeekMessage(out msg, _handle, NativeMethods.WM_INPUT, NativeMethods.WM_INPUT, NativeMethods.PeekMessageRemoveFlag.PM_NOREMOVE);
-                //if (msg.Msg != 0)
-                //{
-                //    Debug.WriteLine("PeekMessage found message waiting.");
-                //    id.ProcessMessage(msg);
-                //}
-
                 _inputDevice.ProcessMessage(message);
             }
 
-            if ((_keyboardHook != null) && (message.Msg == _keyboardHook.HookMessage + 1))
+            int result = KeyboardHookExternal.Current.ProcessMessage(message);
+            if (result != 0)
             {
-                DebugWrite(message.ToString() + Environment.NewLine);
-            }
-
-            if ((_keyboardHook != null) && (message.Msg == _keyboardHook.HookMessage))
-            {
-                uint wParam = (uint)message.WParam.ToInt32();
-                bool peekMessage = ((wParam >> 31) != 0);
-                wParam = wParam & 0x7FFFFFFF;
-
-                long lParam = message.LParam.ToInt64();
-                Win32.KeyboardParams parameters = new Win32.KeyboardParams(((int)(lParam & 0xFFFFFFFF)));
-                //System.Diagnostics.Debug.Write(
-                DebugWrite(
-                    "HookMsg: " + (peekMessage ? "Peek" : "    ") +
-                    " wparam=0x" + wParam.ToString("x") + " (" + ((Keys)wParam).ToString() + ")" +
-                    " repeatCount=0x" + parameters.repeatCount.ToString("x") +
-                    " scanCode=0x" + parameters.scanCode.ToString("x") +
-                    " transitionState=" + parameters.transitionState.ToString() +
-                    " extendedKey=" + parameters.extendedKey.ToString() +
-                    " contextCode=" + parameters.contextCode.ToString() +
-                    " previousKeyState=" + parameters.previousKeyState.ToString() +
-                    Environment.NewLine
-                    );
-
-                bool block = false;
-                lock (_keysToHook)
-                {
-                    for (int i = 0; i < _keysToHook.Count; i++)
-                    {
-                        if (_keysToHook[i].VirtualKeyCode == wParam)
-                        {
-                            block = true;
-                            _keysToHook.RemoveAt(i);
-                        }
-                    }
-
-                    // Remove any old stale entries
-                    while ((_keysToHook.Count > 0) && (DateTime.Now.Subtract(_keysToHook[0].SeenAt).TotalMilliseconds > 500))
-                    {
-                        _keysToHook.RemoveAt(0);
-                    }
-                }
-
-                //DEBUG: Disable blocking for testing purposes.
-                block = false;
-
-                if (block)
-                {
-                    System.Diagnostics.Debug.WriteLine(
-                        "Blocking: " + (peekMessage ? "Peek" : "    ") +
-                        " wparam=0x" + wParam.ToString("x") + " (" + ((Keys)wParam).ToString() + ")" +
-                        " repeatCount=0x" + parameters.repeatCount.ToString("x") +
-                        " scanCode=0x" + parameters.scanCode.ToString("x") +
-                        " transitionState=" + parameters.transitionState.ToString() +
-                        " extendedKey=" + parameters.extendedKey.ToString() +
-                        " contextCode=" + parameters.contextCode.ToString() +
-                        " previousKeyState=" + parameters.previousKeyState.ToString()
-                        );
-
-                    message.Result = new IntPtr(-1);
-                    return;
-                }
+                message.Result = new IntPtr(-1);
+                return;
             }
 
             if (message.Msg == (int)Win32.WM.DEVICECHANGE)
@@ -295,13 +219,50 @@ namespace KeyboardRedirector
             base.WndProc(ref message);
         }
 
-        void _keyboardHookLowLevel_KeyDown(object sender, KeyEventArgs e)
+        void Current_KeyEvent(object sender, KeyHookEventArgs e)
         {
-            DebugWrite("LL Down  : 0x" + e.KeyValue.ToString("x8") + " " + e.KeyCode.ToString() + Environment.NewLine);
+            bool block = false;
+            lock (_keysToHook)
+            {
+                for (int i = 0; i < _keysToHook.Count; i++)
+                {
+                    if (_keysToHook[i].KeyCombo.Equals(e.KeyCombination))
+                    {
+                        block = true;
+                        _keysToHook.RemoveAt(i);
+                    }
+                }
+
+                // Remove any old stale entries
+                while ((_keysToHook.Count > 0) && (DateTime.Now.Subtract(_keysToHook[0].SeenAt).TotalMilliseconds > 500))
+                {
+                    _keysToHook.RemoveAt(0);
+                }
+            }
+
+            //DEBUG: Disable blocking for testing purposes.
+            //block = false;
+
+            string blockText = "      ";
+            if (block)
+            {
+                blockText = "block ";
+                e.Handled = true;
+            }
+
+            if (e.KeyCombination.KeyDown)
+                DebugWrite("Down     : " + blockText + e.KeyCombination.ToString() + Environment.NewLine);
+            else
+                DebugWrite("Up       : " + blockText + e.KeyCombination.ToString() + Environment.NewLine);
         }
-        void _keyboardHookLowLevel_KeyUp(object sender, KeyEventArgs e)
+
+        void Current_KeyEventLowLevel(object sender, KeyHookEventArgs e)
         {
-            DebugWrite("LL Up    : 0x" + e.KeyValue.ToString("x8") + " " + e.KeyCode.ToString() + Environment.NewLine);
+            string blockText = "      ";
+            if (e.KeyCombination.KeyDown)
+                DebugWrite("LL Down  : " + blockText + e.KeyCombination.ToString() + Environment.NewLine);
+            else
+                DebugWrite("LL Up    : " + blockText + e.KeyCombination.ToString() + Environment.NewLine);
         }
 
         void InputDevice_DeviceEvent(object sender, InputDevice.DeviceInfo dInfo, InputDevice.RAWINPUT rawInput)
@@ -323,48 +284,25 @@ namespace KeyboardRedirector
 
                 DebugWrite("WM_INPUT: 0x" + dInfo.DeviceHandle.ToInt32().ToString("x8") + " " + text + Environment.NewLine);
 
-                if (_keyModifiers.ContainsKey(dInfo.DeviceName) == false)
+                if (_keyCombinations.ContainsKey(dInfo.DeviceName) == false)
                 {
-                    _keyModifiers.Add(dInfo.DeviceName, Keys.None);
+                    _keyCombinations.Add(dInfo.DeviceName, new KeyCombination());
                 }
-                Keys modifiers = _keyModifiers[dInfo.DeviceName];
-
-                if ((key == Keys.ShiftKey) || (key == Keys.LShiftKey) || (key == Keys.RShiftKey))
-                {
-                    if (keyDown)
-                        _keyModifiers[dInfo.DeviceName] |= Keys.Shift;
-                    else
-                        _keyModifiers[dInfo.DeviceName] &= ~Keys.Shift;
-                    return;
-                }
-                if ((key == Keys.ControlKey) || (key == Keys.LControlKey) || (key == Keys.RControlKey))
-                {
-                    if (keyDown)
-                        _keyModifiers[dInfo.DeviceName] |= Keys.Control;
-                    else
-                        _keyModifiers[dInfo.DeviceName] &= ~Keys.Control;
-                    return;
-                }
-                if ((key == Keys.Menu) || (key == Keys.LMenu) || (key == Keys.RMenu))
-                {
-                    if (keyDown)
-                        _keyModifiers[dInfo.DeviceName] |= Keys.Alt;
-                    else
-                        _keyModifiers[dInfo.DeviceName] &= ~Keys.Alt;
-                    return;
-                }
-                
-                key |= modifiers;
+                KeyCombination keyCombo = _keyCombinations[dInfo.DeviceName];
+                KeyCombination lastKeyCombo = new KeyCombination(keyCombo);
+                keyCombo.KeyPress(keyDown, key);
 
                 if (richTextBoxKeyDetector.Focused)
                 {
                     lock (_keysToHook)
                     {
-                        _keysToHook.Add(new KeyToHookInformation(rawInput.data.keyboard.VKey));
+                        _keysToHook.Add(new KeyToHookInformation(keyCombo));
                     }
 
-                    if (keyDown)
-                        AddAndSelectKey(dInfo.DeviceName, key);
+                    if (keyCombo.TransitionToKeyUp)
+                    {
+                        AddAndSelectKey(dInfo.DeviceName, lastKeyCombo);
+                    }
 
                     return;
                 }
@@ -374,21 +312,21 @@ namespace KeyboardRedirector
                     SettingsKeyboard keyboard = Settings.Current.Keyboards.FindByDeviceName(dInfo.DeviceName);
                     if (keyboard != null)
                     {
-                        SettingsKeyboardKey settingsKey = keyboard.Keys.FindKey(key);
+                        SettingsKeyboardKey settingsKey = keyboard.Keys.FindKey(keyCombo);
 
                         // Intercept key if we need to
                         if (keyboard.CaptureAllKeys)
                         {
                             lock (_keysToHook)
                             {
-                                _keysToHook.Add(new KeyToHookInformation(rawInput.data.keyboard.VKey));
+                                _keysToHook.Add(new KeyToHookInformation(keyCombo));
                             }
                         }
-                        else if (keyDown && (settingsKey != null) && settingsKey.Capture)
+                        else if (keyCombo.KeyDown && (settingsKey != null) && settingsKey.Capture)
                         {
                             lock (_keysToHook)
                             {
-                                _keysToHook.Add(new KeyToHookInformation(rawInput.data.keyboard.VKey));
+                                _keysToHook.Add(new KeyToHookInformation(keyCombo));
                             }
                         }
 
@@ -397,45 +335,6 @@ namespace KeyboardRedirector
                             _actionPerformer.EnqueueKey(settingsKey, keyDown);
                         }
 
-                        // Perform action if we need to
-                        if (keyDown && (settingsKey != null))
-                        {
-                            //if (settingsKey.LaunchApplication.Length > 0)
-                            //{
-                            //    try
-                            //    {
-                            //        richTextBoxEvents.AppendText("Launching application: " + settingsKey.LaunchApplication + Environment.NewLine);
-
-                            //        string exe = settingsKey.LaunchApplication.Trim();
-                            //        string args = "";
-
-                            //        if (exe[0] == '"')
-                            //        {
-                            //            int endOfExeIndex = exe.IndexOf("\" ", 1);
-                            //            if (endOfExeIndex != -1)
-                            //            {
-                            //                endOfExeIndex++;
-                            //                args = exe.Substring(endOfExeIndex + 1).TrimStart();
-                            //                exe = exe.Substring(0, endOfExeIndex);
-                            //            }
-                            //        }
-                            //        else
-                            //        {
-                            //            int endOfExeIndex = exe.IndexOf(" ");
-                            //            if (endOfExeIndex != -1)
-                            //            {
-                            //                args = exe.Substring(endOfExeIndex + 1).TrimStart();
-                            //                exe = exe.Substring(0, endOfExeIndex);
-                            //            }
-                            //        }
-
-                            //        System.Diagnostics.Process.Start(exe, args);
-                            //    }
-                            //    catch (Exception)
-                            //    {
-                            //    }
-                            //}
-                        }
                     }
                 }
             }
@@ -604,7 +503,7 @@ namespace KeyboardRedirector
             return null;
         }
 
-        private void AddAndSelectKey(string deviceName, Keys KeyCode)
+        private void AddAndSelectKey(string deviceName, KeyCombination keyCombo)
         {
             SettingsKeyboard keyboard = Settings.Current.Keyboards.FindByDeviceName(deviceName);
             if (keyboard == null)
@@ -616,7 +515,7 @@ namespace KeyboardRedirector
                 if (keyboardNode == null)
                     return;
 
-                SettingsKeyboardKey key = keyboard.Keys.FindKey(KeyCode);
+                SettingsKeyboardKey key = keyboard.Keys.FindKey(keyCombo);
                 if (key != null)
                 {
                     TreeNode node = FindTreeNode(key, keyboardNode.Nodes, true);
@@ -625,7 +524,7 @@ namespace KeyboardRedirector
                 }
                 else
                 {
-                    key = new SettingsKeyboardKey(KeyCode);
+                    key = new SettingsKeyboardKey(keyCombo);
                     keyboard.Keys.Add(key);
                     Settings.Save();
 
@@ -745,7 +644,7 @@ namespace KeyboardRedirector
                 return;
 
             StringBuilder details = new StringBuilder();
-            details.AppendLine("Key Code: " + key.KeyCode.ToString("x6") + " - " + key.Keys.ToString());
+            details.AppendLine("Key: " + key.ToString());
 
             labelKeyDetails.Text = details.ToString();
             textBoxKeyName.Text = key.Name;
@@ -814,6 +713,8 @@ namespace KeyboardRedirector
                 key.Name = textBoxKeyName.Text;
                 Settings.Save();
                 RefreshTreeView();
+
+                labelKeyDetails.Text = "Key: " + key.ToString();
             }
 
         }

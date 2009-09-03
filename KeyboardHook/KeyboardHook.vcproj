@@ -91,6 +91,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				CommandLine="copy /Y $(TargetPath) $(SolutionDir)\KeyboardRedirector\bin"
 			/>
 		</Configuration>
 		<Configuration
@@ -241,6 +242,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				CommandLine="copy /Y $(TargetPath) $(SolutionDir)\KeyboardRedirector\bin"
 			/>
 		</Configuration>
 		<Configuration

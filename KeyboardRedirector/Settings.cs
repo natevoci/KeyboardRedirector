@@ -144,11 +144,12 @@ namespace KeyboardRedirector
 
     public class SettingsKeyboardKeyList : List<SettingsKeyboardKey>
     {
-        public SettingsKeyboardKey FindKey(Keys KeyCode)
+        public SettingsKeyboardKey FindKey(KeyCombination keyCombo)
         {
+            SettingsKeyboardKey keyComboKey = new SettingsKeyboardKey(keyCombo);
             foreach (SettingsKeyboardKey key in this)
             {
-                if (key.Keys == KeyCode)
+                if (key.Equals(keyComboKey))
                     return key;
             }
             return null;
@@ -156,19 +157,11 @@ namespace KeyboardRedirector
     }
     public class SettingsKeyboardKey
     {
-        private uint _keyCode = 0;
+        private List<uint> _keyCodes = new List<uint>();
 
-        public uint KeyCode
+        public List<uint> KeyCodes
         {
-            get { return _keyCode; }
-            set { _keyCode = value; }
-        }
-
-        [XmlIgnore()]
-        public Keys Keys
-        {
-            get { return (Keys)_keyCode; }
-            set { _keyCode = (uint)value; }
+            get { return _keyCodes; }
         }
 
         public bool Capture = false;
@@ -179,27 +172,52 @@ namespace KeyboardRedirector
         public SettingsKeyboardKey()
         {
         }
-        public SettingsKeyboardKey(Keys KeyCode)
+        public SettingsKeyboardKey(KeyCombination keyCombination)
         {
-            this.Keys = KeyCode;
-            Name = KeyCode.ToString();
+            foreach (Keys key in keyCombination.Modifiers)
+            {
+                _keyCodes.Add((uint)key);
+            }
+            _keyCodes.Add((uint)keyCombination.Key);
         }
 
         public override bool Equals(object obj)
         {
-            SettingsKeyboardKey objTyped = obj as SettingsKeyboardKey;
-            return ((objTyped != null) && (Keys == objTyped.Keys));
+            return Equals(obj as SettingsKeyboardKey);
+        }
+        public bool Equals(SettingsKeyboardKey obj)
+        {
+            if (obj == null)
+                return false;
+
+            if (_keyCodes.Count != obj._keyCodes.Count)
+                return false;
+
+            for (int i = 0; i < _keyCodes.Count; i++)
+            {
+                if (_keyCodes[i] != obj._keyCodes[i])
+                    return false;
+            }
+
+            return true;
         }
         public override int GetHashCode()
         {
-            return Keys.GetHashCode();
+            return ToString().GetHashCode();
         }
         public override string ToString()
         {
-            if (Name.Length == 0)
-                return "0x" + KeyCode.ToString("x6");
-            else
-                return "0x" + KeyCode.ToString("x6") + " - " + Name;
+            StringBuilder result = new StringBuilder();
+            for (int i = 0; i < _keyCodes.Count; i++)
+            {
+                Keys code = (Keys)_keyCodes[i];
+                if (i > 0)
+                    result.Append("+");
+                result.Append(NiceKeyName.GetName(code));
+            }
+            if (Name.Length != 0)
+                result.Append(" - " + Name);
+            return result.ToString();
         }
     }
 

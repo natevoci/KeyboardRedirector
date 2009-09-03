@@ -78,12 +78,6 @@
     <Compile Include="EditApplicationsDialog.Designer.cs">
       <DependentUpon>EditApplicationsDialog.cs</DependentUpon>
     </Compile>
-    <Compile Include="Form1.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Form1.Designer.cs">
-      <DependentUpon>Form1.cs</DependentUpon>
-    </Compile>
     <Compile Include="InputDevice.cs" />
     <Compile Include="KeyboardRedirectorForm.cs">
       <SubType>Form</SubType>
@@ -104,10 +98,6 @@
     <EmbeddedResource Include="EditApplicationsDialog.resx">
       <SubType>Designer</SubType>
       <DependentUpon>EditApplicationsDialog.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Form1.resx">
-      <SubType>Designer</SubType>
-      <DependentUpon>Form1.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="KeyboardRedirectorForm.resx">
       <SubType>Designer</SubType>
