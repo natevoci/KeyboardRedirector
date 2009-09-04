@@ -1,0 +1,9 @@
+@echo off
+
+set VERSION_A=1
+set VERSION_B=1
+set VERSION_C=0
+set VERSION_D=$WCREV$
+
+set VERSION=%VERSION_A%.%VERSION_B%.%VERSION_C%.%VERSION_D%
+
