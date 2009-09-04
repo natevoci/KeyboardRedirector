@@ -90,7 +90,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy /Y $(TargetPath) $(SolutionDir)\KeyboardRedirector\bin"
+				CommandLine="PostBuild.bat &quot;$(TargetPath)&quot; &quot;$(SolutionDir)&quot;"
 			/>
 		</Configuration>
 		<Configuration
@@ -165,7 +165,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy /Y $(TargetPath) $(SolutionDir)\KeyboardRedirector\bin"
+				CommandLine="PostBuild.bat &quot;$(TargetPath)&quot; &quot;$(SolutionDir)&quot;"
 			/>
 		</Configuration>
 		<Configuration
@@ -242,7 +242,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy /Y $(TargetPath) $(SolutionDir)\KeyboardRedirector\bin"
+				CommandLine="PostBuild.bat &quot;$(TargetPath)&quot; &quot;$(SolutionDir)&quot;"
 			/>
 		</Configuration>
 		<Configuration
@@ -320,7 +320,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy /Y $(TargetPath) $(SolutionDir)\KeyboardRedirector\bin"
+				CommandLine="PostBuild.bat &quot;$(TargetPath)&quot; &quot;$(SolutionDir)&quot;"
 			/>
 		</Configuration>
 	</Configurations>
