@@ -60,6 +60,7 @@ namespace KeyboardRedirector
 
         public bool MinimizeOnStart = false;
         public SettingsKeyboardList Keyboards = new SettingsKeyboardList();
+        public SettingsKeyboard LowLevelKeyboard = new SettingsKeyboard();
         public SettingsApplicationList Applications = new SettingsApplicationList();
 
     }

@@ -38,9 +38,19 @@ namespace KeyboardRedirector
     public partial class EditApplicationsDialog : Form
     {
         ExecutableImageList _imageList;
+        SettingsApplication _selectedApplication = null;
+
+        public SettingsApplication SelectedApplication
+        {
+            get { return _selectedApplication; }
+            set { _selectedApplication = value; }
+        }
 
         public EditApplicationsDialog()
         {
+            string exeFilename = System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName;
+            this.Icon = System.Drawing.Icon.ExtractAssociatedIcon(exeFilename);
+
             InitializeComponent();
 
             listViewApplications.AddColumn("Application", 0, "Name");
@@ -73,6 +83,8 @@ namespace KeyboardRedirector
                     item.ImageIndex = _imageList.GetExecutableIndex(application.Executable);
             }
 
+            if (selectedIndex >= listViewApplications.Items.Count)
+                selectedIndex = listViewApplications.Items.Count - 1;
             if (selectedIndex >= 0)
             {
                 listViewApplications.SelectedIndices.Clear();
@@ -82,6 +94,7 @@ namespace KeyboardRedirector
 
         private void buttonOK_Click(object sender, EventArgs e)
         {
+            _selectedApplication = listViewApplications.SelectedItem as SettingsApplication;
             Settings.Save();
         }
 
@@ -96,7 +109,7 @@ namespace KeyboardRedirector
                 textBoxExecutable.Text = "";
                 textBoxExecutable.Enabled = false;
                 buttonBrowse.Enabled = false;
-                labelFindFromWindow.Enabled = false;
+                //labelFindFromWindow.Enabled = false;
             }
             else if (app.Name == "Default")
             {
@@ -106,7 +119,7 @@ namespace KeyboardRedirector
                 textBoxExecutable.Text = "";
                 textBoxExecutable.Enabled = false;
                 buttonBrowse.Enabled = false;
-                labelFindFromWindow.Enabled = false;
+                //labelFindFromWindow.Enabled = false;
             }
             else
             {
@@ -116,7 +129,7 @@ namespace KeyboardRedirector
                 textBoxExecutable.Text = app.Executable;
                 textBoxExecutable.Enabled = true;
                 buttonBrowse.Enabled = true;
-                labelFindFromWindow.Enabled = true;
+                //labelFindFromWindow.Enabled = true;
             }
         }
 
@@ -204,17 +217,36 @@ namespace KeyboardRedirector
         }
 
         private bool _findFromWindowActive = false;
+        private bool _findFromWindowValid = false;
         private string _findFromWindowOriginalName = "";
         private string _findFromWindowOriginalExecutable = "";
         private void labelFindFromWindow_MouseDown(object sender, MouseEventArgs e)
         {
             _findFromWindowActive = true;
+
+            SettingsApplication app = new SettingsApplication();
+            app.Name = "Find Window";
+            Settings.Current.Applications.Add(app);
+            Settings.Save();
+            RefreshApplicationsList();
+            listViewApplications.SelectedIndices.Clear();
+            listViewApplications.SelectedIndices.Add(listViewApplications.Items.Count - 1);
+
             _findFromWindowOriginalName = textBoxApplicationName.Text;
             _findFromWindowOriginalExecutable = textBoxExecutable.Text;
         }
         private void labelFindFromWindow_MouseUp(object sender, MouseEventArgs e)
         {
             _findFromWindowActive = false;
+
+            if (_findFromWindowValid == false)
+            {
+                SettingsApplication app = listViewApplications.SelectedItem as SettingsApplication;
+                if (app != null)
+                    Settings.Current.Applications.Remove(app);
+            }
+
+            Settings.Save();
             RefreshApplicationsList();
         }
         private void buttonFindFromWindow_MouseMove(object sender, MouseEventArgs e)
@@ -250,6 +282,7 @@ namespace KeyboardRedirector
             {
                 textBoxApplicationName.Text = _findFromWindowOriginalName;
                 textBoxExecutable.Text = _findFromWindowOriginalExecutable;
+                _findFromWindowValid = false;
             }
             else
             {
@@ -263,6 +296,8 @@ namespace KeyboardRedirector
 
                     textBoxApplicationName.Text = name;
                     textBoxExecutable.Text = executable;
+
+                    _findFromWindowValid = true;
                 }
                 catch (Exception e)
                 {

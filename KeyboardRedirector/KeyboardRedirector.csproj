@@ -122,6 +122,9 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <Compile Include="RichTextBoxEx.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Settings.cs" />
     <Compile Include="XMLFileStore.cs" />
   </ItemGroup>

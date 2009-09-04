@@ -84,6 +84,7 @@ namespace KeyboardRedirector
             panelKeyProperties.Size = new Size(panelKeyProperties.Parent.Size.Width - 6, panelKeyProperties.Parent.Size.Height - 6);
 
             _actionPerformer = new ActionPerformer();
+            _actionPerformer.StatusMessage += new ActionPerformer.StatusMessageHandler(_actionPerformer_StatusMessage);
             _actionPerformer.StartProcessingThread();
 
             _imageList = new ExecutableImageList(imageListApplications);
@@ -95,7 +96,7 @@ namespace KeyboardRedirector
                 Settings.Current.Applications.Add(app);
                 Settings.Save();
             }
-            listViewApplicationsInFocus.AddColumn("Application in focus", -1, "Name");
+            listViewApplicationsInFocus.AddColumn("Application in focus", -1, "ApplicationName");
 
             _inputDevice = new InputDevice(Handle);
             _inputDevice.DeviceEvent += new InputDevice.DeviceEventHandler(InputDevice_DeviceEvent);
@@ -105,8 +106,7 @@ namespace KeyboardRedirector
             NotifyIcon.ContextMenuStrip = contextMenuStripNotifyIcon;
 
             // Only start the keyboard hook if we're not debugging.
-            string exeFilename = System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName;
-
+            //string exeFilename = System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName;
             //if (exeFilename.EndsWith(".vshost.exe") == false)
             {
                 KeyboardHookExternal.Current.SetHook(Handle, 0x401, 0x402);
@@ -115,6 +115,10 @@ namespace KeyboardRedirector
             }
 
             timerMinimiseOnStart.Start();
+        }
+
+        private void KeyboardRedirectorForm_Load(object sender, EventArgs e)
+        {
         }
 
         private void timerMinimiseOnStart_Tick(object sender, EventArgs e)
@@ -163,11 +167,11 @@ namespace KeyboardRedirector
                             keyboard.DeviceName = info.DeviceName;
                             Settings.Current.Keyboards.Add(keyboard);
                             Settings.Save();
-                            richTextBoxEvents.AppendText("New Keyboard Added : " + keyboard.Name + Environment.NewLine);
+                            WriteEvent("New Keyboard Added : " + keyboard.Name + Environment.NewLine);
                         }
                         else
                         {
-                            richTextBoxEvents.AppendText("Keyboard Added : " + keyboard.Name + Environment.NewLine);
+                            WriteEvent("Keyboard Added : " + keyboard.Name + Environment.NewLine);
                         }
                     }
                     else
@@ -182,17 +186,11 @@ namespace KeyboardRedirector
                     _keyboards.Remove(deviceInformation);
 
                     SettingsKeyboard keyboard = Settings.Current.Keyboards.FindByDeviceName(deviceName);
-                    richTextBoxEvents.AppendText("Keyboard Removed : " + keyboard.Name + Environment.NewLine);
+                    WriteEvent("Keyboard Removed : " + keyboard.Name + Environment.NewLine);
                 }
 
                 RefreshTreeView();
             }
-        }
-
-        private void DebugWrite(string message)
-        {
-            System.Diagnostics.Debug.Write(message);
-            richTextBoxEvents.AppendText(message);
         }
 
         protected override void WndProc(ref Message message)
@@ -251,18 +249,18 @@ namespace KeyboardRedirector
             }
 
             if (e.KeyCombination.KeyDown)
-                DebugWrite("Down     : " + blockText + e.KeyCombination.ToString() + Environment.NewLine);
+                WriteHookEvent("Down : " + blockText + e.KeyCombination.ToString() + Environment.NewLine);
             else
-                DebugWrite("Up       : " + blockText + e.KeyCombination.ToString() + Environment.NewLine);
+                WriteHookEvent("Up   : " + blockText + e.KeyCombination.ToString() + Environment.NewLine);
         }
 
         void Current_KeyEventLowLevel(object sender, KeyHookEventArgs e)
         {
             string blockText = "      ";
             if (e.KeyCombination.KeyDown)
-                DebugWrite("LL Down  : " + blockText + e.KeyCombination.ToString() + Environment.NewLine);
+                WriteLowLevelEvent("Down : " + blockText + e.KeyCombination.ToString() + Environment.NewLine);
             else
-                DebugWrite("LL Up    : " + blockText + e.KeyCombination.ToString() + Environment.NewLine);
+                WriteLowLevelEvent("Up   : " + blockText + e.KeyCombination.ToString() + Environment.NewLine);
         }
 
         void InputDevice_DeviceEvent(object sender, InputDevice.DeviceInfo dInfo, InputDevice.RAWINPUT rawInput)
@@ -273,16 +271,14 @@ namespace KeyboardRedirector
                 bool keyDown = ((rawInput.data.keyboard.Message == Win32.WM.KEYDOWN) ||
                                 (rawInput.data.keyboard.Message == Win32.WM.SYSKEYDOWN));
 
-                string text = string.Format("{0} 0x{1:x}({2}) 0x{3:x} 0x{4:x} 0x{5:x} {6}",
+                string text = string.Format("{0} 0x{1:x}({2}) 0x{3:x} 0x{4:x}",
                     rawInput.header.dwType,
                     rawInput.data.keyboard.VKey,
                     key,
                     rawInput.data.keyboard.MakeCode,
-                    rawInput.data.keyboard.Flags,
-                    rawInput.data.keyboard.ExtraInformation,
-                    rawInput.data.keyboard.Message);
+                    rawInput.data.keyboard.Flags);
 
-                DebugWrite("WM_INPUT: 0x" + dInfo.DeviceHandle.ToInt32().ToString("x8") + " " + text + Environment.NewLine);
+                WriteWMInputEvent("0x" + dInfo.DeviceHandle.ToInt32().ToString("x8") + " " + rawInput.data.keyboard.Message.ToString().PadRight(10) + " : " + text + Environment.NewLine);
 
                 if (_keyCombinations.ContainsKey(dInfo.DeviceName) == false)
                 {
@@ -338,6 +334,34 @@ namespace KeyboardRedirector
                     }
                 }
             }
+        }
+
+        void _actionPerformer_StatusMessage(string text)
+        {
+            this.Invoke(new WriteDelegate(WriteEvent), new object[] { text + Environment.NewLine });
+            //WriteEvent(text + Environment.NewLine);
+        }
+
+        private delegate void WriteDelegate(string message);
+        private void WriteEvent(string message)
+        {
+            System.Diagnostics.Debug.Write(message);
+            richTextBoxEvents.AppendText(message);
+        }
+        private void WriteLowLevelEvent(string message)
+        {
+            System.Diagnostics.Debug.Write(message);
+            richTextBoxKeyEventsLowLevel.AppendText(message);
+        }
+        private void WriteHookEvent(string message)
+        {
+            System.Diagnostics.Debug.Write(message);
+            richTextBoxKeyEventsHook.AppendText(message);
+        }
+        private void WriteWMInputEvent(string message)
+        {
+            System.Diagnostics.Debug.Write(message);
+            richTextBoxKeyEventsWMInput.AppendText(message);
         }
 
         private DeviceInformation FindKeyboardDevice(string deviceName)
@@ -641,7 +665,7 @@ namespace KeyboardRedirector
         {
             SettingsKeyboardKey key = GetSelectedKeyFromTreeView();
             if (key == null)
-                return;
+                throw new NullReferenceException("Selected key value missing");
 
             StringBuilder details = new StringBuilder();
             details.AppendLine("Key: " + key.ToString());
@@ -719,35 +743,97 @@ namespace KeyboardRedirector
 
         }
 
-        private void buttonEditApplications_Click(object sender, EventArgs e)
-        {
-            EditApplicationsDialog dialog = new EditApplicationsDialog();
-            DialogResult result = dialog.ShowDialog(this);
-            if (result == DialogResult.OK)
-            {
-                RefreshApplicationsList();
-            }
-        }
-
         private void RefreshApplicationsList()
         {
-            listViewApplicationsInFocus.DataSource = null;
-            listViewApplicationsInFocus.DataSource = Settings.Current.Applications;
+            SettingsKeyboardKeyFocusedApplication previouslySelectedApp = listViewApplicationsInFocus.SelectedItem as SettingsKeyboardKeyFocusedApplication;
 
+            listViewApplicationsInFocus.DataSource = null;
+
+            SettingsKeyboardKey key = GetSelectedKeyFromTreeView();
+            if (key == null)
+            {
+                listViewApplicationsInFocus.Enabled = false;
+                return;
+            }
+            listViewApplicationsInFocus.Enabled = true;
+
+            SettingsKeyboardKeyFocusedApplication defaultFocusedApplication;
+            defaultFocusedApplication = key.FocusedApplications.FindByName("Default");
+            if (defaultFocusedApplication == null)
+            {
+                defaultFocusedApplication = new SettingsKeyboardKeyFocusedApplication();
+                defaultFocusedApplication.Application = Settings.Current.Applications.FindByName("Default");
+                key.FocusedApplications.Insert(0, defaultFocusedApplication);
+                Settings.Save();
+            }
+
+            listViewApplicationsInFocus.DataSource = key.FocusedApplications;
+
+            int selectIndex = 0;
             foreach (ListViewItem item in listViewApplicationsInFocus.Items)
             {
-                SettingsApplication application = item.Tag as SettingsApplication;
-                if (application.Name == "Default")
+                SettingsKeyboardKeyFocusedApplication focussedApp = item.Tag as SettingsKeyboardKeyFocusedApplication;
+
+                if (focussedApp.Application.Name == "Default")
                     item.ImageIndex = 0;
                 else
-                    item.ImageIndex = _imageList.GetExecutableIndex(application.Executable);
+                    item.ImageIndex = _imageList.GetExecutableIndex(focussedApp.Application.Executable);
+
+                if (focussedApp == previouslySelectedApp)
+                    selectIndex = item.Index;
             }
+            listViewApplicationsInFocus.SelectedIndex = selectIndex;
 
         }
 
         private void listViewApplicationsInFocus_SelectedIndexChanged(object sender, EventArgs e)
         {
             RefreshActionList();
+
+            // Only enable remove app button if any but the default app are selected
+            if ((listViewApplicationsInFocus.SelectedIndices.Count == 1) &&
+                (listViewApplicationsInFocus.SelectedIndices[0] > 0))
+                buttonRemoveApplication.Enabled = true;
+            else
+                buttonRemoveApplication.Enabled = false;
+        }
+
+        private void buttonAddApplications_Click(object sender, EventArgs e)
+        {
+            SettingsKeyboardKey key = GetSelectedKeyFromTreeView();
+            if (key == null)
+                throw new NullReferenceException("Selected key value missing");
+
+            EditApplicationsDialog dialog = new EditApplicationsDialog();
+            DialogResult result = dialog.ShowDialog(this);
+            if (result != DialogResult.OK)
+                return;
+
+            if (dialog.SelectedApplication == null)
+                return;
+
+            SettingsKeyboardKeyFocusedApplication focusedApplication = new SettingsKeyboardKeyFocusedApplication();
+            focusedApplication.Application = dialog.SelectedApplication;
+            key.FocusedApplications.Add(focusedApplication);
+            Settings.Save();
+
+            RefreshApplicationsList();
+        }
+
+        private void buttonRemoveApplication_Click(object sender, EventArgs e)
+        {
+            SettingsKeyboardKey key = GetSelectedKeyFromTreeView();
+            if (key == null)
+                throw new NullReferenceException("Selected key value missing");
+
+            SettingsKeyboardKeyFocusedApplication app = listViewApplicationsInFocus.SelectedItem as SettingsKeyboardKeyFocusedApplication;
+            if (app == null)
+                throw new NullReferenceException("Focussed application value missing");
+
+            key.FocusedApplications.Remove(app);
+            Settings.Save();
+
+            RefreshApplicationsList();
         }
 
         private void RefreshActionList()
@@ -755,12 +841,12 @@ namespace KeyboardRedirector
             listViewActions.BeginUpdate();
             listViewActions.Items.Clear();
 
-            SettingsApplication application = listViewApplicationsInFocus.SelectedItem as SettingsApplication;
-            buttonAddAction.Enabled = (application != null);
-            buttonEditAction.Enabled = (application != null);
-            buttonRemoveAction.Enabled = (application != null);
-            listViewActions.Enabled = (application != null);
-            if (application == null)
+            SettingsKeyboardKeyFocusedApplication app = listViewApplicationsInFocus.SelectedItem as SettingsKeyboardKeyFocusedApplication;
+            buttonAddAction.Enabled = (app != null);
+            buttonEditAction.Enabled = false;
+            buttonRemoveAction.Enabled = false;
+            listViewActions.Enabled = (app != null);
+            if (app == null)
             {
                 listViewActions.EndUpdate();
                 return;
@@ -769,17 +855,13 @@ namespace KeyboardRedirector
             SettingsKeyboardKey key = GetSelectedKeyFromTreeView();
             if (key != null)
             {
-                SettingsKeyboardKeyFocusedApplication app = key.FocusedApplications.FindByName(application.Name);
-                if (app != null)
+                foreach (SettingsKeyboardKeyAction action in app.Actions)
                 {
-                    foreach (SettingsKeyboardKeyAction action in app.Actions)
-                    {
-                        SettingsKeyboardKeyTypedAction typedAction = action.CurrentActionType;
-                        string[] columns = new string[] { typedAction.GetName(), typedAction.GetDetails() };
-                        ListViewItem item = new ListViewItem(columns);
-                        item.Tag = action;
-                        listViewActions.Items.Add(item);
-                    }
+                    SettingsKeyboardKeyTypedAction typedAction = action.CurrentActionType;
+                    string[] columns = new string[] { typedAction.GetName(), typedAction.GetDetails() };
+                    ListViewItem item = new ListViewItem(columns);
+                    item.Tag = action;
+                    listViewActions.Items.Add(item);
                 }
             }
 
@@ -799,22 +881,14 @@ namespace KeyboardRedirector
             DialogResult result = dialog.ShowDialog(this);
             if (result == DialogResult.OK)
             {
-                SettingsApplication application = listViewApplicationsInFocus.SelectedItem as SettingsApplication;
-                if (application == null)
-                    return;
-
                 SettingsKeyboardKey key = GetSelectedKeyFromTreeView();
                 if (key == null)
-                    return;
+                    throw new NullReferenceException("Selected key value missing");
 
-                SettingsKeyboardKeyFocusedApplication focusedApplication;
-                focusedApplication = key.FocusedApplications.FindByName(application.Name);
+                SettingsKeyboardKeyFocusedApplication focusedApplication = listViewApplicationsInFocus.SelectedItem as SettingsKeyboardKeyFocusedApplication;
                 if (focusedApplication == null)
-                {
-                    focusedApplication = new SettingsKeyboardKeyFocusedApplication();
-                    focusedApplication.Application = application;
-                    key.FocusedApplications.Add(focusedApplication);
-                }
+                    throw new NullReferenceException("Focussed application value missing");
+
                 focusedApplication.Actions.Add(dialog.Action);
                 Settings.Save();
                 RefreshActionList();
@@ -828,6 +902,8 @@ namespace KeyboardRedirector
 
             int selectedIndex = listViewActions.SelectedIndices[0];
             SettingsKeyboardKeyAction action = listViewActions.SelectedItems[0].Tag as SettingsKeyboardKeyAction;
+            if (action == null)
+                throw new NullReferenceException("Action value missing");
 
             ActionPropertiesDialog dialog = new ActionPropertiesDialog();
             dialog.Action = action;
@@ -846,26 +922,29 @@ namespace KeyboardRedirector
             if (listViewActions.SelectedIndices.Count != 1)
                 return;
 
-            SettingsApplication application = listViewApplicationsInFocus.SelectedItem as SettingsApplication;
-            if (application == null)
-                return;
-
             SettingsKeyboardKey key = GetSelectedKeyFromTreeView();
             if (key == null)
-                return;
+                throw new NullReferenceException("Selected key value missing");
 
-            SettingsKeyboardKeyFocusedApplication focusedApplication;
-            focusedApplication = key.FocusedApplications.FindByName(application.Name);
+            SettingsKeyboardKeyFocusedApplication focusedApplication = listViewApplicationsInFocus.SelectedItem as SettingsKeyboardKeyFocusedApplication;
             if (focusedApplication == null)
-                return;
+                throw new NullReferenceException("Focussed application value missing");
 
             SettingsKeyboardKeyAction action = listViewActions.SelectedItems[0].Tag as SettingsKeyboardKeyAction;
             if (action == null)
-                return;
+                throw new NullReferenceException("Action value missing");
 
             focusedApplication.Actions.Remove(action);
             Settings.Save();
             RefreshActionList();
+        }
+
+        private void buttonClear_Click(object sender, EventArgs e)
+        {
+            richTextBoxEvents.Clear();
+            richTextBoxKeyEventsLowLevel.Clear();
+            richTextBoxKeyEventsHook.Clear();
+            richTextBoxKeyEventsWMInput.Clear();
         }
 
     }

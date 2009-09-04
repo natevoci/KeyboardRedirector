@@ -34,7 +34,7 @@ namespace KeyboardRedirector
             treeNode1});
             System.Windows.Forms.TreeNode treeNode3 = new System.Windows.Forms.TreeNode("Node2", 2, 3);
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(KeyboardRedirectorForm));
-            this.richTextBoxEvents = new System.Windows.Forms.RichTextBox();
+            this.richTextBoxEvents = new KeyboardRedirector.RichTextBoxEx();
             this.contextMenuStripNotifyIcon = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.restoreToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripSeparator();
@@ -47,9 +47,11 @@ namespace KeyboardRedirector
             this.panelKeyProperties = new System.Windows.Forms.Panel();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.splitContainer4 = new System.Windows.Forms.SplitContainer();
+            this.labelFocussedAppInfo = new System.Windows.Forms.Label();
             this.listViewApplicationsInFocus = new KeyboardRedirector.BindingListView();
             this.imageListApplications = new System.Windows.Forms.ImageList(this.components);
-            this.buttonEditApplications = new System.Windows.Forms.Button();
+            this.buttonRemoveApplication = new System.Windows.Forms.Button();
+            this.buttonAddApplications = new System.Windows.Forms.Button();
             this.buttonAddAction = new System.Windows.Forms.Button();
             this.listViewActions = new System.Windows.Forms.ListView();
             this.columnHeader1 = new System.Windows.Forms.ColumnHeader();
@@ -71,6 +73,18 @@ namespace KeyboardRedirector
             this.splitContainer2 = new System.Windows.Forms.SplitContainer();
             this.splitContainer3 = new System.Windows.Forms.SplitContainer();
             this.checkBoxMinimiseOnStart = new System.Windows.Forms.CheckBox();
+            this.buttonClear = new System.Windows.Forms.Button();
+            this.tabControl1 = new System.Windows.Forms.TabControl();
+            this.tabPageMessages = new System.Windows.Forms.TabPage();
+            this.tabPageKeyEvents = new System.Windows.Forms.TabPage();
+            this.splitContainer5 = new System.Windows.Forms.SplitContainer();
+            this.label6 = new System.Windows.Forms.Label();
+            this.richTextBoxKeyEventsLowLevel = new KeyboardRedirector.RichTextBoxEx();
+            this.splitContainer6 = new System.Windows.Forms.SplitContainer();
+            this.label5 = new System.Windows.Forms.Label();
+            this.richTextBoxKeyEventsHook = new KeyboardRedirector.RichTextBoxEx();
+            this.label7 = new System.Windows.Forms.Label();
+            this.richTextBoxKeyEventsWMInput = new KeyboardRedirector.RichTextBoxEx();
             this.timerMinimiseOnStart = new System.Windows.Forms.Timer(this.components);
             this.contextMenuStripNotifyIcon.SuspendLayout();
             this.splitContainer1.Panel1.SuspendLayout();
@@ -89,6 +103,15 @@ namespace KeyboardRedirector
             this.splitContainer3.Panel1.SuspendLayout();
             this.splitContainer3.Panel2.SuspendLayout();
             this.splitContainer3.SuspendLayout();
+            this.tabControl1.SuspendLayout();
+            this.tabPageMessages.SuspendLayout();
+            this.tabPageKeyEvents.SuspendLayout();
+            this.splitContainer5.Panel1.SuspendLayout();
+            this.splitContainer5.Panel2.SuspendLayout();
+            this.splitContainer5.SuspendLayout();
+            this.splitContainer6.Panel1.SuspendLayout();
+            this.splitContainer6.Panel2.SuspendLayout();
+            this.splitContainer6.SuspendLayout();
             this.SuspendLayout();
             // 
             // richTextBoxEvents
@@ -98,7 +121,7 @@ namespace KeyboardRedirector
             this.richTextBoxEvents.Font = new System.Drawing.Font("Lucida Console", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.richTextBoxEvents.Location = new System.Drawing.Point(0, 0);
             this.richTextBoxEvents.Name = "richTextBoxEvents";
-            this.richTextBoxEvents.Size = new System.Drawing.Size(702, 101);
+            this.richTextBoxEvents.Size = new System.Drawing.Size(694, 61);
             this.richTextBoxEvents.TabIndex = 0;
             this.richTextBoxEvents.Text = "";
             // 
@@ -147,7 +170,7 @@ namespace KeyboardRedirector
             // 
             this.splitContainer1.Panel2.Controls.Add(this.panelKeyProperties);
             this.splitContainer1.Panel2.Controls.Add(this.panelKeyboardProperties);
-            this.splitContainer1.Size = new System.Drawing.Size(702, 446);
+            this.splitContainer1.Size = new System.Drawing.Size(702, 460);
             this.splitContainer1.SplitterDistance = 291;
             this.splitContainer1.TabIndex = 0;
             // 
@@ -176,8 +199,8 @@ namespace KeyboardRedirector
             treeNode2,
             treeNode3});
             this.treeViewKeys.SelectedImageIndex = 0;
-            this.treeViewKeys.Size = new System.Drawing.Size(281, 436);
-            this.treeViewKeys.TabIndex = 1;
+            this.treeViewKeys.Size = new System.Drawing.Size(281, 450);
+            this.treeViewKeys.TabIndex = 0;
             this.treeViewKeys.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.treeViewKeys_AfterSelect);
             this.treeViewKeys.MouseDown += new System.Windows.Forms.MouseEventHandler(this.treeViewKeys_MouseDown);
             this.treeViewKeys.KeyUp += new System.Windows.Forms.KeyEventHandler(this.treeViewKeys_KeyUp);
@@ -219,9 +242,9 @@ namespace KeyboardRedirector
             this.panelKeyProperties.Controls.Add(this.label3);
             this.panelKeyProperties.Controls.Add(this.checkBoxCaptureKey);
             this.panelKeyProperties.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.panelKeyProperties.Location = new System.Drawing.Point(3, 113);
+            this.panelKeyProperties.Location = new System.Drawing.Point(3, 6);
             this.panelKeyProperties.Name = "panelKeyProperties";
-            this.panelKeyProperties.Size = new System.Drawing.Size(397, 326);
+            this.panelKeyProperties.Size = new System.Drawing.Size(397, 447);
             this.panelKeyProperties.TabIndex = 1;
             this.panelKeyProperties.Visible = false;
             // 
@@ -233,8 +256,8 @@ namespace KeyboardRedirector
             this.groupBox1.Controls.Add(this.splitContainer4);
             this.groupBox1.Location = new System.Drawing.Point(3, 115);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(391, 208);
-            this.groupBox1.TabIndex = 16;
+            this.groupBox1.Size = new System.Drawing.Size(391, 329);
+            this.groupBox1.TabIndex = 5;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Actions";
             // 
@@ -247,8 +270,10 @@ namespace KeyboardRedirector
             // 
             // splitContainer4.Panel1
             // 
+            this.splitContainer4.Panel1.Controls.Add(this.labelFocussedAppInfo);
             this.splitContainer4.Panel1.Controls.Add(this.listViewApplicationsInFocus);
-            this.splitContainer4.Panel1.Controls.Add(this.buttonEditApplications);
+            this.splitContainer4.Panel1.Controls.Add(this.buttonRemoveApplication);
+            this.splitContainer4.Panel1.Controls.Add(this.buttonAddApplications);
             // 
             // splitContainer4.Panel2
             // 
@@ -256,9 +281,20 @@ namespace KeyboardRedirector
             this.splitContainer4.Panel2.Controls.Add(this.listViewActions);
             this.splitContainer4.Panel2.Controls.Add(this.buttonRemoveAction);
             this.splitContainer4.Panel2.Controls.Add(this.buttonEditAction);
-            this.splitContainer4.Size = new System.Drawing.Size(385, 188);
-            this.splitContainer4.SplitterDistance = 87;
-            this.splitContainer4.TabIndex = 19;
+            this.splitContainer4.Size = new System.Drawing.Size(385, 309);
+            this.splitContainer4.SplitterDistance = 141;
+            this.splitContainer4.TabIndex = 0;
+            // 
+            // labelFocussedAppInfo
+            // 
+            this.labelFocussedAppInfo.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.labelFocussedAppInfo.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.labelFocussedAppInfo.Location = new System.Drawing.Point(210, 29);
+            this.labelFocussedAppInfo.Name = "labelFocussedAppInfo";
+            this.labelFocussedAppInfo.Size = new System.Drawing.Size(172, 109);
+            this.labelFocussedAppInfo.TabIndex = 3;
+            this.labelFocussedAppInfo.Text = resources.GetString("labelFocussedAppInfo.Text");
             // 
             // listViewApplicationsInFocus
             // 
@@ -271,6 +307,7 @@ namespace KeyboardRedirector
             this.listViewApplicationsInFocus.DataSource = null;
             this.listViewApplicationsInFocus.Filter = "";
             this.listViewApplicationsInFocus.FullRowSelect = true;
+            this.listViewApplicationsInFocus.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.Nonclickable;
             this.listViewApplicationsInFocus.HideSelection = false;
             this.listViewApplicationsInFocus.Location = new System.Drawing.Point(3, 3);
             this.listViewApplicationsInFocus.MultiSelect = false;
@@ -278,9 +315,9 @@ namespace KeyboardRedirector
             this.listViewApplicationsInFocus.OwnerDraw = true;
             this.listViewApplicationsInFocus.SelectedIndex = -1;
             this.listViewApplicationsInFocus.SelectedItem = null;
-            this.listViewApplicationsInFocus.Size = new System.Drawing.Size(144, 81);
+            this.listViewApplicationsInFocus.Size = new System.Drawing.Size(201, 135);
             this.listViewApplicationsInFocus.SmallImageList = this.imageListApplications;
-            this.listViewApplicationsInFocus.TabIndex = 18;
+            this.listViewApplicationsInFocus.TabIndex = 0;
             this.listViewApplicationsInFocus.UseCompatibleStateImageBehavior = false;
             this.listViewApplicationsInFocus.View = System.Windows.Forms.View.Details;
             this.listViewApplicationsInFocus.SelectedIndexChanged += new System.EventHandler(this.listViewApplicationsInFocus_SelectedIndexChanged);
@@ -292,24 +329,35 @@ namespace KeyboardRedirector
             this.imageListApplications.Images.SetKeyName(0, "DefaultApplication.png");
             this.imageListApplications.Images.SetKeyName(1, "DefaultApplicationNotFound.png");
             // 
-            // buttonEditApplications
+            // buttonRemoveApplication
             // 
-            this.buttonEditApplications.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonEditApplications.Location = new System.Drawing.Point(153, 3);
-            this.buttonEditApplications.Name = "buttonEditApplications";
-            this.buttonEditApplications.Size = new System.Drawing.Size(99, 23);
-            this.buttonEditApplications.TabIndex = 17;
-            this.buttonEditApplications.Text = "Edit Applications";
-            this.buttonEditApplications.UseVisualStyleBackColor = true;
-            this.buttonEditApplications.Click += new System.EventHandler(this.buttonEditApplications_Click);
+            this.buttonRemoveApplication.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.buttonRemoveApplication.Location = new System.Drawing.Point(280, 3);
+            this.buttonRemoveApplication.Name = "buttonRemoveApplication";
+            this.buttonRemoveApplication.Size = new System.Drawing.Size(64, 23);
+            this.buttonRemoveApplication.TabIndex = 2;
+            this.buttonRemoveApplication.Text = "Remove";
+            this.buttonRemoveApplication.UseVisualStyleBackColor = true;
+            this.buttonRemoveApplication.Click += new System.EventHandler(this.buttonRemoveApplication_Click);
+            // 
+            // buttonAddApplications
+            // 
+            this.buttonAddApplications.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.buttonAddApplications.Location = new System.Drawing.Point(210, 3);
+            this.buttonAddApplications.Name = "buttonAddApplications";
+            this.buttonAddApplications.Size = new System.Drawing.Size(64, 23);
+            this.buttonAddApplications.TabIndex = 1;
+            this.buttonAddApplications.Text = "Add";
+            this.buttonAddApplications.UseVisualStyleBackColor = true;
+            this.buttonAddApplications.Click += new System.EventHandler(this.buttonAddApplications_Click);
             // 
             // buttonAddAction
             // 
             this.buttonAddAction.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonAddAction.Location = new System.Drawing.Point(172, 71);
+            this.buttonAddAction.Location = new System.Drawing.Point(172, 138);
             this.buttonAddAction.Name = "buttonAddAction";
             this.buttonAddAction.Size = new System.Drawing.Size(66, 23);
-            this.buttonAddAction.TabIndex = 16;
+            this.buttonAddAction.TabIndex = 1;
             this.buttonAddAction.Text = "Add";
             this.buttonAddAction.UseVisualStyleBackColor = true;
             this.buttonAddAction.Click += new System.EventHandler(this.buttonAddAction_Click);
@@ -324,9 +372,12 @@ namespace KeyboardRedirector
             this.columnHeader2});
             this.listViewActions.FullRowSelect = true;
             this.listViewActions.GridLines = true;
+            this.listViewActions.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.Nonclickable;
+            this.listViewActions.HideSelection = false;
             this.listViewActions.Location = new System.Drawing.Point(3, 3);
+            this.listViewActions.MultiSelect = false;
             this.listViewActions.Name = "listViewActions";
-            this.listViewActions.Size = new System.Drawing.Size(379, 62);
+            this.listViewActions.Size = new System.Drawing.Size(379, 129);
             this.listViewActions.TabIndex = 0;
             this.listViewActions.UseCompatibleStateImageBehavior = false;
             this.listViewActions.View = System.Windows.Forms.View.Details;
@@ -345,10 +396,10 @@ namespace KeyboardRedirector
             // buttonRemoveAction
             // 
             this.buttonRemoveAction.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonRemoveAction.Location = new System.Drawing.Point(316, 71);
+            this.buttonRemoveAction.Location = new System.Drawing.Point(316, 138);
             this.buttonRemoveAction.Name = "buttonRemoveAction";
             this.buttonRemoveAction.Size = new System.Drawing.Size(66, 23);
-            this.buttonRemoveAction.TabIndex = 16;
+            this.buttonRemoveAction.TabIndex = 3;
             this.buttonRemoveAction.Text = "Remove";
             this.buttonRemoveAction.UseVisualStyleBackColor = true;
             this.buttonRemoveAction.Click += new System.EventHandler(this.buttonRemove_Click);
@@ -356,10 +407,10 @@ namespace KeyboardRedirector
             // buttonEditAction
             // 
             this.buttonEditAction.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonEditAction.Location = new System.Drawing.Point(244, 71);
+            this.buttonEditAction.Location = new System.Drawing.Point(244, 138);
             this.buttonEditAction.Name = "buttonEditAction";
             this.buttonEditAction.Size = new System.Drawing.Size(66, 23);
-            this.buttonEditAction.TabIndex = 16;
+            this.buttonEditAction.TabIndex = 2;
             this.buttonEditAction.Text = "Edit";
             this.buttonEditAction.UseVisualStyleBackColor = true;
             this.buttonEditAction.Click += new System.EventHandler(this.buttonEdit_Click);
@@ -491,7 +542,7 @@ namespace KeyboardRedirector
             this.richTextBoxKeyDetector.Font = new System.Drawing.Font("Verdana", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.richTextBoxKeyDetector.Location = new System.Drawing.Point(3, 3);
             this.richTextBoxKeyDetector.Name = "richTextBoxKeyDetector";
-            this.richTextBoxKeyDetector.Size = new System.Drawing.Size(229, 29);
+            this.richTextBoxKeyDetector.Size = new System.Drawing.Size(232, 29);
             this.richTextBoxKeyDetector.TabIndex = 0;
             this.richTextBoxKeyDetector.Text = "Type here to detect keys";
             this.richTextBoxKeyDetector.KeyDown += new System.Windows.Forms.KeyEventHandler(this.richTextBoxKeyDetector_KeyDown);
@@ -510,9 +561,10 @@ namespace KeyboardRedirector
             // 
             // splitContainer2.Panel2
             // 
-            this.splitContainer2.Panel2.Controls.Add(this.richTextBoxEvents);
+            this.splitContainer2.Panel2.Controls.Add(this.buttonClear);
+            this.splitContainer2.Panel2.Controls.Add(this.tabControl1);
             this.splitContainer2.Size = new System.Drawing.Size(702, 584);
-            this.splitContainer2.SplitterDistance = 479;
+            this.splitContainer2.SplitterDistance = 493;
             this.splitContainer2.TabIndex = 4;
             // 
             // splitContainer3
@@ -532,9 +584,9 @@ namespace KeyboardRedirector
             // splitContainer3.Panel2
             // 
             this.splitContainer3.Panel2.Controls.Add(this.splitContainer1);
-            this.splitContainer3.Size = new System.Drawing.Size(702, 479);
+            this.splitContainer3.Size = new System.Drawing.Size(702, 493);
             this.splitContainer3.SplitterDistance = 29;
-            this.splitContainer3.TabIndex = 1;
+            this.splitContainer3.TabIndex = 0;
             // 
             // checkBoxMinimiseOnStart
             // 
@@ -548,6 +600,165 @@ namespace KeyboardRedirector
             this.checkBoxMinimiseOnStart.UseVisualStyleBackColor = true;
             this.checkBoxMinimiseOnStart.CheckedChanged += new System.EventHandler(this.checkBoxMinimiseOnStart_CheckedChanged);
             // 
+            // buttonClear
+            // 
+            this.buttonClear.Location = new System.Drawing.Point(622, 0);
+            this.buttonClear.Name = "buttonClear";
+            this.buttonClear.Size = new System.Drawing.Size(75, 19);
+            this.buttonClear.TabIndex = 1;
+            this.buttonClear.Text = "Clear";
+            this.buttonClear.UseVisualStyleBackColor = true;
+            this.buttonClear.Click += new System.EventHandler(this.buttonClear_Click);
+            // 
+            // tabControl1
+            // 
+            this.tabControl1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+                        | System.Windows.Forms.AnchorStyles.Left)
+                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.tabControl1.Controls.Add(this.tabPageMessages);
+            this.tabControl1.Controls.Add(this.tabPageKeyEvents);
+            this.tabControl1.Location = new System.Drawing.Point(0, 0);
+            this.tabControl1.Margin = new System.Windows.Forms.Padding(0);
+            this.tabControl1.Name = "tabControl1";
+            this.tabControl1.SelectedIndex = 0;
+            this.tabControl1.Size = new System.Drawing.Size(702, 87);
+            this.tabControl1.TabIndex = 0;
+            // 
+            // tabPageMessages
+            // 
+            this.tabPageMessages.Controls.Add(this.richTextBoxEvents);
+            this.tabPageMessages.Location = new System.Drawing.Point(4, 22);
+            this.tabPageMessages.Margin = new System.Windows.Forms.Padding(0);
+            this.tabPageMessages.Name = "tabPageMessages";
+            this.tabPageMessages.Size = new System.Drawing.Size(694, 61);
+            this.tabPageMessages.TabIndex = 0;
+            this.tabPageMessages.Text = "Messages";
+            this.tabPageMessages.UseVisualStyleBackColor = true;
+            // 
+            // tabPageKeyEvents
+            // 
+            this.tabPageKeyEvents.Controls.Add(this.splitContainer5);
+            this.tabPageKeyEvents.Location = new System.Drawing.Point(4, 22);
+            this.tabPageKeyEvents.Margin = new System.Windows.Forms.Padding(0);
+            this.tabPageKeyEvents.Name = "tabPageKeyEvents";
+            this.tabPageKeyEvents.Size = new System.Drawing.Size(694, 61);
+            this.tabPageKeyEvents.TabIndex = 1;
+            this.tabPageKeyEvents.Text = "Key Events";
+            this.tabPageKeyEvents.UseVisualStyleBackColor = true;
+            // 
+            // splitContainer5
+            // 
+            this.splitContainer5.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+            this.splitContainer5.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.splitContainer5.Location = new System.Drawing.Point(0, 0);
+            this.splitContainer5.Margin = new System.Windows.Forms.Padding(0);
+            this.splitContainer5.Name = "splitContainer5";
+            // 
+            // splitContainer5.Panel1
+            // 
+            this.splitContainer5.Panel1.Controls.Add(this.label6);
+            this.splitContainer5.Panel1.Controls.Add(this.richTextBoxKeyEventsLowLevel);
+            // 
+            // splitContainer5.Panel2
+            // 
+            this.splitContainer5.Panel2.Controls.Add(this.splitContainer6);
+            this.splitContainer5.Size = new System.Drawing.Size(694, 61);
+            this.splitContainer5.SplitterDistance = 230;
+            this.splitContainer5.TabIndex = 0;
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(2, 0);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(92, 13);
+            this.label6.TabIndex = 1;
+            this.label6.Text = "Low Level Events";
+            // 
+            // richTextBoxKeyEventsLowLevel
+            // 
+            this.richTextBoxKeyEventsLowLevel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+                        | System.Windows.Forms.AnchorStyles.Left)
+                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.richTextBoxKeyEventsLowLevel.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.richTextBoxKeyEventsLowLevel.Font = new System.Drawing.Font("Lucida Console", 8.25F);
+            this.richTextBoxKeyEventsLowLevel.Location = new System.Drawing.Point(0, 16);
+            this.richTextBoxKeyEventsLowLevel.Margin = new System.Windows.Forms.Padding(0);
+            this.richTextBoxKeyEventsLowLevel.Name = "richTextBoxKeyEventsLowLevel";
+            this.richTextBoxKeyEventsLowLevel.Size = new System.Drawing.Size(226, 41);
+            this.richTextBoxKeyEventsLowLevel.TabIndex = 0;
+            this.richTextBoxKeyEventsLowLevel.Text = "";
+            this.richTextBoxKeyEventsLowLevel.WordWrap = false;
+            // 
+            // splitContainer6
+            // 
+            this.splitContainer6.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+            this.splitContainer6.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.splitContainer6.Location = new System.Drawing.Point(0, 0);
+            this.splitContainer6.Margin = new System.Windows.Forms.Padding(0);
+            this.splitContainer6.Name = "splitContainer6";
+            // 
+            // splitContainer6.Panel1
+            // 
+            this.splitContainer6.Panel1.Controls.Add(this.label5);
+            this.splitContainer6.Panel1.Controls.Add(this.richTextBoxKeyEventsHook);
+            // 
+            // splitContainer6.Panel2
+            // 
+            this.splitContainer6.Panel2.Controls.Add(this.label7);
+            this.splitContainer6.Panel2.Controls.Add(this.richTextBoxKeyEventsWMInput);
+            this.splitContainer6.Size = new System.Drawing.Size(460, 61);
+            this.splitContainer6.SplitterDistance = 232;
+            this.splitContainer6.TabIndex = 0;
+            // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(3, 0);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(124, 13);
+            this.label5.TabIndex = 1;
+            this.label5.Text = "Application Level Events";
+            // 
+            // richTextBoxKeyEventsHook
+            // 
+            this.richTextBoxKeyEventsHook.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+                        | System.Windows.Forms.AnchorStyles.Left)
+                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.richTextBoxKeyEventsHook.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.richTextBoxKeyEventsHook.Font = new System.Drawing.Font("Lucida Console", 8.25F);
+            this.richTextBoxKeyEventsHook.Location = new System.Drawing.Point(0, 16);
+            this.richTextBoxKeyEventsHook.Margin = new System.Windows.Forms.Padding(0);
+            this.richTextBoxKeyEventsHook.Name = "richTextBoxKeyEventsHook";
+            this.richTextBoxKeyEventsHook.Size = new System.Drawing.Size(228, 41);
+            this.richTextBoxKeyEventsHook.TabIndex = 0;
+            this.richTextBoxKeyEventsHook.Text = "";
+            this.richTextBoxKeyEventsHook.WordWrap = false;
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(3, 0);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(92, 13);
+            this.label7.TabIndex = 1;
+            this.label7.Text = "Raw Input Events";
+            // 
+            // richTextBoxKeyEventsWMInput
+            // 
+            this.richTextBoxKeyEventsWMInput.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+                        | System.Windows.Forms.AnchorStyles.Left)
+                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.richTextBoxKeyEventsWMInput.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.richTextBoxKeyEventsWMInput.Font = new System.Drawing.Font("Lucida Console", 8.25F);
+            this.richTextBoxKeyEventsWMInput.Location = new System.Drawing.Point(0, 16);
+            this.richTextBoxKeyEventsWMInput.Margin = new System.Windows.Forms.Padding(0);
+            this.richTextBoxKeyEventsWMInput.Name = "richTextBoxKeyEventsWMInput";
+            this.richTextBoxKeyEventsWMInput.Size = new System.Drawing.Size(220, 41);
+            this.richTextBoxKeyEventsWMInput.TabIndex = 0;
+            this.richTextBoxKeyEventsWMInput.Text = "";
+            this.richTextBoxKeyEventsWMInput.WordWrap = false;
+            // 
             // timerMinimiseOnStart
             // 
             this.timerMinimiseOnStart.Tick += new System.EventHandler(this.timerMinimiseOnStart_Tick);
@@ -560,6 +771,7 @@ namespace KeyboardRedirector
             this.Controls.Add(this.splitContainer2);
             this.Name = "KeyboardRedirectorForm";
             this.Text = "Keyboard Redirector";
+            this.Load += new System.EventHandler(this.KeyboardRedirectorForm_Load);
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.KeyboardRedirectorForm_FormClosing);
             this.contextMenuStripNotifyIcon.ResumeLayout(false);
             this.splitContainer1.Panel1.ResumeLayout(false);
@@ -581,13 +793,25 @@ namespace KeyboardRedirector
             this.splitContainer3.Panel1.PerformLayout();
             this.splitContainer3.Panel2.ResumeLayout(false);
             this.splitContainer3.ResumeLayout(false);
+            this.tabControl1.ResumeLayout(false);
+            this.tabPageMessages.ResumeLayout(false);
+            this.tabPageKeyEvents.ResumeLayout(false);
+            this.splitContainer5.Panel1.ResumeLayout(false);
+            this.splitContainer5.Panel1.PerformLayout();
+            this.splitContainer5.Panel2.ResumeLayout(false);
+            this.splitContainer5.ResumeLayout(false);
+            this.splitContainer6.Panel1.ResumeLayout(false);
+            this.splitContainer6.Panel1.PerformLayout();
+            this.splitContainer6.Panel2.ResumeLayout(false);
+            this.splitContainer6.Panel2.PerformLayout();
+            this.splitContainer6.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
 
         #endregion
 
-        private System.Windows.Forms.RichTextBox richTextBoxEvents;
+        private RichTextBoxEx richTextBoxEvents;
         private System.Windows.Forms.ContextMenuStrip contextMenuStripNotifyIcon;
         private System.Windows.Forms.ToolStripMenuItem restoreToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripMenuItem1;
@@ -621,9 +845,23 @@ namespace KeyboardRedirector
         private System.Windows.Forms.Button buttonAddAction;
         private System.Windows.Forms.Button buttonRemoveAction;
         private System.Windows.Forms.Button buttonEditAction;
-        private System.Windows.Forms.Button buttonEditApplications;
+        private System.Windows.Forms.Button buttonAddApplications;
         private BindingListView listViewApplicationsInFocus;
         private System.Windows.Forms.SplitContainer splitContainer4;
         private System.Windows.Forms.ImageList imageListApplications;
+        private System.Windows.Forms.TabControl tabControl1;
+        private System.Windows.Forms.TabPage tabPageMessages;
+        private System.Windows.Forms.TabPage tabPageKeyEvents;
+        private System.Windows.Forms.SplitContainer splitContainer5;
+        private System.Windows.Forms.SplitContainer splitContainer6;
+        private RichTextBoxEx richTextBoxKeyEventsLowLevel;
+        private RichTextBoxEx richTextBoxKeyEventsHook;
+        private RichTextBoxEx richTextBoxKeyEventsWMInput;
+        private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.Button buttonClear;
+        private System.Windows.Forms.Button buttonRemoveApplication;
+        private System.Windows.Forms.Label labelFocussedAppInfo;
     }
 }
