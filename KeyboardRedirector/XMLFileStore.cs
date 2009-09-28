@@ -48,7 +48,7 @@ namespace KeyboardRedirector
 
         public T Data
         {
-            get 
+            get
             {
                 Load();
                 return _data;
@@ -90,6 +90,10 @@ namespace KeyboardRedirector
             {
                 if (_data != null)
                 {
+                    FileInfo fi = new FileInfo(_xmlFilename);
+                    if (fi.Directory.Exists == false)
+                        fi.Directory.Create();
+
                     using (Stream outStream = File.Open(_xmlFilename, FileMode.Create, FileAccess.Write, FileShare.Read))
                     {
                         System.Xml.Serialization.XmlSerializer x = new System.Xml.Serialization.XmlSerializer(typeof(T));

@@ -41,6 +41,13 @@ namespace KeyboardRedirector
         Dictionary<string, KeyCombination> _keyCombinations;
         ActionPerformer _actionPerformer;
         ExecutableImageList _imageList;
+        static bool _disableGlobalKeyboardHook = false;
+
+        public static bool DisableGlobalKeyboardHook
+        {
+            get { return _disableGlobalKeyboardHook; }
+            set { _disableGlobalKeyboardHook = value; }
+        }
 
         class DeviceInformation
         {
@@ -77,6 +84,8 @@ namespace KeyboardRedirector
 
             InitializeComponent();
 
+            
+
             treeViewKeys.Nodes.Clear();
             panelKeyboardProperties.Location = new Point(3, 3);
             panelKeyboardProperties.Size = new Size(panelKeyboardProperties.Parent.Size.Width - 6, panelKeyboardProperties.Parent.Size.Height - 6);
@@ -110,8 +119,8 @@ namespace KeyboardRedirector
             //if (exeFilename.EndsWith(".vshost.exe") == false)
             {
                 KeyboardHookExternal.Current.SetHook(Handle, 0x401, 0x402);
-                KeyboardHookExternal.Current.KeyEvent += new KeyHookEventHandler(Current_KeyEvent);
-                KeyboardHookExternal.Current.KeyEventLowLevel += new KeyHookEventHandler(Current_KeyEventLowLevel);
+                KeyboardHookExternal.Current.KeyEvent += new KeyHookEventHandler(KeyboardHook_KeyEvent);
+                KeyboardHookExternal.Current.KeyEventLowLevel += new KeyHookEventHandler(KeyboardHook_KeyEventLowLevel);
             }
 
             timerMinimiseOnStart.Start();
@@ -119,6 +128,8 @@ namespace KeyboardRedirector
 
         private void KeyboardRedirectorForm_Load(object sender, EventArgs e)
         {
+            ToolTip toolTip = new ToolTip();
+            toolTip.SetToolTip(this.checkBoxCaptureLowLevel, "Capture low level keystrokes (not keyboard specific)");
         }
 
         private void timerMinimiseOnStart_Tick(object sender, EventArgs e)
@@ -185,8 +196,7 @@ namespace KeyboardRedirector
                     DeviceInformation deviceInformation = FindKeyboardDevice(deviceName);
                     _keyboards.Remove(deviceInformation);
 
-                    SettingsKeyboard keyboard = Settings.Current.Keyboards.FindByDeviceName(deviceName);
-                    WriteEvent("Keyboard Removed : " + keyboard.Name + Environment.NewLine);
+                    WriteEvent("Keyboard Removed : " + deviceInformation.DeviceInfo.Name + Environment.NewLine);
                 }
 
                 RefreshTreeView();
@@ -217,7 +227,7 @@ namespace KeyboardRedirector
             base.WndProc(ref message);
         }
 
-        void Current_KeyEvent(object sender, KeyHookEventArgs e)
+        void KeyboardHook_KeyEvent(object sender, KeyHookEventArgs e)
         {
             bool block = false;
             lock (_keysToHook)
@@ -254,9 +264,48 @@ namespace KeyboardRedirector
                 WriteHookEvent("Up   : " + blockText + e.KeyCombination.ToString() + Environment.NewLine);
         }
 
-        void Current_KeyEventLowLevel(object sender, KeyHookEventArgs e)
+        KeyCombination _lastLowLevelKeyCombo = null;
+        void KeyboardHook_KeyEventLowLevel(object sender, KeyHookEventArgs e)
         {
+            if (_disableGlobalKeyboardHook == true)
+                return;
+
+            if ((richTextBoxKeyDetector.Focused) && (checkBoxCaptureLowLevel.Checked))
+            {
+                e.Handled = true;
+
+                if (e.KeyCombination.TransitionToKeyUp)
+                {
+                    WriteLowLevelEvent("Adding key" + Environment.NewLine);
+                    AddAndSelectKey("LowLevel", _lastLowLevelKeyCombo);
+                }
+            }
+
+            lock (Settings.Current)
+            {
+                SettingsKeyboard keyboard = Settings.Current.LowLevelKeyboard;
+                if (keyboard != null)
+                {
+                    SettingsKeyboardKey settingsKey = keyboard.Keys.FindKey(e.KeyCombination);
+
+                    if ((settingsKey != null) && settingsKey.Enabled)
+                    {
+                        // Intercept key if we need to
+                        if (e.KeyCombination.KeyDown && settingsKey.Capture)
+                        {
+                            e.Handled = true;
+                        }
+
+                        _actionPerformer.EnqueueKey(settingsKey, e.KeyCombination.KeyDown);
+                    }
+                }
+            }
+
+            _lastLowLevelKeyCombo = e.KeyCombination;
+
             string blockText = "      ";
+            if (e.Handled)
+                blockText = "block ";
             if (e.KeyCombination.KeyDown)
                 WriteLowLevelEvent("Down : " + blockText + e.KeyCombination.ToString() + Environment.NewLine);
             else
@@ -288,7 +337,7 @@ namespace KeyboardRedirector
                 KeyCombination lastKeyCombo = new KeyCombination(keyCombo);
                 keyCombo.KeyPress(keyDown, key);
 
-                if (richTextBoxKeyDetector.Focused)
+                if ((richTextBoxKeyDetector.Focused) && (checkBoxCaptureLowLevel.Checked == false))
                 {
                     lock (_keysToHook)
                     {
@@ -310,25 +359,28 @@ namespace KeyboardRedirector
                     {
                         SettingsKeyboardKey settingsKey = keyboard.Keys.FindKey(keyCombo);
 
-                        // Intercept key if we need to
-                        if (keyboard.CaptureAllKeys)
+                        if ((settingsKey != null) && settingsKey.Enabled)
                         {
-                            lock (_keysToHook)
+                            // Intercept key if we need to
+                            if (keyboard.CaptureAllKeys || (keyCombo.KeyDown && settingsKey.Capture))
                             {
-                                _keysToHook.Add(new KeyToHookInformation(keyCombo));
+                                lock (_keysToHook)
+                                {
+                                    _keysToHook.Add(new KeyToHookInformation(keyCombo));
+                                }
                             }
-                        }
-                        else if (keyCombo.KeyDown && (settingsKey != null) && settingsKey.Capture)
-                        {
-                            lock (_keysToHook)
-                            {
-                                _keysToHook.Add(new KeyToHookInformation(keyCombo));
-                            }
-                        }
 
-                        if (settingsKey != null)
-                        {
                             _actionPerformer.EnqueueKey(settingsKey, keyDown);
+                        }
+                        else
+                        {
+                            if (keyboard.CaptureAllKeys)
+                            {
+                                lock (_keysToHook)
+                                {
+                                    _keysToHook.Add(new KeyToHookInformation(keyCombo));
+                                }
+                            }
                         }
 
                     }
@@ -350,7 +402,7 @@ namespace KeyboardRedirector
         }
         private void WriteLowLevelEvent(string message)
         {
-            System.Diagnostics.Debug.Write(message);
+            System.Diagnostics.Debug.Write("LL " + message);
             richTextBoxKeyEventsLowLevel.AppendText(message);
         }
         private void WriteHookEvent(string message)
@@ -417,7 +469,11 @@ namespace KeyboardRedirector
                     staleKeyboardNodes.Add(node);
                 }
 
-                foreach (SettingsKeyboard keyboard in Settings.Current.Keyboards)
+                List<SettingsKeyboard> keyboards = new List<SettingsKeyboard>();
+                keyboards.Add(Settings.Current.LowLevelKeyboard);
+                keyboards.AddRange(Settings.Current.Keyboards);
+
+                foreach (SettingsKeyboard keyboard in keyboards)
                 {
                     // Find existing node and remove it from the stale list
                     TreeNode keyboardNode = FindTreeNode(keyboard, treeViewKeys.Nodes, false);
@@ -439,7 +495,9 @@ namespace KeyboardRedirector
 
                     DeviceInformation deviceInformation = FindKeyboardDevice(keyboard.DeviceName);
                     int imageIndex = 0;
-                    if (deviceInformation == null)
+                    if (keyboard == Settings.Current.LowLevelKeyboard)
+                        imageIndex = 2;
+                    else if (deviceInformation == null)
                         imageIndex = 1;
                     else if (keyboard.CaptureAllKeys)
                         imageIndex = 3;
@@ -477,7 +535,9 @@ namespace KeyboardRedirector
                         // Update node data
                         keyNode.Text = key.ToString();
                         imageIndex = 2;
-                        if (key.Capture)
+                        if (!key.Enabled)
+                            imageIndex = 1;
+                        else if (key.Capture)
                             imageIndex = 3;
                         else if (keyboard.CaptureAllKeys)
                             imageIndex = 4;
@@ -529,7 +589,11 @@ namespace KeyboardRedirector
 
         private void AddAndSelectKey(string deviceName, KeyCombination keyCombo)
         {
-            SettingsKeyboard keyboard = Settings.Current.Keyboards.FindByDeviceName(deviceName);
+            SettingsKeyboard keyboard;
+            if (deviceName == "LowLevel")
+                keyboard = Settings.Current.LowLevelKeyboard;
+            else
+                keyboard = Settings.Current.Keyboards.FindByDeviceName(deviceName);
             if (keyboard == null)
                 return;
 
@@ -588,10 +652,20 @@ namespace KeyboardRedirector
                     details.Append("DeviceDesc: " + deviceInformation.DeviceInfo.DeviceDesc);
                 }
 
-                textBoxKeyboardDetails.Text = details.ToString();
+                if (keyboard == Settings.Current.LowLevelKeyboard)
+                {
+                    panelKeyboardProperties.Enabled = false;
+                    textBoxKeyboardDetails.Text = "Low level keyboard hook";
+                }
+                else
+                {
+                    panelKeyboardProperties.Enabled = true;
+                    textBoxKeyboardDetails.Text = details.ToString();
+                }
                 textBoxKeyboardName.Text = keyboard.Name;
 
                 checkBoxCaptureAllKeys.Checked = keyboard.CaptureAllKeys;
+
             }
             else if (key != null)
             {
@@ -641,6 +715,9 @@ namespace KeyboardRedirector
             SettingsKeyboardKey key = GetSelectedKeyFromTreeView();
             if (keyboard != null)
             {
+                if (keyboard == Settings.Current.LowLevelKeyboard)
+                    return;
+
                 DialogResult result = MessageBox.Show(this, "Are you sure you want to delete this keyboard?" + Environment.NewLine + keyboard.Name, "Confirm Delete", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1);
                 if (result != DialogResult.Yes)
                     return;
@@ -672,10 +749,16 @@ namespace KeyboardRedirector
 
             labelKeyDetails.Text = details.ToString();
             textBoxKeyName.Text = key.Name;
-            checkBoxCaptureKey.Checked = key.Capture;
+            checkBoxKeyEnabled.Checked = key.Enabled;
+            checkBoxKeyCapture.Checked = key.Capture;
 
             RefreshApplicationsList();
             listViewApplicationsInFocus.SelectedIndex = 0;
+
+            checkBoxKeyCapture.Enabled = key.Enabled;
+            labelKeyCapture.Enabled = key.Enabled;
+            groupBoxActions.Enabled = key.Enabled;
+
         }
 
         private void treeViewKeys_MouseDown(object sender, MouseEventArgs e)
@@ -692,24 +775,43 @@ namespace KeyboardRedirector
             SettingsKeyboard keyboard = GetSelectedKeyboardFromTreeView();
             if (keyboard != null)
             {
-                keyboard.CaptureAllKeys = checkBoxCaptureAllKeys.Checked;
-                Settings.Save();
-                RefreshTreeView();
+                if (keyboard.CaptureAllKeys != checkBoxCaptureAllKeys.Checked)
+                {
+                    keyboard.CaptureAllKeys = checkBoxCaptureAllKeys.Checked;
+                    Settings.Save();
+                    RefreshTreeView();
+                }
             }
 
         }
 
-        private void checkBoxCaptureKey_CheckedChanged(object sender, EventArgs e)
+        private void checkBoxKeyEnabled_CheckedChanged(object sender, EventArgs e)
         {
             SettingsKeyboardKey key = GetSelectedKeyFromTreeView();
             if (key != null)
             {
-                key.Capture = checkBoxCaptureKey.Checked;
-                Settings.Save();
-                RefreshTreeView();
+                if (key.Enabled != checkBoxKeyEnabled.Checked)
+                {
+                    key.Enabled = checkBoxKeyEnabled.Checked;
+                    Settings.Save();
+                    RefreshTreeView();
+                    RefreshKeyDetails();
+                }
             }
 
         }
+
+        private void checkBoxKeyCapture_CheckedChanged(object sender, EventArgs e)
+        {
+            SettingsKeyboardKey key = GetSelectedKeyFromTreeView();
+            if (key != null)
+            {
+                key.Capture = checkBoxKeyCapture.Checked;
+                Settings.Save();
+                RefreshTreeView();
+            }
+        }
+
 
         private void textBoxKeyboardName_TextChanged(object sender, EventArgs e)
         {

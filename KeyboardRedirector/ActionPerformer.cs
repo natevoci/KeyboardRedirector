@@ -223,15 +223,20 @@ namespace KeyboardRedirector
                 if (keyboard.Control)
                     inputList.Add(CreateInputStruct((ushort)Keys.ControlKey, false));
 
+                KeyboardRedirectorForm.DisableGlobalKeyboardHook = true;
+
                 Win32.INPUT[] input = inputList.ToArray();
-                Win32.SendInput(input.Length, input, Marshal.SizeOf(input[0]));
+                uint result = Win32.SendInput(input.Length, input, Marshal.SizeOf(input[0]));
+
+                KeyboardRedirectorForm.DisableGlobalKeyboardHook = false;
             }
         }
 
         private Win32.INPUT CreateInputStruct(ushort virtualKeyCode, bool keyDown)
         {
             Win32.INPUT input = new Win32.INPUT();
-            input.header.dwType = Win32.INPUTTYPE.KEYBOARD;
+            //input.header.dwType = Win32.INPUTTYPE.KEYBOARD;
+            input.header.dwTypePtr = new IntPtr((int)Win32.INPUTTYPE.KEYBOARD);
 
             input.data.keyboard.VKey = virtualKeyCode;
 

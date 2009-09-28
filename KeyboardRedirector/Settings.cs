@@ -63,6 +63,11 @@ namespace KeyboardRedirector
         public SettingsKeyboard LowLevelKeyboard = new SettingsKeyboard();
         public SettingsApplicationList Applications = new SettingsApplicationList();
 
+        public Settings()
+        {
+            LowLevelKeyboard.Name = "Low Level";
+            LowLevelKeyboard.DeviceName = "LowLevel";
+        }
     }
 
 
@@ -165,6 +170,7 @@ namespace KeyboardRedirector
             get { return _keyCodes; }
         }
 
+        public bool Enabled = true;
         public bool Capture = false;
         public string Name = "";
 

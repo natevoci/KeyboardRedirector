@@ -1123,11 +1123,13 @@ namespace KeyboardRedirector
             public INPUTHEADER header;
             public INPUTDATA data;
         }
-        [StructLayout(LayoutKind.Sequential)]
+        [StructLayout(LayoutKind.Explicit)]
         public struct INPUTHEADER
         {
-            [MarshalAs(UnmanagedType.U4)]
-            public INPUTTYPE dwType;
+            [FieldOffset(0)]
+            public IntPtr dwTypePtr;
+            //[FieldOffset(0), MarshalAs(UnmanagedType.U4)]
+            //public INPUTTYPE dwType;
         }
         [StructLayout(LayoutKind.Explicit)]
         public struct INPUTDATA

@@ -34,6 +34,7 @@ namespace KeyboardRedirector
     {
         private FormWindowState _previousWindowState = FormWindowState.Normal;
         private NotifyIcon _notifyIcon;
+        private bool _loaded = false;
 
         public NotifyIcon NotifyIcon
         {
@@ -60,6 +61,7 @@ namespace KeyboardRedirector
 
         protected override void OnLoad(EventArgs e)
         {
+            _loaded = true;
             NotifyIcon.BalloonTipTitle = this.Text;
             NotifyIcon.BalloonTipText = this.Text;
             base.OnLoad(e);
@@ -74,12 +76,15 @@ namespace KeyboardRedirector
 
         protected override void OnResize(EventArgs e)
         {
-            if (this.WindowState == FormWindowState.Minimized)
-                SendToTray();
-            else
+            if (_loaded == true)
             {
-                _previousWindowState = this.WindowState;
-                RestoreFromTray();
+                if (this.WindowState == FormWindowState.Minimized)
+                    SendToTray();
+                else
+                {
+                    _previousWindowState = this.WindowState;
+                    RestoreFromTray();
+                }
             }
 
             base.OnResize(e);

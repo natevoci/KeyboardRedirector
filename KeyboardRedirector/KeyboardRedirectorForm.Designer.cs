@@ -45,7 +45,7 @@ namespace KeyboardRedirector
             this.deleteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.imageListTreeViewKey = new System.Windows.Forms.ImageList(this.components);
             this.panelKeyProperties = new System.Windows.Forms.Panel();
-            this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.groupBoxActions = new System.Windows.Forms.GroupBox();
             this.splitContainer4 = new System.Windows.Forms.SplitContainer();
             this.labelFocussedAppInfo = new System.Windows.Forms.Label();
             this.listViewApplicationsInFocus = new KeyboardRedirector.BindingListView();
@@ -61,17 +61,19 @@ namespace KeyboardRedirector
             this.textBoxKeyName = new System.Windows.Forms.TextBox();
             this.labelKeyDetails = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
-            this.label3 = new System.Windows.Forms.Label();
-            this.checkBoxCaptureKey = new System.Windows.Forms.CheckBox();
+            this.labelKeyCapture = new System.Windows.Forms.Label();
+            this.checkBoxKeyCapture = new System.Windows.Forms.CheckBox();
+            this.checkBoxKeyEnabled = new System.Windows.Forms.CheckBox();
             this.panelKeyboardProperties = new System.Windows.Forms.Panel();
             this.textBoxKeyboardName = new System.Windows.Forms.TextBox();
             this.label2 = new System.Windows.Forms.Label();
             this.textBoxKeyboardDetails = new System.Windows.Forms.TextBox();
-            this.label1 = new System.Windows.Forms.Label();
+            this.labelCaptureAllKeys = new System.Windows.Forms.Label();
             this.checkBoxCaptureAllKeys = new System.Windows.Forms.CheckBox();
             this.richTextBoxKeyDetector = new System.Windows.Forms.RichTextBox();
             this.splitContainer2 = new System.Windows.Forms.SplitContainer();
             this.splitContainer3 = new System.Windows.Forms.SplitContainer();
+            this.checkBoxCaptureLowLevel = new System.Windows.Forms.CheckBox();
             this.checkBoxMinimiseOnStart = new System.Windows.Forms.CheckBox();
             this.buttonClear = new System.Windows.Forms.Button();
             this.tabControl1 = new System.Windows.Forms.TabControl();
@@ -92,7 +94,7 @@ namespace KeyboardRedirector
             this.splitContainer1.SuspendLayout();
             this.contextMenuStripTreeViewEvents.SuspendLayout();
             this.panelKeyProperties.SuspendLayout();
-            this.groupBox1.SuspendLayout();
+            this.groupBoxActions.SuspendLayout();
             this.splitContainer4.Panel1.SuspendLayout();
             this.splitContainer4.Panel2.SuspendLayout();
             this.splitContainer4.SuspendLayout();
@@ -235,31 +237,32 @@ namespace KeyboardRedirector
             this.panelKeyProperties.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
                         | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
-            this.panelKeyProperties.Controls.Add(this.groupBox1);
+            this.panelKeyProperties.Controls.Add(this.groupBoxActions);
             this.panelKeyProperties.Controls.Add(this.textBoxKeyName);
             this.panelKeyProperties.Controls.Add(this.labelKeyDetails);
             this.panelKeyProperties.Controls.Add(this.label4);
-            this.panelKeyProperties.Controls.Add(this.label3);
-            this.panelKeyProperties.Controls.Add(this.checkBoxCaptureKey);
+            this.panelKeyProperties.Controls.Add(this.labelKeyCapture);
+            this.panelKeyProperties.Controls.Add(this.checkBoxKeyCapture);
+            this.panelKeyProperties.Controls.Add(this.checkBoxKeyEnabled);
             this.panelKeyProperties.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.panelKeyProperties.Location = new System.Drawing.Point(3, 6);
+            this.panelKeyProperties.Location = new System.Drawing.Point(3, 21);
             this.panelKeyProperties.Name = "panelKeyProperties";
-            this.panelKeyProperties.Size = new System.Drawing.Size(397, 447);
+            this.panelKeyProperties.Size = new System.Drawing.Size(397, 432);
             this.panelKeyProperties.TabIndex = 1;
             this.panelKeyProperties.Visible = false;
             // 
-            // groupBox1
+            // groupBoxActions
             // 
-            this.groupBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+            this.groupBoxActions.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
                         | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
-            this.groupBox1.Controls.Add(this.splitContainer4);
-            this.groupBox1.Location = new System.Drawing.Point(3, 115);
-            this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(391, 329);
-            this.groupBox1.TabIndex = 5;
-            this.groupBox1.TabStop = false;
-            this.groupBox1.Text = "Actions";
+            this.groupBoxActions.Controls.Add(this.splitContainer4);
+            this.groupBoxActions.Location = new System.Drawing.Point(3, 115);
+            this.groupBoxActions.Name = "groupBoxActions";
+            this.groupBoxActions.Size = new System.Drawing.Size(391, 314);
+            this.groupBoxActions.TabIndex = 5;
+            this.groupBoxActions.TabStop = false;
+            this.groupBoxActions.Text = "Actions";
             // 
             // splitContainer4
             // 
@@ -281,8 +284,8 @@ namespace KeyboardRedirector
             this.splitContainer4.Panel2.Controls.Add(this.listViewActions);
             this.splitContainer4.Panel2.Controls.Add(this.buttonRemoveAction);
             this.splitContainer4.Panel2.Controls.Add(this.buttonEditAction);
-            this.splitContainer4.Size = new System.Drawing.Size(385, 309);
-            this.splitContainer4.SplitterDistance = 141;
+            this.splitContainer4.Size = new System.Drawing.Size(385, 294);
+            this.splitContainer4.SplitterDistance = 132;
             this.splitContainer4.TabIndex = 0;
             // 
             // labelFocussedAppInfo
@@ -292,7 +295,7 @@ namespace KeyboardRedirector
             this.labelFocussedAppInfo.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.labelFocussedAppInfo.Location = new System.Drawing.Point(210, 29);
             this.labelFocussedAppInfo.Name = "labelFocussedAppInfo";
-            this.labelFocussedAppInfo.Size = new System.Drawing.Size(172, 109);
+            this.labelFocussedAppInfo.Size = new System.Drawing.Size(172, 100);
             this.labelFocussedAppInfo.TabIndex = 3;
             this.labelFocussedAppInfo.Text = resources.GetString("labelFocussedAppInfo.Text");
             // 
@@ -315,7 +318,7 @@ namespace KeyboardRedirector
             this.listViewApplicationsInFocus.OwnerDraw = true;
             this.listViewApplicationsInFocus.SelectedIndex = -1;
             this.listViewApplicationsInFocus.SelectedItem = null;
-            this.listViewApplicationsInFocus.Size = new System.Drawing.Size(201, 135);
+            this.listViewApplicationsInFocus.Size = new System.Drawing.Size(201, 126);
             this.listViewApplicationsInFocus.SmallImageList = this.imageListApplications;
             this.listViewApplicationsInFocus.TabIndex = 0;
             this.listViewApplicationsInFocus.UseCompatibleStateImageBehavior = false;
@@ -354,7 +357,7 @@ namespace KeyboardRedirector
             // buttonAddAction
             // 
             this.buttonAddAction.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonAddAction.Location = new System.Drawing.Point(172, 138);
+            this.buttonAddAction.Location = new System.Drawing.Point(172, 132);
             this.buttonAddAction.Name = "buttonAddAction";
             this.buttonAddAction.Size = new System.Drawing.Size(66, 23);
             this.buttonAddAction.TabIndex = 1;
@@ -377,7 +380,7 @@ namespace KeyboardRedirector
             this.listViewActions.Location = new System.Drawing.Point(3, 3);
             this.listViewActions.MultiSelect = false;
             this.listViewActions.Name = "listViewActions";
-            this.listViewActions.Size = new System.Drawing.Size(379, 129);
+            this.listViewActions.Size = new System.Drawing.Size(379, 123);
             this.listViewActions.TabIndex = 0;
             this.listViewActions.UseCompatibleStateImageBehavior = false;
             this.listViewActions.View = System.Windows.Forms.View.Details;
@@ -396,7 +399,7 @@ namespace KeyboardRedirector
             // buttonRemoveAction
             // 
             this.buttonRemoveAction.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonRemoveAction.Location = new System.Drawing.Point(316, 138);
+            this.buttonRemoveAction.Location = new System.Drawing.Point(316, 132);
             this.buttonRemoveAction.Name = "buttonRemoveAction";
             this.buttonRemoveAction.Size = new System.Drawing.Size(66, 23);
             this.buttonRemoveAction.TabIndex = 3;
@@ -407,7 +410,7 @@ namespace KeyboardRedirector
             // buttonEditAction
             // 
             this.buttonEditAction.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonEditAction.Location = new System.Drawing.Point(244, 138);
+            this.buttonEditAction.Location = new System.Drawing.Point(244, 132);
             this.buttonEditAction.Name = "buttonEditAction";
             this.buttonEditAction.Size = new System.Drawing.Size(66, 23);
             this.buttonEditAction.TabIndex = 2;
@@ -443,26 +446,37 @@ namespace KeyboardRedirector
             this.label4.TabIndex = 1;
             this.label4.Text = "Name";
             // 
-            // label3
+            // labelKeyCapture
             // 
-            this.label3.AutoSize = true;
-            this.label3.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label3.Location = new System.Drawing.Point(39, 85);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(321, 13);
-            this.label3.TabIndex = 4;
-            this.label3.Text = "This prevents the application in focus recieving the raw keystroke";
+            this.labelKeyCapture.AutoSize = true;
+            this.labelKeyCapture.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.labelKeyCapture.Location = new System.Drawing.Point(39, 94);
+            this.labelKeyCapture.Name = "labelKeyCapture";
+            this.labelKeyCapture.Size = new System.Drawing.Size(321, 13);
+            this.labelKeyCapture.TabIndex = 4;
+            this.labelKeyCapture.Text = "This prevents the application in focus recieving the raw keystroke";
             // 
-            // checkBoxCaptureKey
+            // checkBoxKeyCapture
             // 
-            this.checkBoxCaptureKey.AutoSize = true;
-            this.checkBoxCaptureKey.Location = new System.Drawing.Point(6, 65);
-            this.checkBoxCaptureKey.Name = "checkBoxCaptureKey";
-            this.checkBoxCaptureKey.Size = new System.Drawing.Size(86, 17);
-            this.checkBoxCaptureKey.TabIndex = 3;
-            this.checkBoxCaptureKey.Text = "Capture Key";
-            this.checkBoxCaptureKey.UseVisualStyleBackColor = true;
-            this.checkBoxCaptureKey.CheckedChanged += new System.EventHandler(this.checkBoxCaptureKey_CheckedChanged);
+            this.checkBoxKeyCapture.AutoSize = true;
+            this.checkBoxKeyCapture.Location = new System.Drawing.Point(9, 78);
+            this.checkBoxKeyCapture.Name = "checkBoxKeyCapture";
+            this.checkBoxKeyCapture.Size = new System.Drawing.Size(86, 17);
+            this.checkBoxKeyCapture.TabIndex = 3;
+            this.checkBoxKeyCapture.Text = "Capture Key";
+            this.checkBoxKeyCapture.UseVisualStyleBackColor = true;
+            this.checkBoxKeyCapture.CheckedChanged += new System.EventHandler(this.checkBoxKeyCapture_CheckedChanged);
+            // 
+            // checkBoxKeyEnabled
+            // 
+            this.checkBoxKeyEnabled.AutoSize = true;
+            this.checkBoxKeyEnabled.Location = new System.Drawing.Point(9, 55);
+            this.checkBoxKeyEnabled.Name = "checkBoxKeyEnabled";
+            this.checkBoxKeyEnabled.Size = new System.Drawing.Size(64, 17);
+            this.checkBoxKeyEnabled.TabIndex = 3;
+            this.checkBoxKeyEnabled.Text = "Enabled";
+            this.checkBoxKeyEnabled.UseVisualStyleBackColor = true;
+            this.checkBoxKeyEnabled.CheckedChanged += new System.EventHandler(this.checkBoxKeyEnabled_CheckedChanged);
             // 
             // panelKeyboardProperties
             // 
@@ -471,7 +485,7 @@ namespace KeyboardRedirector
             this.panelKeyboardProperties.Controls.Add(this.textBoxKeyboardName);
             this.panelKeyboardProperties.Controls.Add(this.label2);
             this.panelKeyboardProperties.Controls.Add(this.textBoxKeyboardDetails);
-            this.panelKeyboardProperties.Controls.Add(this.label1);
+            this.panelKeyboardProperties.Controls.Add(this.labelCaptureAllKeys);
             this.panelKeyboardProperties.Controls.Add(this.checkBoxCaptureAllKeys);
             this.panelKeyboardProperties.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.panelKeyboardProperties.Location = new System.Drawing.Point(3, 3);
@@ -514,15 +528,15 @@ namespace KeyboardRedirector
             this.textBoxKeyboardDetails.Text = "Keyboard Details";
             this.textBoxKeyboardDetails.WordWrap = false;
             // 
-            // label1
+            // labelCaptureAllKeys
             // 
-            this.label1.AutoSize = true;
-            this.label1.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label1.Location = new System.Drawing.Point(39, 107);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(321, 13);
-            this.label1.TabIndex = 4;
-            this.label1.Text = "This prevents the application in focus recieving the raw keystroke";
+            this.labelCaptureAllKeys.AutoSize = true;
+            this.labelCaptureAllKeys.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.labelCaptureAllKeys.Location = new System.Drawing.Point(39, 107);
+            this.labelCaptureAllKeys.Name = "labelCaptureAllKeys";
+            this.labelCaptureAllKeys.Size = new System.Drawing.Size(321, 13);
+            this.labelCaptureAllKeys.TabIndex = 4;
+            this.labelCaptureAllKeys.Text = "This prevents the application in focus recieving the raw keystroke";
             // 
             // checkBoxCaptureAllKeys
             // 
@@ -578,6 +592,7 @@ namespace KeyboardRedirector
             // 
             // splitContainer3.Panel1
             // 
+            this.splitContainer3.Panel1.Controls.Add(this.checkBoxCaptureLowLevel);
             this.splitContainer3.Panel1.Controls.Add(this.checkBoxMinimiseOnStart);
             this.splitContainer3.Panel1.Controls.Add(this.richTextBoxKeyDetector);
             // 
@@ -587,6 +602,17 @@ namespace KeyboardRedirector
             this.splitContainer3.Size = new System.Drawing.Size(702, 493);
             this.splitContainer3.SplitterDistance = 29;
             this.splitContainer3.TabIndex = 0;
+            // 
+            // checkBoxCaptureLowLevel
+            // 
+            this.checkBoxCaptureLowLevel.AutoSize = true;
+            this.checkBoxCaptureLowLevel.Location = new System.Drawing.Point(241, 9);
+            this.checkBoxCaptureLowLevel.Name = "checkBoxCaptureLowLevel";
+            this.checkBoxCaptureLowLevel.Size = new System.Drawing.Size(71, 17);
+            this.checkBoxCaptureLowLevel.TabIndex = 1;
+            this.checkBoxCaptureLowLevel.Text = "Low level";
+            this.checkBoxCaptureLowLevel.UseVisualStyleBackColor = true;
+            this.checkBoxCaptureLowLevel.CheckedChanged += new System.EventHandler(this.checkBoxMinimiseOnStart_CheckedChanged);
             // 
             // checkBoxMinimiseOnStart
             // 
@@ -602,6 +628,7 @@ namespace KeyboardRedirector
             // 
             // buttonClear
             // 
+            this.buttonClear.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.buttonClear.Location = new System.Drawing.Point(622, 0);
             this.buttonClear.Name = "buttonClear";
             this.buttonClear.Size = new System.Drawing.Size(75, 19);
@@ -780,7 +807,7 @@ namespace KeyboardRedirector
             this.contextMenuStripTreeViewEvents.ResumeLayout(false);
             this.panelKeyProperties.ResumeLayout(false);
             this.panelKeyProperties.PerformLayout();
-            this.groupBox1.ResumeLayout(false);
+            this.groupBoxActions.ResumeLayout(false);
             this.splitContainer4.Panel1.ResumeLayout(false);
             this.splitContainer4.Panel2.ResumeLayout(false);
             this.splitContainer4.ResumeLayout(false);
@@ -820,10 +847,10 @@ namespace KeyboardRedirector
         private System.Windows.Forms.TreeView treeViewKeys;
         private System.Windows.Forms.Panel panelKeyProperties;
         private System.Windows.Forms.Panel panelKeyboardProperties;
-        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Label labelCaptureAllKeys;
         private System.Windows.Forms.CheckBox checkBoxCaptureAllKeys;
-        private System.Windows.Forms.Label label3;
-        private System.Windows.Forms.CheckBox checkBoxCaptureKey;
+        private System.Windows.Forms.Label labelKeyCapture;
+        private System.Windows.Forms.CheckBox checkBoxKeyEnabled;
         private System.Windows.Forms.ImageList imageListTreeViewKey;
         private System.Windows.Forms.SplitContainer splitContainer2;
         private System.Windows.Forms.TextBox textBoxKeyboardDetails;
@@ -838,7 +865,7 @@ namespace KeyboardRedirector
         private System.Windows.Forms.SplitContainer splitContainer3;
         private System.Windows.Forms.CheckBox checkBoxMinimiseOnStart;
         private System.Windows.Forms.Timer timerMinimiseOnStart;
-        private System.Windows.Forms.GroupBox groupBox1;
+        private System.Windows.Forms.GroupBox groupBoxActions;
         private System.Windows.Forms.ListView listViewActions;
         private System.Windows.Forms.ColumnHeader columnHeader1;
         private System.Windows.Forms.ColumnHeader columnHeader2;
@@ -863,5 +890,7 @@ namespace KeyboardRedirector
         private System.Windows.Forms.Button buttonClear;
         private System.Windows.Forms.Button buttonRemoveApplication;
         private System.Windows.Forms.Label labelFocussedAppInfo;
+        private System.Windows.Forms.CheckBox checkBoxCaptureLowLevel;
+        private System.Windows.Forms.CheckBox checkBoxKeyCapture;
     }
 }
