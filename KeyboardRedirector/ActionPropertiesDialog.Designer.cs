@@ -31,12 +31,16 @@ namespace KeyboardRedirector
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPageLaunchApplication = new System.Windows.Forms.TabPage();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.radioButtonLaunchApplicationWaitForExit = new System.Windows.Forms.RadioButton();
+            this.radioButtonLaunchApplicationWaitForInputIdle = new System.Windows.Forms.RadioButton();
+            this.radioButtonLaunchApplicationDoNotWait = new System.Windows.Forms.RadioButton();
             this.textBoxLaunchApplication = new System.Windows.Forms.TextBox();
             this.buttonLaunchAppBrowse = new System.Windows.Forms.Button();
             this.label6 = new System.Windows.Forms.Label();
             this.label7 = new System.Windows.Forms.Label();
             this.label10 = new System.Windows.Forms.Label();
             this.label8 = new System.Windows.Forms.Label();
+            this.label3 = new System.Windows.Forms.Label();
             this.label9 = new System.Windows.Forms.Label();
             this.tabPageKeyboard = new System.Windows.Forms.TabPage();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
@@ -46,14 +50,11 @@ namespace KeyboardRedirector
             this.richTextBoxKeyDetector = new System.Windows.Forms.RichTextBox();
             this.comboBoxKeyboardKey = new System.Windows.Forms.ComboBox();
             this.checkBoxKeyboardControl = new System.Windows.Forms.CheckBox();
+            this.checkBoxKeyboardExtended = new System.Windows.Forms.CheckBox();
             this.checkBoxKeyboardAlt = new System.Windows.Forms.CheckBox();
             this.checkBoxKeyboardShift = new System.Windows.Forms.CheckBox();
             this.buttonOK = new System.Windows.Forms.Button();
             this.buttonCancel = new System.Windows.Forms.Button();
-            this.radioButtonLaunchApplicationDoNotWait = new System.Windows.Forms.RadioButton();
-            this.radioButtonLaunchApplicationWaitForInputIdle = new System.Windows.Forms.RadioButton();
-            this.radioButtonLaunchApplicationWaitForExit = new System.Windows.Forms.RadioButton();
-            this.label3 = new System.Windows.Forms.Label();
             this.tabControl1.SuspendLayout();
             this.tabPageLaunchApplication.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -110,6 +111,39 @@ namespace KeyboardRedirector
             this.groupBox2.TabIndex = 0;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Launch Application";
+            // 
+            // radioButtonLaunchApplicationWaitForExit
+            // 
+            this.radioButtonLaunchApplicationWaitForExit.AutoSize = true;
+            this.radioButtonLaunchApplicationWaitForExit.Location = new System.Drawing.Point(6, 169);
+            this.radioButtonLaunchApplicationWaitForExit.Name = "radioButtonLaunchApplicationWaitForExit";
+            this.radioButtonLaunchApplicationWaitForExit.Size = new System.Drawing.Size(237, 17);
+            this.radioButtonLaunchApplicationWaitForExit.TabIndex = 8;
+            this.radioButtonLaunchApplicationWaitForExit.TabStop = true;
+            this.radioButtonLaunchApplicationWaitForExit.Text = "Wait for application to exit (max time 10 secs)";
+            this.radioButtonLaunchApplicationWaitForExit.UseVisualStyleBackColor = true;
+            // 
+            // radioButtonLaunchApplicationWaitForInputIdle
+            // 
+            this.radioButtonLaunchApplicationWaitForInputIdle.AutoSize = true;
+            this.radioButtonLaunchApplicationWaitForInputIdle.Location = new System.Drawing.Point(6, 146);
+            this.radioButtonLaunchApplicationWaitForInputIdle.Name = "radioButtonLaunchApplicationWaitForInputIdle";
+            this.radioButtonLaunchApplicationWaitForInputIdle.Size = new System.Drawing.Size(241, 17);
+            this.radioButtonLaunchApplicationWaitForInputIdle.TabIndex = 8;
+            this.radioButtonLaunchApplicationWaitForInputIdle.TabStop = true;
+            this.radioButtonLaunchApplicationWaitForInputIdle.Text = "Wait for application to load (max time 10 secs)";
+            this.radioButtonLaunchApplicationWaitForInputIdle.UseVisualStyleBackColor = true;
+            // 
+            // radioButtonLaunchApplicationDoNotWait
+            // 
+            this.radioButtonLaunchApplicationDoNotWait.AutoSize = true;
+            this.radioButtonLaunchApplicationDoNotWait.Location = new System.Drawing.Point(6, 123);
+            this.radioButtonLaunchApplicationDoNotWait.Name = "radioButtonLaunchApplicationDoNotWait";
+            this.radioButtonLaunchApplicationDoNotWait.Size = new System.Drawing.Size(79, 17);
+            this.radioButtonLaunchApplicationDoNotWait.TabIndex = 8;
+            this.radioButtonLaunchApplicationDoNotWait.TabStop = true;
+            this.radioButtonLaunchApplicationDoNotWait.Text = "Do not wait";
+            this.radioButtonLaunchApplicationDoNotWait.UseVisualStyleBackColor = true;
             // 
             // textBoxLaunchApplication
             // 
@@ -171,6 +205,18 @@ namespace KeyboardRedirector
             this.label8.TabIndex = 4;
             this.label8.Text = "calc";
             // 
+            // label3
+            // 
+            this.label3.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.label3.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label3.Location = new System.Drawing.Point(39, 189);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(413, 30);
+            this.label3.TabIndex = 5;
+            this.label3.Text = "Only use this for commands that will finish quickly, such as command line command" +
+                "s.";
+            // 
             // label9
             // 
             this.label9.AutoSize = true;
@@ -203,6 +249,7 @@ namespace KeyboardRedirector
             this.groupBox1.Controls.Add(this.richTextBoxKeyDetector);
             this.groupBox1.Controls.Add(this.comboBoxKeyboardKey);
             this.groupBox1.Controls.Add(this.checkBoxKeyboardControl);
+            this.groupBox1.Controls.Add(this.checkBoxKeyboardExtended);
             this.groupBox1.Controls.Add(this.checkBoxKeyboardAlt);
             this.groupBox1.Controls.Add(this.checkBoxKeyboardShift);
             this.groupBox1.Location = new System.Drawing.Point(6, 6);
@@ -269,7 +316,7 @@ namespace KeyboardRedirector
             this.comboBoxKeyboardKey.FormattingEnabled = true;
             this.comboBoxKeyboardKey.Location = new System.Drawing.Point(168, 61);
             this.comboBoxKeyboardKey.Name = "comboBoxKeyboardKey";
-            this.comboBoxKeyboardKey.Size = new System.Drawing.Size(284, 21);
+            this.comboBoxKeyboardKey.Size = new System.Drawing.Size(207, 21);
             this.comboBoxKeyboardKey.TabIndex = 4;
             // 
             // checkBoxKeyboardControl
@@ -281,6 +328,17 @@ namespace KeyboardRedirector
             this.checkBoxKeyboardControl.TabIndex = 1;
             this.checkBoxKeyboardControl.Text = "Control";
             this.checkBoxKeyboardControl.UseVisualStyleBackColor = true;
+            // 
+            // checkBoxKeyboardExtended
+            // 
+            this.checkBoxKeyboardExtended.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.checkBoxKeyboardExtended.AutoSize = true;
+            this.checkBoxKeyboardExtended.Location = new System.Drawing.Point(381, 63);
+            this.checkBoxKeyboardExtended.Name = "checkBoxKeyboardExtended";
+            this.checkBoxKeyboardExtended.Size = new System.Drawing.Size(71, 17);
+            this.checkBoxKeyboardExtended.TabIndex = 3;
+            this.checkBoxKeyboardExtended.Text = "Extended";
+            this.checkBoxKeyboardExtended.UseVisualStyleBackColor = true;
             // 
             // checkBoxKeyboardAlt
             // 
@@ -324,51 +382,6 @@ namespace KeyboardRedirector
             this.buttonCancel.TabIndex = 2;
             this.buttonCancel.Text = "Cancel";
             this.buttonCancel.UseVisualStyleBackColor = true;
-            // 
-            // radioButtonLaunchApplicationDoNotWait
-            // 
-            this.radioButtonLaunchApplicationDoNotWait.AutoSize = true;
-            this.radioButtonLaunchApplicationDoNotWait.Location = new System.Drawing.Point(6, 123);
-            this.radioButtonLaunchApplicationDoNotWait.Name = "radioButtonLaunchApplicationDoNotWait";
-            this.radioButtonLaunchApplicationDoNotWait.Size = new System.Drawing.Size(79, 17);
-            this.radioButtonLaunchApplicationDoNotWait.TabIndex = 8;
-            this.radioButtonLaunchApplicationDoNotWait.TabStop = true;
-            this.radioButtonLaunchApplicationDoNotWait.Text = "Do not wait";
-            this.radioButtonLaunchApplicationDoNotWait.UseVisualStyleBackColor = true;
-            // 
-            // radioButtonLaunchApplicationWaitForInputIdle
-            // 
-            this.radioButtonLaunchApplicationWaitForInputIdle.AutoSize = true;
-            this.radioButtonLaunchApplicationWaitForInputIdle.Location = new System.Drawing.Point(6, 146);
-            this.radioButtonLaunchApplicationWaitForInputIdle.Name = "radioButtonLaunchApplicationWaitForInputIdle";
-            this.radioButtonLaunchApplicationWaitForInputIdle.Size = new System.Drawing.Size(241, 17);
-            this.radioButtonLaunchApplicationWaitForInputIdle.TabIndex = 8;
-            this.radioButtonLaunchApplicationWaitForInputIdle.TabStop = true;
-            this.radioButtonLaunchApplicationWaitForInputIdle.Text = "Wait for application to load (max time 10 secs)";
-            this.radioButtonLaunchApplicationWaitForInputIdle.UseVisualStyleBackColor = true;
-            // 
-            // radioButtonLaunchApplicationWaitForExit
-            // 
-            this.radioButtonLaunchApplicationWaitForExit.AutoSize = true;
-            this.radioButtonLaunchApplicationWaitForExit.Location = new System.Drawing.Point(6, 169);
-            this.radioButtonLaunchApplicationWaitForExit.Name = "radioButtonLaunchApplicationWaitForExit";
-            this.radioButtonLaunchApplicationWaitForExit.Size = new System.Drawing.Size(237, 17);
-            this.radioButtonLaunchApplicationWaitForExit.TabIndex = 8;
-            this.radioButtonLaunchApplicationWaitForExit.TabStop = true;
-            this.radioButtonLaunchApplicationWaitForExit.Text = "Wait for application to exit (max time 10 secs)";
-            this.radioButtonLaunchApplicationWaitForExit.UseVisualStyleBackColor = true;
-            // 
-            // label3
-            // 
-            this.label3.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
-            this.label3.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label3.Location = new System.Drawing.Point(39, 189);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(413, 30);
-            this.label3.TabIndex = 5;
-            this.label3.Text = "Only use this for commands that will finish quickly, such as command line command" +
-                "s.";
             // 
             // ActionPropertiesDialog
             // 
@@ -425,5 +438,6 @@ namespace KeyboardRedirector
         private System.Windows.Forms.RadioButton radioButtonLaunchApplicationWaitForInputIdle;
         private System.Windows.Forms.RadioButton radioButtonLaunchApplicationDoNotWait;
         private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.CheckBox checkBoxKeyboardExtended;
     }
 }

@@ -78,6 +78,8 @@ namespace KeyboardRedirector
 
         public KeyboardRedirectorForm()
         {
+            Log.MainLog.SetFilename(Settings.SettingsPath + @"main.log");
+
             _keyboards = new List<DeviceInformation>();
             _keysToHook = new List<KeyToHookInformation>();
             _keyCombinations = new Dictionary<string, KeyCombination>();
@@ -319,13 +321,22 @@ namespace KeyboardRedirector
                 Keys key = (Keys)rawInput.data.keyboard.VKey;
                 bool keyDown = ((rawInput.data.keyboard.Message == Win32.WM.KEYDOWN) ||
                                 (rawInput.data.keyboard.Message == Win32.WM.SYSKEYDOWN));
+                bool extended = ((rawInput.data.keyboard.Flags & InputDevice.RawKeyboardFlags.E0) != 0);
 
-                string text = string.Format("{0} 0x{1:x}({2}) 0x{3:x} 0x{4:x}",
+                string text = string.Format("{0} 0x{1:x}({2}) makecode:0x{3:x} flags:0x{4:x} extraInfo:{5} ext:{6}",
                     rawInput.header.dwType,
                     rawInput.data.keyboard.VKey,
                     key,
                     rawInput.data.keyboard.MakeCode,
-                    rawInput.data.keyboard.Flags);
+                    rawInput.data.keyboard.Flags,
+                    rawInput.data.keyboard.ExtraInformation,
+                    extended);
+                
+                if (rawInput.data.keyboard.VKey == 0xff)
+                {
+                    WriteWMInputEvent("0x" + dInfo.DeviceHandle.ToInt32().ToString("x8") + " " + rawInput.data.keyboard.Message.ToString().PadRight(10) + " : " + text + " (ignoring VK 0xff)" + Environment.NewLine);
+                    return;
+                }
 
                 WriteWMInputEvent("0x" + dInfo.DeviceHandle.ToInt32().ToString("x8") + " " + rawInput.data.keyboard.Message.ToString().PadRight(10) + " : " + text + Environment.NewLine);
 
@@ -335,7 +346,7 @@ namespace KeyboardRedirector
                 }
                 KeyCombination keyCombo = _keyCombinations[dInfo.DeviceName];
                 KeyCombination lastKeyCombo = new KeyCombination(keyCombo);
-                keyCombo.KeyPress(keyDown, key);
+                keyCombo.KeyPress(keyDown, key, extended);
 
                 if ((richTextBoxKeyDetector.Focused) && (checkBoxCaptureLowLevel.Checked == false))
                 {
@@ -399,21 +410,25 @@ namespace KeyboardRedirector
         {
             System.Diagnostics.Debug.Write(message);
             richTextBoxEvents.AppendText(message);
+            Log.MainLog.WriteInfo(message.TrimEnd('\r', '\n'));
         }
         private void WriteLowLevelEvent(string message)
         {
             System.Diagnostics.Debug.Write("LL " + message);
             richTextBoxKeyEventsLowLevel.AppendText(message);
+            Log.MainLog.WriteInfo("LL " + message.TrimEnd('\r', '\n'));
         }
         private void WriteHookEvent(string message)
         {
             System.Diagnostics.Debug.Write(message);
             richTextBoxKeyEventsHook.AppendText(message);
+            Log.MainLog.WriteInfo("   " + message.TrimEnd('\r', '\n'));
         }
         private void WriteWMInputEvent(string message)
         {
             System.Diagnostics.Debug.Write(message);
             richTextBoxKeyEventsWMInput.AppendText(message);
+            Log.MainLog.WriteInfo(message.TrimEnd('\r', '\n'));
         }
 
         private DeviceInformation FindKeyboardDevice(string deviceName)
@@ -606,12 +621,16 @@ namespace KeyboardRedirector
                 SettingsKeyboardKey key = keyboard.Keys.FindKey(keyCombo);
                 if (key != null)
                 {
+                    WriteEvent("Selecting Key: " + keyCombo.ToString() + Environment.NewLine);
+
                     TreeNode node = FindTreeNode(key, keyboardNode.Nodes, true);
                     if (node != null)
                         treeViewKeys.SelectedNode = node;
                 }
                 else
                 {
+                    WriteEvent("Adding Key: " + keyCombo.ToString() + Environment.NewLine);
+
                     key = new SettingsKeyboardKey(keyCombo);
                     keyboard.Keys.Add(key);
                     Settings.Save();
@@ -686,10 +705,48 @@ namespace KeyboardRedirector
             }
         }
 
+        private void contextMenuStripTreeViewEvents_Opening(object sender, CancelEventArgs e)
+        {
+            SettingsKeyboard keyboard = GetSelectedKeyboardFromTreeView();
+            //SettingsKeyboardKey key = GetSelectedKeyFromTreeView();
+            if (keyboard != null)
+            {
+                if (keyboard.DeviceName == "LowLevel")
+                {
+                    deleteToolStripMenuItem.Visible = false;
+                    removeAllKeysToolStripMenuItem.Visible = true;
+                    executeActionsToolStripMenuItem.Visible = false;
+                }
+                else
+                {
+                    deleteToolStripMenuItem.Visible = true;
+                    removeAllKeysToolStripMenuItem.Visible = true;
+                    executeActionsToolStripMenuItem.Visible = false;
+                }
+            }
+            else
+            {
+                deleteToolStripMenuItem.Visible = true;
+                removeAllKeysToolStripMenuItem.Visible = false;
+                executeActionsToolStripMenuItem.Visible = true;
+            }
+        }
+
         private void deleteToolStripMenuItem_Click(object sender, EventArgs e)
         {
             DeleteSelectedTreeViewEvent();
         }
+
+        private void removeAllKeysToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            RemoveAllKeysFromTreeViewKeyboard();
+        }
+
+        private void executeActionsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            ExecuteActionsFromTreeViewKey();
+        }
+
 
         private SettingsKeyboard GetSelectedKeyboardFromTreeView()
         {
@@ -735,6 +792,26 @@ namespace KeyboardRedirector
                 keyboard.Keys.Remove(key);
                 Settings.Save();
                 RefreshTreeView();
+            }
+        }
+
+        private void RemoveAllKeysFromTreeViewKeyboard()
+        {
+            SettingsKeyboard keyboard = GetSelectedKeyboardFromTreeView();
+            if (keyboard != null)
+            {
+                keyboard.Keys.Clear();
+                Settings.Save();
+                RefreshTreeView();
+            }
+        }
+
+        private void ExecuteActionsFromTreeViewKey()
+        {
+            SettingsKeyboardKey key = GetSelectedKeyFromTreeView();
+            if (key != null)
+            {
+                _actionPerformer.EnqueueKey(key, true);
             }
         }
 

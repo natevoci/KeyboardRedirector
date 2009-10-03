@@ -70,10 +70,20 @@ namespace KeyboardRedirector
                     if (File.Exists(_xmlFilename))
                     {
                         _lastModified = File.GetLastWriteTimeUtc(_xmlFilename);
-                        using (Stream inStream = File.Open(_xmlFilename, FileMode.Open, FileAccess.Read, FileShare.Read))
+                        try
                         {
-                            System.Xml.Serialization.XmlSerializer x = new System.Xml.Serialization.XmlSerializer(typeof(T));
-                            _data = x.Deserialize(inStream) as T;
+                            using (Stream inStream = File.Open(_xmlFilename, FileMode.Open, FileAccess.Read, FileShare.Read))
+                            {
+                                System.Xml.Serialization.XmlSerializer x = new System.Xml.Serialization.XmlSerializer(typeof(T));
+                                _data = x.Deserialize(inStream) as T;
+                            }
+                        }
+                        catch (Exception)
+                        {
+                            if (File.Exists(_xmlFilename + ".invalid"))
+                                File.Delete(_xmlFilename + ".invalid");
+                            File.Move(_xmlFilename, _xmlFilename + ".invalid");
+                            _data = new T();
                         }
                     }
                     else

@@ -70,6 +70,16 @@ namespace KeyboardRedirector
             Unknown = 3
         }
 
+        public enum RawKeyboardFlags : ushort
+        {
+            MAKE = 0x0,
+            BREAK = 0x1,
+            E0 = 0x2,
+            E1 = 0x4,
+            TERMSRV_SET_LED = 0x8,
+            TERMSRV_SHADOW = 0x10
+        }
+
         /// <summary>
         /// Class encapsulating the information about a
         /// keyboard event, including the device it
@@ -172,7 +182,7 @@ namespace KeyboardRedirector
             [MarshalAs(UnmanagedType.U2)]
             public ushort MakeCode;
             [MarshalAs(UnmanagedType.U2)]
-            public ushort Flags;
+            public RawKeyboardFlags Flags;
             [MarshalAs(UnmanagedType.U2)]
             public ushort Reserved;
             [MarshalAs(UnmanagedType.U2)]
@@ -505,15 +515,19 @@ namespace KeyboardRedirector
             IntPtr buffer = Marshal.AllocHGlobal( (int)dwSize );
             try
             {
-                // Check that buffer points to something, and if so,
+                // Check that buffer points to something
+                if (buffer == IntPtr.Zero)
+                    return;
+
                 // call GetRawInputData again to fill the allocated memory
                 // with information about the input
-                if (buffer != IntPtr.Zero &&
-                    GetRawInputData(message.LParam,
-                                     RID_INPUT,
-                                     buffer,
-                                     ref dwSize,
-                                     (uint)Marshal.SizeOf(typeof(RAWINPUTHEADER))) == dwSize)
+                uint bytesCopied = GetRawInputData(message.LParam,
+                                                   RID_INPUT,
+                                                   buffer,
+                                                   ref dwSize,
+                                                   (uint)Marshal.SizeOf(typeof(RAWINPUTHEADER)));
+
+                if (bytesCopied == dwSize)
                 {
                     // Store the message information in "raw", then check
                     // that the input comes from a keyboard device before

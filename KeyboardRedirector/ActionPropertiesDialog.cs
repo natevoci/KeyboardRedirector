@@ -38,17 +38,12 @@ namespace KeyboardRedirector
     {
         public SettingsKeyboardKeyAction Action = null;
 
-        private Dictionary<string, Keys> _virtualKeys = new Dictionary<string, Keys>();
-
         public ActionPropertiesDialog()
         {
             string exeFilename = System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName;
             this.Icon = System.Drawing.Icon.ExtractAssociatedIcon(exeFilename);
 
             InitializeComponent();
-
-            Keys key = (Keys)Enum.Parse(typeof(Keys), "Enter");
-            key = (Keys)Enum.Parse(typeof(Keys), "Return");
 
             comboBoxKeyboardKey.DataSource = NiceKeyName.NameList;
 
@@ -74,6 +69,7 @@ namespace KeyboardRedirector
                 checkBoxKeyboardShift.Checked = Action.Keyboard.Shift;
                 checkBoxKeyboardAlt.Checked = Action.Keyboard.Alt;
                 comboBoxKeyboardKey.Text = NiceKeyName.GetName(Action.Keyboard.VirtualKey);
+                checkBoxKeyboardExtended.Checked = Action.Keyboard.Extended;
                 numericUpDown1.Value = Action.Keyboard.RepeatCount;
 
                 // Active tab
@@ -104,6 +100,7 @@ namespace KeyboardRedirector
                 Action.Keyboard.Alt = checkBoxKeyboardAlt.Checked;
                 Keys key = NiceKeyName.GetKey(comboBoxKeyboardKey.Text);
                 Action.Keyboard.VirtualKey = key;
+                Action.Keyboard.Extended = checkBoxKeyboardExtended.Checked;
                 Action.Keyboard.RepeatCount = (int)numericUpDown1.Value;
 
                 // Active ActionType
@@ -148,19 +145,22 @@ namespace KeyboardRedirector
             if (e.KeyCombination.KeyDown == false)
                 return;
 
-            checkBoxKeyboardControl.Checked = e.KeyCombination.Modifiers.Contains(Keys.ControlKey);
-            checkBoxKeyboardControl.Checked |= e.KeyCombination.Modifiers.Contains(Keys.LControlKey);
-            checkBoxKeyboardControl.Checked |= e.KeyCombination.Modifiers.Contains(Keys.RControlKey);
+            checkBoxKeyboardControl.Checked = false;
+            checkBoxKeyboardShift.Checked = false;
+            checkBoxKeyboardAlt.Checked = false;
+            foreach (KeysWithExtended key in e.KeyCombination.Modifiers)
+            {
+                if ((key.Keys == Keys.ControlKey) || (key.Keys == Keys.LControlKey) || (key.Keys == Keys.RControlKey))
+                    checkBoxKeyboardControl.Checked = true;
+                if ((key.Keys == Keys.ShiftKey) || (key.Keys == Keys.LShiftKey) || (key.Keys == Keys.RShiftKey))
+                    checkBoxKeyboardShift.Checked = true;
+                if ((key.Keys == Keys.Menu) || (key.Keys == Keys.LMenu) || (key.Keys == Keys.RMenu))
+                    checkBoxKeyboardAlt.Checked = true;
+            }
 
-            checkBoxKeyboardShift.Checked = e.KeyCombination.Modifiers.Contains(Keys.ShiftKey);
-            checkBoxKeyboardShift.Checked |= e.KeyCombination.Modifiers.Contains(Keys.LShiftKey);
-            checkBoxKeyboardShift.Checked |= e.KeyCombination.Modifiers.Contains(Keys.RShiftKey);
+            comboBoxKeyboardKey.Text = NiceKeyName.GetName(e.KeyCombination.KeyWithExtended.Keys);
+            checkBoxKeyboardExtended.Checked = e.KeyCombination.KeyWithExtended.Extended;
 
-            checkBoxKeyboardAlt.Checked = e.KeyCombination.Modifiers.Contains(Keys.Menu);
-            checkBoxKeyboardAlt.Checked |= e.KeyCombination.Modifiers.Contains(Keys.LMenu);
-            checkBoxKeyboardAlt.Checked |= e.KeyCombination.Modifiers.Contains(Keys.RMenu);
-
-            comboBoxKeyboardKey.Text = NiceKeyName.GetName(e.KeyCombination.Key);
             e.Handled = true;
         }
 

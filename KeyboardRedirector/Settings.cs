@@ -39,7 +39,7 @@ namespace KeyboardRedirector
         {
             if (_xmlStore == null)
             {
-                string filename = System.IO.Path.GetDirectoryName(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName) + @"\settings.xml";
+                string filename = SettingsPath + @"settings.xml";
                 _xmlStore = new XMLFileStore<Settings>(filename);
             }
         }
@@ -54,6 +54,14 @@ namespace KeyboardRedirector
             {
                 EnsureXmlStoreExists();
                 return _xmlStore.Data;
+            }
+        }
+        public static string SettingsPath
+        {
+            get
+            {
+                string path = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
+                return path + @"\KeyboardRedirector\";
             }
         }
         #endregion
@@ -181,11 +189,11 @@ namespace KeyboardRedirector
         }
         public SettingsKeyboardKey(KeyCombination keyCombination)
         {
-            foreach (Keys key in keyCombination.Modifiers)
+            foreach (KeysWithExtended key in keyCombination.Modifiers)
             {
-                _keyCodes.Add((uint)key);
+                _keyCodes.Add(key.keycode);
             }
-            _keyCodes.Add((uint)keyCombination.Key);
+            _keyCodes.Add(keyCombination.KeyWithExtended.keycode);
         }
 
         public override bool Equals(object obj)
@@ -217,10 +225,10 @@ namespace KeyboardRedirector
             StringBuilder result = new StringBuilder();
             for (int i = 0; i < _keyCodes.Count; i++)
             {
-                Keys code = (Keys)_keyCodes[i];
+                KeysWithExtended code = new KeysWithExtended(_keyCodes[i]);
                 if (i > 0)
                     result.Append("+");
-                result.Append(NiceKeyName.GetName(code));
+                result.Append(code.ToString());
             }
             if (Name.Length != 0)
                 result.Append(" - " + Name);
@@ -340,6 +348,7 @@ namespace KeyboardRedirector
         public bool Shift = false;
         public bool Alt = false;
         public ushort VirtualKeyCode = 0;
+        public bool Extended = false;
         public int RepeatCount = 1;
 
         [XmlIgnore()]
@@ -362,7 +371,8 @@ namespace KeyboardRedirector
                 sb.Append("Shift + ");
             if (Alt)
                 sb.Append("Alt + ");
-            sb.Append(NiceKeyName.GetName(VirtualKey));
+            KeysWithExtended keys = new KeysWithExtended(VirtualKey, Extended);
+            sb.Append(keys.ToString());
             if (RepeatCount > 1)
                 sb.Append("  x" + RepeatCount.ToString());
             return sb.ToString();

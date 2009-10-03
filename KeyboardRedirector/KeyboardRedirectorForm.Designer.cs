@@ -88,6 +88,8 @@ namespace KeyboardRedirector
             this.label7 = new System.Windows.Forms.Label();
             this.richTextBoxKeyEventsWMInput = new KeyboardRedirector.RichTextBoxEx();
             this.timerMinimiseOnStart = new System.Windows.Forms.Timer(this.components);
+            this.removeAllKeysToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.executeActionsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.contextMenuStripNotifyIcon.SuspendLayout();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -210,15 +212,18 @@ namespace KeyboardRedirector
             // contextMenuStripTreeViewEvents
             // 
             this.contextMenuStripTreeViewEvents.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.deleteToolStripMenuItem});
+            this.deleteToolStripMenuItem,
+            this.removeAllKeysToolStripMenuItem,
+            this.executeActionsToolStripMenuItem});
             this.contextMenuStripTreeViewEvents.Name = "contextMenuStripTreeViewEvents";
-            this.contextMenuStripTreeViewEvents.Size = new System.Drawing.Size(132, 26);
+            this.contextMenuStripTreeViewEvents.Size = new System.Drawing.Size(162, 92);
+            this.contextMenuStripTreeViewEvents.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuStripTreeViewEvents_Opening);
             // 
             // deleteToolStripMenuItem
             // 
             this.deleteToolStripMenuItem.Name = "deleteToolStripMenuItem";
             this.deleteToolStripMenuItem.ShortcutKeyDisplayString = "Del";
-            this.deleteToolStripMenuItem.Size = new System.Drawing.Size(131, 22);
+            this.deleteToolStripMenuItem.Size = new System.Drawing.Size(161, 22);
             this.deleteToolStripMenuItem.Text = "Delete";
             this.deleteToolStripMenuItem.Click += new System.EventHandler(this.deleteToolStripMenuItem_Click);
             // 
@@ -790,6 +795,20 @@ namespace KeyboardRedirector
             // 
             this.timerMinimiseOnStart.Tick += new System.EventHandler(this.timerMinimiseOnStart_Tick);
             // 
+            // removeAllKeysToolStripMenuItem
+            // 
+            this.removeAllKeysToolStripMenuItem.Name = "removeAllKeysToolStripMenuItem";
+            this.removeAllKeysToolStripMenuItem.Size = new System.Drawing.Size(161, 22);
+            this.removeAllKeysToolStripMenuItem.Text = "Remove All Keys";
+            this.removeAllKeysToolStripMenuItem.Click += new System.EventHandler(this.removeAllKeysToolStripMenuItem_Click);
+            // 
+            // executeActionsToolStripMenuItem
+            // 
+            this.executeActionsToolStripMenuItem.Name = "executeActionsToolStripMenuItem";
+            this.executeActionsToolStripMenuItem.Size = new System.Drawing.Size(161, 22);
+            this.executeActionsToolStripMenuItem.Text = "Execute Actions";
+            this.executeActionsToolStripMenuItem.Click += new System.EventHandler(this.executeActionsToolStripMenuItem_Click);
+            // 
             // KeyboardRedirectorForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -892,5 +911,7 @@ namespace KeyboardRedirector
         private System.Windows.Forms.Label labelFocussedAppInfo;
         private System.Windows.Forms.CheckBox checkBoxCaptureLowLevel;
         private System.Windows.Forms.CheckBox checkBoxKeyCapture;
+        private System.Windows.Forms.ToolStripMenuItem removeAllKeysToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem executeActionsToolStripMenuItem;
     }
 }

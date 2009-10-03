@@ -1,4 +1,4 @@
-#region Copyright (C) 2009 Nate
+﻿#region Copyright (C) 2009 Nate
 
 /* 
  *	Copyright (C) 2009 Nate
@@ -32,7 +32,7 @@ using System.Diagnostics;
 
 namespace KeyboardRedirector
 {
-    class NiceKeyName
+    public class NiceKeyName
     {
         public static List<Keys> KeyList = new List<Keys>();
         public static List<string> NameList = new List<string>();
@@ -59,28 +59,54 @@ namespace KeyboardRedirector
                     if (numberRegex.IsMatch(keyName))
                         niceName = keyName.Substring(1);
 
-                    if (key == Keys.Menu)
-                        niceName = "Alt";
-                    if (key == Keys.Back)
-                        niceName = "Backspace";
                     if (key == Keys.ShiftKey)
                         niceName = "Shift";
-                    if (key == Keys.ControlKey)
-                        niceName = "Control";
-                    if (key == Keys.Capital)
-                        niceName = "CapsLock";
                     if (key == Keys.LShiftKey)
                         niceName = "LShift";
                     if (key == Keys.RShiftKey)
                         niceName = "RShift";
+                    if (key == Keys.ControlKey)
+                        niceName = "Control";
                     if (key == Keys.LControlKey)
                         niceName = "LControl";
                     if (key == Keys.RControlKey)
                         niceName = "RControl";
+                    if (key == Keys.Menu)
+                        niceName = "Alt";
                     if (key == Keys.LMenu)
                         niceName = "LAlt";
                     if (key == Keys.RMenu)
                         niceName = "RAlt";
+                    if (key == Keys.CapsLock)
+                        niceName = "CapsLock";
+
+                    if (key == Keys.Back)
+                        niceName = "Backspace";
+                    if (key == Keys.Enter)
+                        niceName = "Enter";
+                    if (key == Keys.PageUp)
+                        niceName = "PageUp";
+                    if (key == Keys.PageDown)
+                        niceName = "PageDown";
+                    if (key == Keys.PrintScreen)
+                        niceName = "PrintScreen";
+
+                    if (key == Keys.OemSemicolon)
+                        niceName = "OemSemicolon";
+                    if (key == Keys.OemQuestion)
+                        niceName = "OemQuestion";
+                    if (key == Keys.Oemtilde)
+                        niceName = "Oemtilde";
+                    if (key == Keys.OemOpenBrackets)
+                        niceName = "OemOpenBrackets";
+                    if (key == Keys.OemPipe)
+                        niceName = "OemPipe";
+                    if (key == Keys.OemCloseBrackets)
+                        niceName = "OemCloseBrackets";
+                    if (key == Keys.OemQuotes)
+                        niceName = "OemQuotes";
+                    if (key == Keys.OemBackslash)
+                        niceName = "OemBackslash";
 
                     KeyList.Add(key);
                     NameList.Add(niceName);
@@ -98,6 +124,8 @@ namespace KeyboardRedirector
 
         public static string GetName(Keys key)
         {
+            if (_keyMappingNames.ContainsKey(key) == false)
+                return key.ToString();
             return _keyMappingNames[key];
         }
 

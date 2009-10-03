@@ -146,7 +146,7 @@ namespace KeyboardRedirector
                     Win32.KeyboardParams parameters = new Win32.KeyboardParams(((int)(lParam & 0xFFFFFFFF)));
                     bool keyDown = (parameters.transitionState == Win32.KeyboardParams.TransitionState.Down);
 
-                    _keyState.KeyPress(keyDown, key);
+                    _keyState.KeyPress(keyDown, key, parameters.extendedKey);
 
                     if (KeyEvent != null)
                     {
@@ -157,12 +157,18 @@ namespace KeyboardRedirector
                 }
                 if (message.Msg == _hookMessageLowLevel)
                 {
-                    Keys key = (Keys)message.LParam.ToInt32();
-                    int msgId = message.WParam.ToInt32();
-                    bool keyDown = ((msgId == (int)Win32.WM.KEYDOWN) ||
-                                    (msgId == (int)Win32.WM.SYSKEYDOWN));
+                    //Keys key = (Keys)message.LParam.ToInt32();
+                    //int msgId = message.WParam.ToInt32();
+                    //bool keyDown = ((msgId == (int)Win32.WM.KEYDOWN) ||
+                    //                (msgId == (int)Win32.WM.SYSKEYDOWN));
 
-                    _keyStateLowLevel.KeyPress(keyDown, key);
+                    Keys key = (Keys)message.WParam.ToInt32();
+
+                    long lParam = message.LParam.ToInt64();
+                    Win32.KeyboardParams parameters = new Win32.KeyboardParams(((int)(lParam & 0xFFFFFFFF)));
+                    bool keyDown = (parameters.transitionState == Win32.KeyboardParams.TransitionState.Down);
+
+                    _keyStateLowLevel.KeyPress(keyDown, key, parameters.extendedKey);
 
                     if (KeyEventLowLevel != null)
                     {

@@ -221,8 +221,23 @@ static LRESULT CALLBACK msghook_LL(UINT nCode, WPARAM wParam, LPARAM lParam)
 	{
 		if (IsWindow(s_hWndServer_LL) == TRUE)
 		{
+			int repeatCount = 1;
+			int scanCode = pHookStruct->scanCode & 0xFF;
+			scanCode = scanCode << 16;
+			int extended = pHookStruct->flags & 0x01;
+			extended = extended << 24;
+			int alt = (pHookStruct->flags & (1 << 5)) >> 5;
+			alt = alt << 24;
+			int transitionState = (pHookStruct->flags & (1 << 7)) >> 7;
+			int previousState = transitionState;
+			previousState = previousState << 30;
+			transitionState = transitionState << 31;
+
+			LPARAM newLParam = repeatCount | scanCode | extended | alt | previousState | transitionState;
+
 			LRESULT result;
-			result = ::SendMessage(s_hWndServer_LL, s_message_LL, newWParam, pHookStruct->vkCode);
+			//result = ::SendMessage(s_hWndServer_LL, s_message_LL, newWParam, pHookStruct->vkCode);
+			result = ::SendMessage(s_hWndServer_LL, s_message_LL, pHookStruct->vkCode, newLParam);
 			if (result != 0)
 			{
 				LPWSTR str = new WCHAR[100];
@@ -235,7 +250,6 @@ static LRESULT CALLBACK msghook_LL(UINT nCode, WPARAM wParam, LPARAM lParam)
 	} catch (...)
 	{
 	}
-
 
 	//if (IsWindow(s_hWndServer_LL) == TRUE)
 	//{

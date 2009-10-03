@@ -41,6 +41,8 @@
   <ItemGroup>
     <Compile Include="KeyboardHookExternal.cs" />
     <Compile Include="KeyCombination.cs" />
+    <Compile Include="KeysWithExtended.cs" />
+    <Compile Include="NiceKeyName.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

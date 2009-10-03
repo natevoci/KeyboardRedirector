@@ -85,10 +85,10 @@
     <Compile Include="KeyboardRedirectorForm.Designer.cs">
       <DependentUpon>KeyboardRedirectorForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="Log.cs" />
     <Compile Include="MinimizeToTrayForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="NiceKeyNames.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="ActionPropertiesDialog.resx">
@@ -126,6 +126,7 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Settings.cs" />
+    <Compile Include="Time.cs" />
     <Compile Include="XMLFileStore.cs" />
   </ItemGroup>
   <ItemGroup>
