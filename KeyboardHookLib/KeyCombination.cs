@@ -86,8 +86,8 @@ namespace KeyboardRedirector
         public void KeyPress(bool keyDown, Keys key, bool extended)
         {
             DateTime now = DateTime.Now;
-            TimeSpan timeSinceLastChagne = now.Subtract(_lastChange);
-            if (timeSinceLastChagne.TotalSeconds > 1)
+            TimeSpan timeSinceLastChange = now.Subtract(_lastChange);
+            if (timeSinceLastChange.TotalSeconds > 1)
             {
                 _key = KeysWithExtended.None;
                 //_key.extended = false;
@@ -134,6 +134,15 @@ namespace KeyboardRedirector
                 _keyDown = false;
             }
 
+        }
+
+        public int KeysDownCount()
+        {
+            DateTime now = DateTime.Now;
+            TimeSpan timeSinceLastChange = now.Subtract(_lastChange);
+            if (timeSinceLastChange.TotalSeconds > 1)
+                return 0;
+            return _modifiers.Count;
         }
 
         private bool ModifiersContains(KeysWithExtended key)

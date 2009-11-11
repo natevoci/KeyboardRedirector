@@ -1221,5 +1221,68 @@ namespace KeyboardRedirector
 
         #endregion
 
+        #region Message Handling
+
+        /// <summary>
+        /// Enumeration of removal options.
+        /// </summary>
+        public enum PeekMessageRemoveFlag : uint
+        {
+            /// <summary>
+            /// Messages are not removed from the queue after processing by PeekMessage.
+            /// </summary>
+            PM_NOREMOVE = 0x0,
+
+            /// <summary>
+            /// Messages are removed from the queue after processing by PeekMessage.
+            /// </summary>
+            PM_REMOVE = 0x1
+        }
+
+        /// <summary>
+        /// Dispatches incoming sent messages, checks the thread message queue 
+        /// for a posted message, and retrieves the message (if any exist).
+        /// </summary>
+        /// <param name="lpmsg">[out] Pointer to an MSG structure that receives
+        /// message information.</param>
+        /// <param name="hwnd">[in] Handle to the window whose messages are to be 
+        /// retrieved. The window must belong to the current thread.
+        /// If hWnd is NULL, PeekMessage retrieves messages for any window 
+        /// that belongs to the current thread, and any messages on the current 
+        /// thread's message queue whose hwnd value is NULL (see the MSG structure). 
+        /// Therefore if hWnd is NULL, both window messages and thread messages
+        /// are processed. If hWnd is -1, PeekMessage retrieves only messages
+        /// on the current thread's message queue whose hwnd value is NULL,
+        /// that is, thread messages as posted by PostMessage (when the hWnd 
+        /// parameter is NULL) or PostThreadMessage.</param>
+        /// <param name="wMsgFilterMin">in] Specifies the value of the first 
+        /// message in the range of messages to be examined. Use WM_KEYFIRST to 
+        /// specify the first keyboard message or WM_MOUSEFIRST to specify the 
+        /// first mouse message. If wMsgFilterMin and wMsgFilterMax are both 
+        /// zero, PeekMessage returns all available messages (that is, no 
+        /// range filtering is performed).</param>
+        /// <param name="wMsgFilterMax">[in] Specifies the value of the last 
+        /// message in the range of messages to be examined. Use WM_KEYLAST
+        /// to specify the last keyboard message or WM_MOUSELAST to specify 
+        /// the last mouse message. If wMsgFilterMin and wMsgFilterMax are 
+        /// both zero, PeekMessage returns all available messages (that is, 
+        /// no range filtering is performed).</param>
+        /// <param name="wRemoveMsg">[in] Specifies how messages are handled. 
+        /// This parameter can be one of the following values.</param>
+        /// <returns>whether or not a message was found</returns>
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool PeekMessage(
+            out System.Windows.Forms.Message lpmsg,
+            IntPtr hwnd,
+            uint wMsgFilterMin,
+            uint wMsgFilterMax,
+            PeekMessageRemoveFlag wRemoveMsg);
+
+        [DllImport("user32.dll")]
+        public static extern IntPtr DispatchMessage([In] System.Windows.Forms.Message lpmsg);
+        
+        #endregion
+
     }
 }

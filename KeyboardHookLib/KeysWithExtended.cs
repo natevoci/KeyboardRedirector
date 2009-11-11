@@ -91,5 +91,14 @@ namespace KeyboardRedirector
         {
             return (k1.keycode != k2.keycode);
         }
+
+        public override bool Equals(object obj)
+        {
+            if (!(obj is KeysWithExtended))
+                return false;
+
+            KeysWithExtended keysWithExtended = obj as KeysWithExtended;
+            return (this.keycode == keysWithExtended.keycode);
+        }
     }
 }

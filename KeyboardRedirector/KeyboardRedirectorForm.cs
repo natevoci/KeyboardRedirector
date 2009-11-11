@@ -211,7 +211,23 @@ namespace KeyboardRedirector
 
             if (_inputDevice != null)
             {
-                _inputDevice.ProcessMessage(message);
+                if (_inputDevice.IsInputMessage(message))
+                {
+                    _inputDevice.ProcessMessage(message);
+                }
+            }
+
+            if (KeyboardHookExternal.Current.IsHookMessage(message))
+            {
+                // If there's a WM_INPUT message in the message queue then we'll process that first
+                Message msg;
+                Win32.PeekMessage(out msg, this.Handle, (uint)Win32.WM.INPUT, (uint)Win32.WM.INPUT, Win32.PeekMessageRemoveFlag.PM_REMOVE);
+                if (msg.Msg != 0)
+                {
+                    //Log.MainLog.WriteInfo("PeekMessage found WM_INPUT message waiting : " + msg.ToString());
+                    Win32.DispatchMessage(msg);
+                    //Log.MainLog.WriteInfo("Finished dispatching");
+                }
             }
 
             int result = KeyboardHookExternal.Current.ProcessMessage(message);
@@ -234,18 +250,28 @@ namespace KeyboardRedirector
             bool block = false;
             lock (_keysToHook)
             {
+                //Log.MainLog.WriteDebug(" - KeyEvent");
+                //Log.MainLog.WriteDebug("   - KeyCombo to match: " + e.KeyCombination.ToString());
+                //Log.MainLog.WriteDebug("   - KeysToHook: " + _keysToHook.Count.ToString());
                 for (int i = 0; i < _keysToHook.Count; i++)
                 {
                     if (_keysToHook[i].KeyCombo.Equals(e.KeyCombination))
                     {
+                        //Log.MainLog.WriteDebug("     - Equal: " + _keysToHook[i].KeyCombo.ToString() + i.ToString());
                         block = true;
                         _keysToHook.RemoveAt(i);
+                        break;
+                    }
+                    else
+                    {
+                        //Log.MainLog.WriteDebug("     - Unequal: " + _keysToHook[i].KeyCombo.UnequalReason(e.KeyCombination) + " : " + _keysToHook[i].KeyCombo.ToString());
                     }
                 }
 
                 // Remove any old stale entries
                 while ((_keysToHook.Count > 0) && (DateTime.Now.Subtract(_keysToHook[0].SeenAt).TotalMilliseconds > 500))
                 {
+                    //Log.MainLog.WriteDebug("   - RemovingOldKey: " + _keysToHook[0].KeyCombo.ToString());
                     _keysToHook.RemoveAt(0);
                 }
             }
@@ -352,6 +378,7 @@ namespace KeyboardRedirector
                 {
                     lock (_keysToHook)
                     {
+                        //Log.MainLog.WriteDebug("RawInput-AddingKeyForDetector: " + keyCombo.ToString());
                         _keysToHook.Add(new KeyToHookInformation(keyCombo));
                     }
 
@@ -377,6 +404,7 @@ namespace KeyboardRedirector
                             {
                                 lock (_keysToHook)
                                 {
+                                    //Log.MainLog.WriteDebug("RawInput-AddingKeyForCapture: " + keyCombo.ToString());
                                     _keysToHook.Add(new KeyToHookInformation(keyCombo));
                                 }
                             }
@@ -389,6 +417,7 @@ namespace KeyboardRedirector
                             {
                                 lock (_keysToHook)
                                 {
+                                    //Log.MainLog.WriteDebug("RawInput-AddingKeyForCaptureAll: " + keyCombo.ToString());
                                     _keysToHook.Add(new KeyToHookInformation(keyCombo));
                                 }
                             }

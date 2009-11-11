@@ -130,6 +130,15 @@ namespace KeyboardRedirector
             return false;
         }
 
+        public bool IsHookMessage(Message message)
+        {
+            if (_hookProcess != null)
+            {
+                return (message.Msg == _hookMessage);
+            }
+            return false;
+        }
+
         private KeyCombination _keyState = new KeyCombination();
         private KeyCombination _keyStateLowLevel = new KeyCombination();
         public int ProcessMessage(Message message)
@@ -183,6 +192,11 @@ namespace KeyboardRedirector
             }
 
             return 0;
+        }
+
+        public int KeysDownCount()
+        {
+            return _keyState.KeysDownCount();
         }
 
     }

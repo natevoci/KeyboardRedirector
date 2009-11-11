@@ -195,6 +195,15 @@ namespace KeyboardRedirector
 
         private void Keyboard(SettingsKeyboardKeyTypedActionKeyboard keyboard)
         {
+            if (KeyboardHookExternal.Current.KeysDownCount() > 0)
+            {
+                Log.MainLog.WriteInfo("Waiting for all keys to be up before sending new keystroke");
+                while (KeyboardHookExternal.Current.KeysDownCount() > 0)
+                {
+                    Thread.Sleep(10);
+                }
+            }
+
             WriteStatusMessage("Sending keystroke: " + keyboard.GetDetails());
 
             for (int repeat = 0; repeat < keyboard.RepeatCount; repeat++)

@@ -282,7 +282,7 @@ namespace KeyboardRedirector
     {
         //private Dictionary<SettingsKeyboardKeyActionType, SettingsKeyboardKeyTypedAction> _actionTypes = new Dictionary<SettingsKeyboardKeyActionType, SettingsKeyboardKeyTypedAction>();
 
-        public SettingsKeyboardKeyActionType ActionType = SettingsKeyboardKeyActionType.LaunchApplication;
+        public SettingsKeyboardKeyActionType ActionType = SettingsKeyboardKeyActionType.Keyboard;
         public SettingsKeyboardKeyTypedActionLaunchApplication LaunchApplication = new SettingsKeyboardKeyTypedActionLaunchApplication();
         public SettingsKeyboardKeyTypedActionKeyboard Keyboard = new SettingsKeyboardKeyTypedActionKeyboard();
 

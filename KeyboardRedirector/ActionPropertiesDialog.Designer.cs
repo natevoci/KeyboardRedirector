@@ -69,8 +69,8 @@ namespace KeyboardRedirector
                         | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
             this.tabControl1.Appearance = System.Windows.Forms.TabAppearance.FlatButtons;
-            this.tabControl1.Controls.Add(this.tabPageLaunchApplication);
             this.tabControl1.Controls.Add(this.tabPageKeyboard);
+            this.tabControl1.Controls.Add(this.tabPageLaunchApplication);
             this.tabControl1.Location = new System.Drawing.Point(12, 12);
             this.tabControl1.Multiline = true;
             this.tabControl1.Name = "tabControl1";

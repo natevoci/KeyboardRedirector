@@ -689,6 +689,11 @@ namespace KeyboardRedirector
 
         #region ProcessMessage( Message message )
 
+        public bool IsInputMessage(Message message)
+        {
+            return (message.Msg == (int)Win32.WM.INPUT);
+        }
+
         /// <summary>
         /// Filters Windows messages for WM_INPUT messages and calls
         /// ProcessInputCommand if necessary.
@@ -696,14 +701,10 @@ namespace KeyboardRedirector
         /// <param name="message">The Windows message.</param>
         public void ProcessMessage( Message message )
 		{
-			switch( message.Msg )
-			{
-				case (int)Win32.WM.INPUT:
-		        {
-		            ProcessInputCommand( message );
-		        }
-				break;
-			}
+            if (IsInputMessage(message))
+	        {
+	            ProcessInputCommand( message );
+	        }
         }
 
         #endregion ProcessMessage( Message message )
