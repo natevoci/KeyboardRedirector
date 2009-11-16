@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
-using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using System.Diagnostics;
@@ -15,7 +14,7 @@ namespace ApplicationLauncher
     public partial class ApplicationLauncherForm : Form
     {
         private DesktopWindows _windows;
-        private ExecutableImageList _imageList;
+        private IconExtractor.ExecutableImageList _imageList;
         private Rectangle _normalBounds;
 
         public ApplicationLauncherForm()
@@ -60,7 +59,7 @@ namespace ApplicationLauncher
                 _windows.Windows.Sort(new WindowSorter(SortOrder.Ascending));
             }
 
-            _imageList = new ExecutableImageList(imageListRunningLarge);
+            _imageList = new IconExtractor.ExecutableImageList(imageListRunningLarge, true);
             _imageList.NonExistantImage = -1;
 
 
@@ -152,14 +151,14 @@ namespace ApplicationLauncher
         {
             string exe;
             string args;
-            ParseCommandLine(shortcut.Executable, out exe, out args);
+            Shortcut.ParseCommandLine(shortcut.Executable, out exe, out args);
 
             if (shortcut.SwitchTasksIfAlreadyRunning)
             {
                 foreach (DesktopWindows.Window window in _windows.Windows)
                 {
                     string windowExe, windowArgs;
-                    ParseCommandLine(window.CmdLine, out windowExe, out windowArgs);
+                    Shortcut.ParseCommandLine(window.CmdLine, out windowExe, out windowArgs);
                     if ((windowExe.Equals(exe, StringComparison.CurrentCultureIgnoreCase)) &&
                         (windowArgs.Equals(args, StringComparison.CurrentCultureIgnoreCase)))
                     {
@@ -193,32 +192,6 @@ namespace ApplicationLauncher
             }
 
             Close();
-        }
-
-        private void ParseCommandLine(string commandLine, out string exe, out string args)
-        {
-            exe = commandLine.Trim();
-            args = "";
-
-            if (exe[0] == '"')
-            {
-                int endOfExeIndex = exe.IndexOf("\"", 1);
-                if (endOfExeIndex != -1)
-                {
-                    //endOfExeIndex++;
-                    args = exe.Substring(endOfExeIndex + 1).TrimStart();
-                    exe = exe.Substring(1, endOfExeIndex - 1);
-                }
-            }
-            else
-            {
-                int endOfExeIndex = exe.IndexOf(" ");
-                if (endOfExeIndex != -1)
-                {
-                    args = exe.Substring(endOfExeIndex + 1).TrimStart();
-                    exe = exe.Substring(0, endOfExeIndex);
-                }
-            }
         }
 
         private void buttonEditShortcuts_Click(object sender, EventArgs e)

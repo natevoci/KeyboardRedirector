@@ -41,7 +41,7 @@ namespace KeyboardRedirector
         List<KeyToHookInformation> _keysToHook;
         Dictionary<string, KeyCombination> _keyCombinations;
         ActionPerformer _actionPerformer;
-        ExecutableImageList _imageList;
+        IconExtractor.ExecutableImageList _imageList;
         static bool _disableGlobalKeyboardHook = false;
 
         public static bool DisableGlobalKeyboardHook
@@ -99,7 +99,7 @@ namespace KeyboardRedirector
             _actionPerformer.StatusMessage += new ActionPerformer.StatusMessageHandler(_actionPerformer_StatusMessage);
             _actionPerformer.StartProcessingThread();
 
-            _imageList = new ExecutableImageList(imageListApplications);
+            _imageList = new IconExtractor.ExecutableImageList(imageListApplications);
 
             if (Settings.Current.Applications.FindByName("Default") == null)
             {

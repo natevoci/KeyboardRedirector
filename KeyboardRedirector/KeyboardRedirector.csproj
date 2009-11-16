@@ -68,7 +68,6 @@
     <Compile Include="ActionPropertiesDialog.Designer.cs">
       <DependentUpon>ActionPropertiesDialog.cs</DependentUpon>
     </Compile>
-    <Compile Include="ExecutableImageList.cs" />
     <Compile Include="BindingListView.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -133,6 +132,10 @@
     <Content Include="Icon.ico" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\IconExtractor\IconExtractor.csproj">
+      <Project>{6375CA24-A270-4CEA-8C7B-1A89A3F5EB4F}</Project>
+      <Name>IconExtractor</Name>
+    </ProjectReference>
     <ProjectReference Include="..\KeyboardHookLib\KeyboardHookLib.csproj">
       <Project>{5802C646-7DC1-4D87-A5D9-82F31CDDCF36}</Project>
       <Name>KeyboardHookLib</Name>

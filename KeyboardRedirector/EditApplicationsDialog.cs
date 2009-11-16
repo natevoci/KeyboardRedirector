@@ -38,7 +38,7 @@ namespace KeyboardRedirector
 {
     public partial class EditApplicationsDialog : Form
     {
-        ExecutableImageList _imageList;
+        IconExtractor.ExecutableImageList _imageList;
         SettingsApplication _selectedApplication = null;
 
         public SettingsApplication SelectedApplication
@@ -56,7 +56,7 @@ namespace KeyboardRedirector
 
             listViewApplications.AddColumn("Application", 0, "Name");
 
-            _imageList = new ExecutableImageList(imageListApplicationIcons);
+            _imageList = new IconExtractor.ExecutableImageList(imageListApplicationIcons);
         }
 
         private void EditApplicationsDialog_Load(object sender, EventArgs e)

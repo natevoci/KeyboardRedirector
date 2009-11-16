@@ -29,13 +29,14 @@ using System.Text;
 using System.Windows.Forms;
 using System.Drawing;
 
-namespace ApplicationLauncher
+namespace IconExtractor
 {
-    class ExecutableImageList
+    public class ExecutableImageList
     {
         private ImageList _imageList = null;
         private int _nonExistantImage = 1;
-        private IconExtractor.IconExtractor _iconExtractor;
+        private IconExtractor _iconExtractor;
+        private bool _preferLarge;
 
         private Dictionary<string, int> _executables = new Dictionary<string, int>();
 
@@ -53,7 +54,15 @@ namespace ApplicationLauncher
         public ExecutableImageList(ImageList imageList)
         {
             _imageList = imageList;
-            _iconExtractor = new IconExtractor.IconExtractor();
+            _iconExtractor = new IconExtractor();
+            _preferLarge = false;
+        }
+
+        public ExecutableImageList(ImageList imageList, bool preferLarge)
+        {
+            _imageList = imageList;
+            _iconExtractor = new IconExtractor();
+            _preferLarge = preferLarge;
         }
 
         public int GetExecutableIndex(string executable)
@@ -66,12 +75,19 @@ namespace ApplicationLauncher
             else
             {
                 int index = ImageList.Images.Count;
+                Size size = new Size(16, 16);
+                IconExtractor.LoadIconFlags flags = IconExtractor.LoadIconFlags.SmallIcon;
+                if (_preferLarge)
+                {
+                    size = new Size(32, 32);
+                    flags = IconExtractor.LoadIconFlags.LargeIcon;
+                }
 
-                Bitmap bm = _iconExtractor.LoadThumbnailFromImageFactory(executable, new Size(32, 32), false);
+                Bitmap bm = _iconExtractor.LoadThumbnailFromImageFactory(executable, size, false);
                 if (bm == null)
                 {
                     //Icon exeIcon = Icon.ExtractAssociatedIcon(executable);
-                    Icon exeIcon = _iconExtractor.LoadIcon(executable, IconExtractor.IconExtractor.LoadIconFlags.LargeIcon);
+                    Icon exeIcon = _iconExtractor.LoadIcon(executable, flags);
                     if (exeIcon == null)
                         return NonExistantImage;
 

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
-using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 
@@ -11,7 +10,8 @@ namespace ApplicationLauncher
 {
     public partial class ShortcutsForm : Form
     {
-        ExecutableImageList _imageList;
+        IconExtractor.ExecutableImageList _imageList;
+        IconExtractor.ExecutableImageList _imageListIcons;
 
         public ShortcutsForm()
         {
@@ -20,8 +20,10 @@ namespace ApplicationLauncher
 
         private void ShortcutsForm_Load(object sender, EventArgs e)
         {
-            _imageList = new ExecutableImageList(imageListShortcuts);
+            _imageList = new IconExtractor.ExecutableImageList(imageListShortcuts, false);
             _imageList.NonExistantImage = -1;
+            _imageListIcons = new IconExtractor.ExecutableImageList(imageListIcons, true);
+            _imageListIcons.NonExistantImage = -1;
 
             olvColumn1.ImageGetter = delegate(object row)
             {
@@ -99,22 +101,24 @@ namespace ApplicationLauncher
         {
             OpenFileDialog ofd = new OpenFileDialog();
             ofd.Multiselect = false;
-            if (textBoxExecutable.Text.Length > 0)
+
+            string exe, args;
+            Shortcut.ParseCommandLine(textBoxExecutable.Text, out exe, out args);
+            if (exe.Length > 0)
             {
-                if (System.IO.Directory.Exists(textBoxExecutable.Text))
+                if (System.IO.Directory.Exists(exe))
                 {
-                    ofd.InitialDirectory = textBoxExecutable.Text;
+                    ofd.InitialDirectory = exe;
                 }
-                else if (System.IO.File.Exists(textBoxExecutable.Text))
+                else if (System.IO.File.Exists(exe))
                 {
-                    ofd.FileName = textBoxExecutable.Text;
+                    ofd.FileName = exe;
                 }
             }
             DialogResult result = ofd.ShowDialog(this);
             if (result == DialogResult.OK)
             {
-                textBoxExecutable.Text = ofd.FileName;
-                textBoxIcon.Text = ofd.FileName;
+                textBoxExecutable.Text = "\"" + ofd.FileName + "\"";
                 textBoxName.Text = System.IO.Path.GetFileNameWithoutExtension(ofd.FileName);
 
                 UpdateIcon();
@@ -171,14 +175,46 @@ namespace ApplicationLauncher
         {
             int index;
             if (textBoxIcon.Text.Length > 0)
-                index = _imageList.GetExecutableIndex(textBoxIcon.Text);
+                index = _imageListIcons.GetExecutableIndex(textBoxIcon.Text);
             else
-                index = _imageList.GetExecutableIndex(textBoxExecutable.Text);
+                index = _imageListIcons.GetExecutableIndex(textBoxExecutable.Text);
 
             if (index >= 0)
-                pictureBox1.Image = imageListShortcuts.Images[index];
+                pictureBox1.Image = imageListIcons.Images[index];
             else
                 pictureBox1.Image = null;
+        }
+
+        private void buttonMoveUp_Click(object sender, EventArgs e)
+        {
+            if (objectListViewShortcuts.SelectedIndex >= 0)
+            {
+                Shortcut shortcut = Settings.Current.Shortcuts[objectListViewShortcuts.SelectedIndex];
+                int index = Settings.Current.Shortcuts.IndexOf(shortcut);
+                if (index > 0)
+                {
+                    Settings.Current.Shortcuts.RemoveAt(index);
+                    Settings.Current.Shortcuts.Insert(index - 1, shortcut);
+                    Settings.Save();
+                    Rebind();
+                }
+            }
+        }
+
+        private void buttonMoveDown_Click(object sender, EventArgs e)
+        {
+            if (objectListViewShortcuts.SelectedIndex >= 0)
+            {
+                Shortcut shortcut = Settings.Current.Shortcuts[objectListViewShortcuts.SelectedIndex];
+                int index = Settings.Current.Shortcuts.IndexOf(shortcut);
+                if (index < Settings.Current.Shortcuts.Count - 1)
+                {
+                    Settings.Current.Shortcuts.RemoveAt(index);
+                    Settings.Current.Shortcuts.Insert(index + 1, shortcut);
+                    Settings.Save();
+                    Rebind();
+                }
+            }
         }
 
     }

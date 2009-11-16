@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Data;
-using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 
@@ -17,6 +16,8 @@ namespace ApplicationLauncher
             public Image Icon;
             public object Tag;
         }
+
+        private int _buttonCount = 0;
 
         private const int _buttonHeight = 34;
         private const int _buttonGap = 6;
@@ -33,21 +34,28 @@ namespace ApplicationLauncher
         public void Clear()
         {
             this.Controls.Clear();
+            _buttonCount = 0;
         }
 
         public void AddButton(string text, Image image, string keyText, object tag)
         {
             CSharpControls.VistaButton button = new CSharpControls.VistaButton();
             button.AllowDefaultButtonBorder = true;
-            button.BackColor = System.Drawing.Color.DarkGray;
+            //button.BackColor = Color.White;
+            button.ButtonColor = Color.FromArgb(31, 35, 40);
             button.ButtonText = text;
+            button.CornerRadius = 6;
             button.DialogResult = System.Windows.Forms.DialogResult.None;
-            button.GlowColor = Color.FromArgb(80, 80, 255);
+            button.FocusColor = Color.FromArgb(1, 57, 140);
+            button.FocusGlowColor = Color.FromArgb(100, Color.Wheat);
+            button.GlowColor = Color.Wheat;
+            button.HighlightColor = Color.FromArgb(200, 255, 255, 255);
+            button.ImageSize = new Size(28, 28);
             button.KeyText = keyText;
-            button.Location = new System.Drawing.Point(0, (_buttonHeight + _buttonGap) * (this.Controls.Count));
-            button.Name = "button" + (this.Controls.Count + 1).ToString();
+            button.Location = new System.Drawing.Point(0, (_buttonHeight + _buttonGap) * (_buttonCount));
+            button.Name = "button" + (_buttonCount + 1).ToString();
             button.Size = new System.Drawing.Size(this.ClientSize.Width, _buttonHeight);
-            button.TabIndex = this.Controls.Count;
+            button.TabIndex = _buttonCount;
 
             ButtonListControlItem item = new ButtonListControlItem();
             item.Text = text;
@@ -61,6 +69,8 @@ namespace ApplicationLauncher
             button.Image = image;
 
             this.Controls.Add(button);
+
+            _buttonCount++;
         }
 
         public void SelectObject(object obj)
@@ -68,7 +78,7 @@ namespace ApplicationLauncher
             foreach (Control c in this.Controls)
             {
                 CSharpControls.VistaButton button = c as CSharpControls.VistaButton;
-                if (button.Tag == obj)
+                if ((button != null) && (button.Tag == obj))
                     c.Focus();
             }
         }

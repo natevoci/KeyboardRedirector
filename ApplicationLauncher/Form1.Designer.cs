@@ -119,10 +119,13 @@
             // buttonExit
             // 
             this.buttonExit.AllowDefaultButtonBorder = true;
+            this.buttonExit.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.buttonExit.BackColor = System.Drawing.Color.Transparent;
             this.buttonExit.ButtonColor = System.Drawing.Color.FromArgb(((int)(((byte)(124)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
             this.buttonExit.ButtonText = "Exit";
             this.buttonExit.DialogResult = System.Windows.Forms.DialogResult.None;
+            this.buttonExit.FocusColor = System.Drawing.Color.Empty;
+            this.buttonExit.FocusGlowColor = System.Drawing.Color.Red;
             this.buttonExit.KeyText = "";
             this.buttonExit.Location = new System.Drawing.Point(757, 12);
             this.buttonExit.Name = "buttonExit";
@@ -133,10 +136,13 @@
             // buttonEditShortcuts
             // 
             this.buttonEditShortcuts.AllowDefaultButtonBorder = true;
+            this.buttonEditShortcuts.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.buttonEditShortcuts.BackColor = System.Drawing.Color.Transparent;
             this.buttonEditShortcuts.ButtonColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(40)))), ((int)(((byte)(128)))));
             this.buttonEditShortcuts.ButtonText = "Edit Shortcuts";
             this.buttonEditShortcuts.DialogResult = System.Windows.Forms.DialogResult.None;
+            this.buttonEditShortcuts.FocusColor = System.Drawing.Color.Empty;
+            this.buttonEditShortcuts.FocusGlowColor = System.Drawing.Color.FromArgb(((int)(((byte)(140)))), ((int)(((byte)(140)))), ((int)(((byte)(255)))));
             this.buttonEditShortcuts.KeyText = "";
             this.buttonEditShortcuts.Location = new System.Drawing.Point(651, 12);
             this.buttonEditShortcuts.Name = "buttonEditShortcuts";
@@ -184,7 +190,9 @@
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "ApplicationLauncherForm";
+            this.ShowInTaskbar = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
+            this.TopMost = true;
             this.Load += new System.EventHandler(this.ApplicationLauncherForm_Load);
             this.SizeChanged += new System.EventHandler(this.ApplicationLauncherForm_SizeChanged);
             this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.ApplicationLauncherForm_MouseDown);

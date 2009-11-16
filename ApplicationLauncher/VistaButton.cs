@@ -34,8 +34,10 @@ namespace CSharpControls
 				this.SetStyle(ControlStyles.SupportsTransparentBackColor, true);
 				this.SetStyle(ControlStyles.UserPaint, true);
 				this.BackColor = Color.Transparent;
-				mFadeIn.Interval = 40;
-				mFadeOut.Interval = 40;
+				mGlowFadeIn.Interval = 40;
+				mGlowFadeOut.Interval = 40;
+                mFocusFadeIn.Interval = 40;
+                mFocusFadeOut.Interval = 40;
 			}
 
 			/// <summary>
@@ -73,9 +75,11 @@ namespace CSharpControls
 					this.GotFocus +=new EventHandler(VistaButton_GotFocus);
 					//this.LostFocus +=new EventHandler(VistaButton_MouseLeave);
 					this.LostFocus += new EventHandler(VistaButton_LostFocus);
-					this.mFadeIn.Tick += new EventHandler(mFadeIn_Tick);
-					this.mFadeOut.Tick += new EventHandler(mFadeOut_Tick);
-					this.Resize +=new EventHandler(VistaButton_Resize);
+					this.mGlowFadeIn.Tick += new EventHandler(mGlowFadeIn_Tick);
+					this.mGlowFadeOut.Tick += new EventHandler(mGlowFadeOut_Tick);
+                    this.mFocusFadeIn.Tick += new EventHandler(mFocusFadeIn_Tick);
+                    this.mFocusFadeOut.Tick += new EventHandler(mFocusFadeOut_Tick);
+                    this.Resize += new EventHandler(VistaButton_Resize);
 				}
 
 			#endregion
@@ -108,6 +112,20 @@ namespace CSharpControls
 				Flat
 			};
 
+            enum RectCorners
+            {
+                None = 0,
+                TopLeft = 1,
+                TopRight = 2,
+                BottomLeft = 4,
+                BottomRight = 8,
+                Top = TopLeft | TopRight,
+                Bottom = BottomLeft | BottomRight,
+                Left = TopLeft | BottomLeft,
+                Right = TopRight | BottomRight,
+                All = Left | Right
+            }
+
 		#endregion
 
 		#region -  Properties  -
@@ -117,11 +135,14 @@ namespace CSharpControls
 				private bool calledbykey = false;
 				private State mButtonState = State.None;
 				private bool _defaultButton = false;
-				private Timer mFadeIn = new Timer();
-				private Timer mFadeOut = new Timer();
+				private Timer mGlowFadeIn = new Timer();
+				private Timer mGlowFadeOut = new Timer();
 				private int mGlowAlpha = 0;
+                private const int GlowFadeSpeed = 60;
+                private Timer mFocusFadeIn = new Timer();
+                private Timer mFocusFadeOut = new Timer();
 				private int mFocusAlpha = 0;
-				private const int FadeSpeed = 60;
+                private const int FocusFadeSpeed = 100;
                 private string _keyText = "";
 
 			#endregion
@@ -296,6 +317,32 @@ namespace CSharpControls
 					set { mButtonColor = value; this.InvalidateEx(); }
 				}
 
+                private Color mFocusColor = Color.Transparent;
+                [Category("Appearance"),
+                 DefaultValue(typeof(Color), "Transparent"),
+                 Description("The bottom color of the button that " +
+                             "will be drawn over the base color when the button has the focus.")]
+                public Color FocusColor
+                {
+                    get { return mFocusColor; }
+                    set { mFocusColor = value; this.InvalidateEx(); }
+                }
+
+                private Color mFocusGlowColor = Color.Silver;
+                /// <summary>
+                /// The colour that the button glows when
+                /// the mouse is inside the client area.
+                /// </summary>
+                [Category("Appearance"),
+                 DefaultValue(typeof(Color), "Wheat"),
+                 Description("The colour that the button glows when " +
+                             "the mouse is inside the client area.")]
+                public Color FocusGlowColor
+                {
+                    get { return mFocusGlowColor; }
+                    set { mFocusGlowColor = value; this.InvalidateEx(); }
+                }
+
 				//private Color mGlowColor = Color.FromArgb(141,189,255);
 				private Color mGlowColor = Color.Silver;
 				/// <summary>
@@ -363,18 +410,89 @@ namespace CSharpControls
 
 		#region -  Functions  -
 
-			private GraphicsPath RoundRect(RectangleF r, float r1, float r2, float r3, float r4)
+			private GraphicsPath RoundRect(RectangleF rect, float rad, RectCorners corners)
 			{
-				float x = r.X, y = r.Y, w = r.Width, h = r.Height;
+                float l = rect.Left, t = rect.Top, r = rect.Right - 1, b = rect.Bottom - 1;
 				GraphicsPath rr = new GraphicsPath();
-				rr.AddBezier(x, y + r1, x, y, x + r1, y, x + r1, y);
-				rr.AddLine(x + r1, y, x + w - r2, y);
-				rr.AddBezier(x + w - r2, y, x + w, y, x + w, y + r2, x + w, y + r2);
-				rr.AddLine(x + w, y + r2, x + w, y + h - r3);
-				rr.AddBezier(x + w, y + h - r3, x + w, y + h, x + w - r3, y + h, x + w - r3, y + h);
-				rr.AddLine(x + w - r3, y + h, x + r4, y + h);
-				rr.AddBezier(x + r4, y + h, x, y + h, x, y + h - r4, x, y + h - r4);
-				rr.AddLine(x, y + h - r4, x, y + r1);
+                rr.StartFigure();
+                
+                PointF ptTL1 = new PointF(l, t + rad);
+                PointF ptTL2 = new PointF(l, t);
+                PointF ptTL3 = new PointF(l + rad, t);
+
+                PointF ptTR1 = new PointF(r - rad, t);
+                PointF ptTR2 = new PointF(r, t);
+                PointF ptTR3 = new PointF(r, t + rad);
+
+                PointF ptBR1 = new PointF(r, b - rad);
+                PointF ptBR2 = new PointF(r, b);
+                PointF ptBR3 = new PointF(r - rad, b);
+
+                PointF ptBL1 = new PointF(l + rad, b);
+                PointF ptBL2 = new PointF(l, b);
+                PointF ptBL3 = new PointF(l, b - rad);
+
+                RectangleF rectTL = new RectangleF(l, t, rad * 2, rad * 2);
+                RectangleF rectTR = rectTL;
+                rectTR.X = r - rad * 2;
+                RectangleF rectBR = rectTR;
+                rectBR.Y = b - rad * 2;
+                RectangleF rectBL = rectTL;
+                rectBL.Y = b - rad * 2;
+
+                // Top Left
+                if ((corners & RectCorners.TopLeft) != 0)
+                {
+                    rr.AddArc(rectTL, 180f, 90f);
+                }
+                else
+                {
+                    rr.AddLines(new PointF[] { ptTL1, ptTL2, ptTL3 });
+                }
+
+                // Top
+				rr.AddLine(ptTL3, ptTR1);
+
+                // Top Right
+                if ((corners & RectCorners.TopRight) != 0)
+                {
+                    rr.AddArc(rectTR, 270f, 90f);
+                }
+                else
+                {
+                    rr.AddLines(new PointF[] { ptTR1, ptTR2, ptTR3 });
+                }
+
+                // Right
+                rr.AddLine(ptTR3, ptBR1);
+
+                // Bottom Right
+                if ((corners & RectCorners.BottomRight) != 0)
+                {
+                    rr.AddArc(rectBR, 0f, 90f);
+                }
+                else
+                {
+                    rr.AddLines(new PointF[] { ptBR1, ptBR2, ptBR3 });
+                }
+
+                // Bottom
+                rr.AddLine(ptBR3, ptBL1);
+
+                // Bottom Left
+                if ((corners & RectCorners.BottomLeft) != 0)
+                {
+                    rr.AddArc(rectBL, 90f, 90f);
+                }
+                else
+                {
+                    rr.AddLines(new PointF[] { ptBL1, ptBL2, ptBL3 });
+                }
+
+                // Left
+                rr.AddLine(ptBL3, ptTL1);
+
+                rr.CloseFigure();
 				return rr;
 			}
 
@@ -424,6 +542,44 @@ namespace CSharpControls
 
 		#region -  Drawing  -
 
+            private void DrawPath(Graphics g, Brush brush, GraphicsPath rr)
+            {
+                using (Pen pen = new Pen(brush))
+                {
+                    g.DrawPath(pen, rr);
+                }
+            }
+
+            private void DrawPath(Graphics g, Color color, GraphicsPath rr)
+            {
+                using (Pen pen = new Pen(color))
+                {
+                    g.DrawPath(pen, rr);
+                }
+            }
+
+            private void FillPath(Graphics g, Color color, GraphicsPath rr)
+            {
+                using (Brush br = new SolidBrush(color))
+                {
+                    g.FillPath(br, rr);
+                }
+                DrawPath(g, color, rr);
+            }
+
+            private int AlphaMultiply(int alpha1, int alpha2)
+            {
+                if (alpha1 < 0)
+                    alpha1 = 0;
+                if (alpha2 < 0)
+                    alpha2 = 0;
+                if (alpha1 > 255)
+                    alpha1 = 255;
+                if (alpha2 > 255)
+                    alpha2 = 255;
+                return alpha1 * alpha2 / 255;
+            }
+
 			/// <summary>
 			/// Draws the drop shadow border for the control
 			/// </summary>
@@ -433,20 +589,15 @@ namespace CSharpControls
 				if (this.ButtonStyle == Style.Flat && this.mButtonState == State.None){return;}
 				Rectangle r = this.ClientRectangle;
 
-				//g.FillRectangle(Brushes.CornflowerBlue, r);
-
-				//r.Width -= 1; r.Height -= 1;
-				//r.Offset(1, 1);
-				//r.Inflate(-1, -1);
-				float radius = CornerRadius + 2.0f;
-				using (GraphicsPath rr = RoundRect(r, radius, radius, radius, radius))
+				r.Width -= 1; r.Height -= 1;
+				r.Offset(1, 1);
+				
+				float radius = CornerRadius;
+				using (GraphicsPath rr = RoundRect(r, radius, RectCorners.All))
 				{
-					//using (Pen p = new Pen(Color.FromArgb(90, 0, 0, 0)))
-					using (Brush br = new SolidBrush(Color.FromArgb(90, 0, 0, 0)))
-					{
-						g.FillPath(br, rr);
-					}
-				}
+                    Color color = Color.FromArgb(255, 0, 0, 0);
+                    FillPath(g, color, rr);
+                }
 			}
 
 			/// <summary>
@@ -459,12 +610,12 @@ namespace CSharpControls
 				if (this.ButtonStyle == Style.Flat && this.mButtonState == State.None){return;}
 				Rectangle r = this.ClientRectangle;
 				r.Width -= 2; r.Height -= 2;
-				using (GraphicsPath rr = RoundRect(r, CornerRadius, CornerRadius, CornerRadius, CornerRadius))
+                //r.Inflate(-2, -2);
+                using (GraphicsPath rr = RoundRect(r, CornerRadius, RectCorners.All))
 				{
-					using (Pen p = new Pen(Color.FromArgb(64, this.ButtonColor)))
-					{
-						g.DrawPath(p, rr);
-					}
+                    int alpha = AlphaMultiply(150, this.ButtonColor.A);
+                    Color color = Color.FromArgb(alpha, this.ButtonColor);
+                    DrawPath(g, color, rr);
 				}
 			}
 
@@ -481,28 +632,19 @@ namespace CSharpControls
 				Rectangle r = this.ClientRectangle;
 				r.Width -= 2; r.Height -= 2;
 				//r.Inflate(-1, -1);
-				using (GraphicsPath rr = RoundRect(r, CornerRadius, CornerRadius, CornerRadius, CornerRadius))
+                using (GraphicsPath rr = RoundRect(r, CornerRadius, RectCorners.All))
 				{
-					using (Pen p = new Pen(Color.FromArgb(96, Color.Black)))
-					{
-						g.DrawPath(p, rr);
-					}
+                    DrawPath(g, Color.FromArgb(96, Color.Black), rr);
 				}
 				r.Inflate(-1, -1);
-				using (GraphicsPath rr = RoundRect(r, CornerRadius, CornerRadius, CornerRadius, CornerRadius))
+                using (GraphicsPath rr = RoundRect(r, CornerRadius, RectCorners.All))
 				{
-					using (Pen p = new Pen(Color.FromArgb(64, Color.Black)))
-					{
-						g.DrawPath(p, rr);
-					}
+                    DrawPath(g, Color.FromArgb(64, Color.Black), rr);
 				}
 				r.Inflate(-1, -1);
-				using (GraphicsPath rr = RoundRect(r, CornerRadius, CornerRadius, CornerRadius, CornerRadius))
+                using (GraphicsPath rr = RoundRect(r, CornerRadius, RectCorners.All))
 				{
-					using (Pen p = new Pen(Color.FromArgb(32, Color.Black)))
-					{
-						g.DrawPath(p, rr);
-					}
+                    DrawPath(g, Color.FromArgb(32, Color.Black), rr);
 				}
 			}
 
@@ -516,26 +658,33 @@ namespace CSharpControls
 			{
 				if (this.ButtonStyle == Style.Flat && this.mButtonState == State.None){return;}
 				//int alpha = (mButtonState == State.Pressed) ? 204 : 127;
-				int alpha = 255;
 				Rectangle r = this.ClientRectangle;
-				r.Inflate(-1, -1);
-				r.Width -= 1; r.Height -= 1;
-				using (GraphicsPath rr = RoundRect(r, CornerRadius, CornerRadius, CornerRadius, CornerRadius))
+                r.Width -= 1; r.Height -= 1;
+                r.Inflate(-1, -1);
+                using (GraphicsPath rr = RoundRect(r, CornerRadius, RectCorners.All))
 				{
-					using (SolidBrush sb = new SolidBrush(this.BaseColor))
-					{
-						g.FillPath(sb, rr);
-					}
-					if (this.BackImage != null)
+                    FillPath(g, this.BaseColor, rr);
+
+                    if (this.BackImage != null)
 					{
 						SetClip(g);
 						g.DrawImage(this.BackImage, this.ClientRectangle);
 						g.ResetClip();
 					}
-					using (SolidBrush sb = new SolidBrush(Color.FromArgb(alpha, this.ButtonColor)))
-					{
-						g.FillPath(sb, rr);
-					}
+
+                    if (this.FocusColor.A > 0)
+                    {
+                        int alpha;
+                        alpha = AlphaMultiply(mFocusAlpha, this.FocusColor.A);
+                        FillPath(g, Color.FromArgb(alpha, this.FocusColor), rr);
+
+                        alpha = AlphaMultiply(255 - mFocusAlpha, this.ButtonColor.A);
+                        FillPath(g, Color.FromArgb(alpha, this.ButtonColor), rr);
+                    }
+                    else
+                    {
+                        FillPath(g, this.ButtonColor, rr);
+                    }
 				}
 			}
 
@@ -550,36 +699,44 @@ namespace CSharpControls
 				
 				if (mButtonState == State.Pressed)
 				{
-					int alpha = 70;
-					Rectangle rect = new Rectangle(0, 0, this.Width-2, this.Height-2);
-					using (GraphicsPath r = RoundRect(rect, CornerRadius, CornerRadius, CornerRadius, CornerRadius))
+					int alpha = AlphaMultiply(70, this.HighlightColor.A);
+                    Rectangle r = this.ClientRectangle;
+                    r.Width -= 1; r.Height -= 1;
+                    r.Inflate(-1, -1);
+
+                    using (GraphicsPath rr = RoundRect(r, CornerRadius, RectCorners.All))
 					{
-						RectangleF rectBounds = r.GetBounds();
-						//rectBounds.Height += 1.0f;
+						RectangleF rectBounds = rr.GetBounds();
 						using (LinearGradientBrush lg = new LinearGradientBrush(rectBounds, 
 								   Color.FromArgb(alpha / 3, this.HighlightColor),
 								   Color.FromArgb(alpha, this.HighlightColor), 
 								   LinearGradientMode.Vertical))
 						{
-							g.FillPath(lg, r);
+							g.FillPath(lg, rr);
+                            DrawPath(g, lg, rr);
 						}
 					}
 				}
 				else
 				{
-					int alpha = 150;
-					Rectangle rect = new Rectangle(0, 0, this.Width-2, this.Height / 2);
-					using (GraphicsPath r = RoundRect(rect, CornerRadius, CornerRadius, 0, 0))
+                    int alpha = AlphaMultiply(150, this.HighlightColor.A);
+
+                    Rectangle r = this.ClientRectangle;
+                    r.Width -= 1; r.Height -= 1;
+                    r.Inflate(-1, -1);
+                    r.Height /= 2;
+
+                    using (GraphicsPath rr = RoundRect(r, CornerRadius, RectCorners.Top))
 					{
-						RectangleF rectBounds = r.GetBounds();
-						rectBounds.Height += 1.0f;
+						RectangleF rectBounds = rr.GetBounds();
 						using (LinearGradientBrush lg = new LinearGradientBrush(rectBounds, 
 								   Color.FromArgb(alpha, this.HighlightColor),
-								   Color.FromArgb(alpha / 3, this.HighlightColor), 
+								   Color.FromArgb(alpha / 10, this.HighlightColor), 
 								   LinearGradientMode.Vertical))
 						{
-							g.FillPath(lg, r);
-						}
+							g.FillPath(lg, rr);
+                            DrawPath(g, lg, rr);
+                        }
 					}
 				}
 			}
@@ -594,10 +751,9 @@ namespace CSharpControls
 			{
 				if (this.Enabled == false)
 					return;
-				if (this.GlowColor.A == 0)
+                if (this.FocusGlowColor.A == 0)
 					return;
 
-				//if (this.mButtonState == State.Pressed){return;}
 				SetClip(g);
 				using (GraphicsPath glow = new GraphicsPath())
 				{
@@ -611,9 +767,11 @@ namespace CSharpControls
 
 					using (PathGradientBrush gl = new PathGradientBrush(glow))
 					{
-						gl.CenterColor = Color.FromArgb(mFocusAlpha, this.GlowColor);
-						gl.SurroundColors = new Color[] {Color.FromArgb(0, this.GlowColor)};
+                        int alpha = AlphaMultiply(mFocusAlpha, this.FocusGlowColor.A);
+						gl.CenterColor = Color.FromArgb(alpha, this.FocusGlowColor);
+						gl.SurroundColors = new Color[] {Color.FromArgb(0, this.FocusGlowColor)};
 						g.FillPath(gl, glow);
+                        DrawPath(g, gl, glow);
 					}
 				}
 			}
@@ -631,7 +789,6 @@ namespace CSharpControls
 				if (this.GlowColor.A == 0)
 					return;
 
-				//if (this.mButtonState == State.Pressed){return;}
 				SetClip(g);
 				using (GraphicsPath glow = new GraphicsPath())
 				{
@@ -643,6 +800,7 @@ namespace CSharpControls
 						gl.CenterColor = Color.FromArgb(mGlowAlpha, this.GlowColor);
 						gl.SurroundColors = new Color[] {Color.FromArgb(0, this.GlowColor)};
 						g.FillPath(gl, glow);
+                        DrawPath(g, gl, glow);
 					}
 				}
 				g.ResetClip();
@@ -752,26 +910,30 @@ namespace CSharpControls
                 if (this.Image == null)
                     return new Rectangle();
 
+                Rectangle r = this.ClientRectangle;
+                // r.Width -= 1; r.Height -= 1;  skip these so the /2 rounds up
+                r.Inflate(-1, -1);
+
                 const int padding = 8;
 
                 switch (this.ImageAlign)
                 {
                     case ContentAlignment.TopCenter:
-                        return new Rectangle(this.Width / 2 - this.ImageSize.Width / 2, padding, this.ImageSize.Width, this.ImageSize.Height);
+                        return new Rectangle(r.Width / 2 - this.ImageSize.Width / 2, padding, this.ImageSize.Width, this.ImageSize.Height);
                     case ContentAlignment.TopRight:
-                        return new Rectangle(this.Width - padding - this.ImageSize.Width, padding, this.ImageSize.Width, this.ImageSize.Height);
+                        return new Rectangle(r.Width - padding - this.ImageSize.Width, padding, this.ImageSize.Width, this.ImageSize.Height);
                     case ContentAlignment.MiddleLeft:
-                        return new Rectangle(padding, this.Height / 2 - this.ImageSize.Height / 2, this.ImageSize.Width, this.ImageSize.Height);
+                        return new Rectangle(padding, r.Height / 2 - this.ImageSize.Height / 2, this.ImageSize.Width, this.ImageSize.Height);
                     case ContentAlignment.MiddleCenter:
-                        return new Rectangle(this.Width / 2 - this.ImageSize.Width / 2, this.Height / 2 - this.ImageSize.Height / 2, this.ImageSize.Width, this.ImageSize.Height);
+                        return new Rectangle(r.Width / 2 - this.ImageSize.Width / 2, r.Height / 2 - this.ImageSize.Height / 2, this.ImageSize.Width, this.ImageSize.Height);
                     case ContentAlignment.MiddleRight:
-                        return new Rectangle(this.Width - padding - this.ImageSize.Width, this.Height / 2 - this.ImageSize.Height / 2, this.ImageSize.Width, this.ImageSize.Height);
+                        return new Rectangle(r.Width - padding - this.ImageSize.Width, r.Height / 2 - this.ImageSize.Height / 2, this.ImageSize.Width, this.ImageSize.Height);
                     case ContentAlignment.BottomLeft:
-                        return new Rectangle(padding, this.Height - padding - this.ImageSize.Height, this.ImageSize.Width, this.ImageSize.Height);
+                        return new Rectangle(padding, r.Height - padding - this.ImageSize.Height, this.ImageSize.Width, this.ImageSize.Height);
                     case ContentAlignment.BottomCenter:
-                        return new Rectangle(this.Width / 2 - this.ImageSize.Width / 2, this.Height - padding - this.ImageSize.Height, this.ImageSize.Width, this.ImageSize.Height);
+                        return new Rectangle(r.Width / 2 - this.ImageSize.Width / 2, r.Height - padding - this.ImageSize.Height, this.ImageSize.Width, this.ImageSize.Height);
                     case ContentAlignment.BottomRight:
-                        return new Rectangle(this.Width - padding - this.ImageSize.Width, this.Height - padding - this.ImageSize.Height, this.ImageSize.Width, this.ImageSize.Height);
+                        return new Rectangle(r.Width - padding - this.ImageSize.Width, r.Height - padding - this.ImageSize.Height, this.ImageSize.Width, this.ImageSize.Height);
                     case ContentAlignment.TopLeft:
                     default:
                         return new Rectangle(padding, padding, this.ImageSize.Width, this.ImageSize.Height);
@@ -781,8 +943,9 @@ namespace CSharpControls
 			private void SetClip(Graphics g)
 			{
 				Rectangle r = this.ClientRectangle;
-				r.X++; r.Y++; r.Width-=3; r.Height-=3;
-				using (GraphicsPath rr = RoundRect(r, CornerRadius, CornerRadius, CornerRadius, CornerRadius))
+                r.Width -= 1; r.Height -= 1;
+                r.Inflate(-1, -1);
+                using (GraphicsPath rr = RoundRect(r, CornerRadius, RectCorners.All))
 				{
 					g.SetClip(rr);
 				}		
@@ -820,10 +983,8 @@ namespace CSharpControls
 			private void VistaButton_Resize(object sender, EventArgs e)
 			{
 				Rectangle r = this.ClientRectangle;
-				//r.X -= 1; r.Y -= 1;
-				//r.Width += 2; r.Height += 2;
-				//r.Width -= 2; r.Height -= 2;
-				using (GraphicsPath rr = RoundRect(r, CornerRadius, CornerRadius, CornerRadius, CornerRadius))
+                r.Width += 1; r.Height += 1;
+                using (GraphicsPath rr = RoundRect(r, CornerRadius, RectCorners.All))
 				{
 					this.Region = new Region(rr);
 				}
@@ -834,8 +995,8 @@ namespace CSharpControls
 			private void VistaButton_MouseEnter(object sender, EventArgs e)
 			{
 				mButtonState = State.Hover;
-				mFadeOut.Stop();
-				mFadeIn.Start();
+				mGlowFadeOut.Stop();
+				mGlowFadeIn.Start();
 			}
 			private void VistaButton_MouseLeave(object sender, EventArgs e)
 			{
@@ -843,8 +1004,8 @@ namespace CSharpControls
 				if (this.GlowColor.A == 0)
 					return;
 				if (this.mButtonStyle == Style.Flat) { mGlowAlpha = 0; }
-				mFadeIn.Stop();
-				mFadeOut.Start();
+				mGlowFadeIn.Stop();
+				mGlowFadeOut.Start();
 			}
 
 			private void VistaButton_MouseDown(object sender, MouseEventArgs e)
@@ -856,40 +1017,40 @@ namespace CSharpControls
 					mButtonState = State.Pressed;
 					if (this.mButtonStyle != Style.Flat) { mGlowAlpha = 255; }
 					if (this.GlowColor.A == 0) { mGlowAlpha = 255; }
-					mFadeIn.Stop();
-					mFadeOut.Stop();
+					mGlowFadeIn.Stop();
+					mGlowFadeOut.Stop();
 					this.InvalidateEx();
 				}
 			}
 
-			private void mFadeIn_Tick(object sender, EventArgs e)
+			private void mGlowFadeIn_Tick(object sender, EventArgs e)
 			{
 				if (this.ButtonStyle == Style.Flat) {mGlowAlpha = 255;}
 				if (this.GlowColor.A == 0) {mGlowAlpha = 255;}
-				if (mGlowAlpha + FadeSpeed >= 255)
+				if (mGlowAlpha + GlowFadeSpeed >= 255)
 				{
 					mGlowAlpha = 255;
-					mFadeIn.Stop();
+					mGlowFadeIn.Stop();
 				}
 				else
 				{
-					mGlowAlpha += FadeSpeed;
+					mGlowAlpha += GlowFadeSpeed;
 				}
 				this.InvalidateEx();
 			}
 
-			private void mFadeOut_Tick(object sender, EventArgs e)
+			private void mGlowFadeOut_Tick(object sender, EventArgs e)
 			{
 				if (this.ButtonStyle == Style.Flat) {mGlowAlpha = 0;}
 				if (this.GlowColor.A == 0) {mGlowAlpha = 0;}
-				if (mGlowAlpha - FadeSpeed <= 0)
+				if (mGlowAlpha - GlowFadeSpeed <= 0)
 				{
 					mGlowAlpha = 0;
-					mFadeOut.Stop();
+					mGlowFadeOut.Stop();
 				}
 				else
 				{
-					mGlowAlpha -= FadeSpeed;
+					mGlowAlpha -= GlowFadeSpeed;
 				}
 				this.InvalidateEx();
 			}
@@ -918,8 +1079,8 @@ namespace CSharpControls
 				if (e.Button == MouseButtons.Left) 
 				{
 					mButtonState = State.Hover;
-					mFadeIn.Stop();
-					mFadeOut.Stop();
+					mGlowFadeIn.Stop();
+					mGlowFadeOut.Stop();
 					this.InvalidateEx();
 					if (calledbykey == true) {this.OnClick(EventArgs.Empty); calledbykey = false;}
 				}
@@ -927,15 +1088,47 @@ namespace CSharpControls
 
 			private void VistaButton_GotFocus(object sender, EventArgs e)
 			{
-				mFocusAlpha = 204;
+                mFocusFadeOut.Stop();
+                mFocusFadeIn.Start();
 				this.InvalidateEx();
 			}
 
 			private void VistaButton_LostFocus(object sender, EventArgs e)
 			{
-				mFocusAlpha = 0;
+                mFocusFadeIn.Stop();
+                mFocusFadeOut.Start();
 				this.InvalidateEx();
 			}
+
+            private void mFocusFadeIn_Tick(object sender, EventArgs e)
+            {
+                if (this.ButtonStyle == Style.Flat) { mFocusAlpha = 255; }
+                if (mFocusAlpha + FocusFadeSpeed >= 255)
+                {
+                    mFocusAlpha = 255;
+                    mFocusFadeIn.Stop();
+                }
+                else
+                {
+                    mFocusAlpha += FocusFadeSpeed;
+                }
+                this.InvalidateEx();
+            }
+
+            private void mFocusFadeOut_Tick(object sender, EventArgs e)
+            {
+                if (this.ButtonStyle == Style.Flat) { mFocusAlpha = 0; }
+                if (mFocusAlpha - FocusFadeSpeed <= 0)
+                {
+                    mFocusAlpha = 0;
+                    mFocusFadeOut.Stop();
+                }
+                else
+                {
+                    mFocusAlpha -= FocusFadeSpeed;
+                }
+                this.InvalidateEx();
+            }
 
 		#endregion
 		
