@@ -54,35 +54,36 @@ namespace ApplicationLauncher
     {
         public string Name = "";
         public string Executable = "";
+        public string Arguments = "";
         public bool SwitchTasksIfAlreadyRunning = false;
         public string WorkingFolder = "";
         public string Icon = "";
 
-        public static void ParseCommandLine(string commandLine, out string exe, out string args)
-        {
-            exe = commandLine.Trim();
-            args = "";
+        //public static void ParseCommandLine(string commandLine, out string exe, out string args)
+        //{
+        //    exe = commandLine.Trim();
+        //    args = "";
 
-            if (exe[0] == '"')
-            {
-                int endOfExeIndex = exe.IndexOf("\"", 1);
-                if (endOfExeIndex != -1)
-                {
-                    //endOfExeIndex++;
-                    args = exe.Substring(endOfExeIndex + 1).TrimStart();
-                    exe = exe.Substring(1, endOfExeIndex - 1);
-                }
-            }
-            else
-            {
-                int endOfExeIndex = exe.IndexOf(" ");
-                if (endOfExeIndex != -1)
-                {
-                    args = exe.Substring(endOfExeIndex + 1).TrimStart();
-                    exe = exe.Substring(0, endOfExeIndex);
-                }
-            }
-        }
+        //    if (exe[0] == '"')
+        //    {
+        //        int endOfExeIndex = exe.IndexOf("\"", 1);
+        //        if (endOfExeIndex != -1)
+        //        {
+        //            //endOfExeIndex++;
+        //            args = exe.Substring(endOfExeIndex + 1).TrimStart();
+        //            exe = exe.Substring(1, endOfExeIndex - 1);
+        //        }
+        //    }
+        //    else
+        //    {
+        //        int endOfExeIndex = exe.IndexOf(" ");
+        //        if (endOfExeIndex != -1)
+        //        {
+        //            args = exe.Substring(endOfExeIndex + 1).TrimStart();
+        //            exe = exe.Substring(0, endOfExeIndex);
+        //        }
+        //    }
+        //}
 
 
     }

@@ -30,6 +30,8 @@
         {
             this.components = new System.ComponentModel.Container();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
+            this.buttonMoveDown = new System.Windows.Forms.Button();
+            this.buttonMoveUp = new System.Windows.Forms.Button();
             this.objectListViewShortcuts = new BrightIdeasSoftware.ObjectListView();
             this.olvColumn1 = new BrightIdeasSoftware.OLVColumn();
             this.olvColumn2 = new BrightIdeasSoftware.OLVColumn();
@@ -50,9 +52,9 @@
             this.label3 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
-            this.buttonMoveUp = new System.Windows.Forms.Button();
-            this.buttonMoveDown = new System.Windows.Forms.Button();
             this.imageListIcons = new System.Windows.Forms.ImageList(this.components);
+            this.textBoxArguments = new System.Windows.Forms.TextBox();
+            this.label4 = new System.Windows.Forms.Label();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
             this.splitContainer1.SuspendLayout();
@@ -65,7 +67,6 @@
             this.splitContainer1.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
             this.splitContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.splitContainer1.FixedPanel = System.Windows.Forms.FixedPanel.Panel2;
-            this.splitContainer1.IsSplitterFixed = true;
             this.splitContainer1.Location = new System.Drawing.Point(0, 0);
             this.splitContainer1.Name = "splitContainer1";
             this.splitContainer1.Orientation = System.Windows.Forms.Orientation.Horizontal;
@@ -88,15 +89,37 @@
             this.splitContainer1.Panel2.Controls.Add(this.buttonTargetBrowse);
             this.splitContainer1.Panel2.Controls.Add(this.textBoxIcon);
             this.splitContainer1.Panel2.Controls.Add(this.textBoxStartIn);
+            this.splitContainer1.Panel2.Controls.Add(this.textBoxArguments);
             this.splitContainer1.Panel2.Controls.Add(this.textBoxExecutable);
             this.splitContainer1.Panel2.Controls.Add(this.textBoxName);
             this.splitContainer1.Panel2.Controls.Add(this.label5);
             this.splitContainer1.Panel2.Controls.Add(this.label3);
+            this.splitContainer1.Panel2.Controls.Add(this.label4);
             this.splitContainer1.Panel2.Controls.Add(this.label2);
             this.splitContainer1.Panel2.Controls.Add(this.label1);
             this.splitContainer1.Size = new System.Drawing.Size(446, 411);
-            this.splitContainer1.SplitterDistance = 231;
+            this.splitContainer1.SplitterDistance = 206;
             this.splitContainer1.TabIndex = 0;
+            // 
+            // buttonMoveDown
+            // 
+            this.buttonMoveDown.Location = new System.Drawing.Point(84, 201);
+            this.buttonMoveDown.Name = "buttonMoveDown";
+            this.buttonMoveDown.Size = new System.Drawing.Size(75, 23);
+            this.buttonMoveDown.TabIndex = 2;
+            this.buttonMoveDown.Text = "Move Down";
+            this.buttonMoveDown.UseVisualStyleBackColor = true;
+            this.buttonMoveDown.Click += new System.EventHandler(this.buttonMoveDown_Click);
+            // 
+            // buttonMoveUp
+            // 
+            this.buttonMoveUp.Location = new System.Drawing.Point(3, 201);
+            this.buttonMoveUp.Name = "buttonMoveUp";
+            this.buttonMoveUp.Size = new System.Drawing.Size(75, 23);
+            this.buttonMoveUp.TabIndex = 1;
+            this.buttonMoveUp.Text = "Move Up";
+            this.buttonMoveUp.UseVisualStyleBackColor = true;
+            this.buttonMoveUp.Click += new System.EventHandler(this.buttonMoveUp_Click);
             // 
             // objectListViewShortcuts
             // 
@@ -115,7 +138,7 @@
             this.objectListViewShortcuts.Location = new System.Drawing.Point(3, 3);
             this.objectListViewShortcuts.Name = "objectListViewShortcuts";
             this.objectListViewShortcuts.ShowGroups = false;
-            this.objectListViewShortcuts.Size = new System.Drawing.Size(436, 192);
+            this.objectListViewShortcuts.Size = new System.Drawing.Size(436, 167);
             this.objectListViewShortcuts.SmallImageList = this.imageListShortcuts;
             this.objectListViewShortcuts.TabIndex = 0;
             this.objectListViewShortcuts.UseCompatibleStateImageBehavior = false;
@@ -144,7 +167,7 @@
             // buttonRemove
             // 
             this.buttonRemove.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonRemove.Location = new System.Drawing.Point(364, 201);
+            this.buttonRemove.Location = new System.Drawing.Point(364, 176);
             this.buttonRemove.Name = "buttonRemove";
             this.buttonRemove.Size = new System.Drawing.Size(75, 23);
             this.buttonRemove.TabIndex = 4;
@@ -155,7 +178,7 @@
             // buttonAdd
             // 
             this.buttonAdd.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonAdd.Location = new System.Drawing.Point(283, 201);
+            this.buttonAdd.Location = new System.Drawing.Point(283, 176);
             this.buttonAdd.Name = "buttonAdd";
             this.buttonAdd.Size = new System.Drawing.Size(75, 23);
             this.buttonAdd.TabIndex = 3;
@@ -166,7 +189,7 @@
             // checkBoxSwitchTasks
             // 
             this.checkBoxSwitchTasks.AutoSize = true;
-            this.checkBoxSwitchTasks.Location = new System.Drawing.Point(87, 64);
+            this.checkBoxSwitchTasks.Location = new System.Drawing.Point(87, 91);
             this.checkBoxSwitchTasks.Name = "checkBoxSwitchTasks";
             this.checkBoxSwitchTasks.Size = new System.Drawing.Size(206, 17);
             this.checkBoxSwitchTasks.TabIndex = 5;
@@ -175,7 +198,7 @@
             // 
             // pictureBox1
             // 
-            this.pictureBox1.Location = new System.Drawing.Point(49, 117);
+            this.pictureBox1.Location = new System.Drawing.Point(49, 144);
             this.pictureBox1.Name = "pictureBox1";
             this.pictureBox1.Size = new System.Drawing.Size(32, 32);
             this.pictureBox1.TabIndex = 2;
@@ -184,7 +207,7 @@
             // buttonSave
             // 
             this.buttonSave.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonSave.Location = new System.Drawing.Point(364, 139);
+            this.buttonSave.Location = new System.Drawing.Point(364, 166);
             this.buttonSave.Name = "buttonSave";
             this.buttonSave.Size = new System.Drawing.Size(75, 23);
             this.buttonSave.TabIndex = 12;
@@ -195,7 +218,7 @@
             // buttonIconBrowse
             // 
             this.buttonIconBrowse.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonIconBrowse.Location = new System.Drawing.Point(409, 113);
+            this.buttonIconBrowse.Location = new System.Drawing.Point(409, 140);
             this.buttonIconBrowse.Name = "buttonIconBrowse";
             this.buttonIconBrowse.Size = new System.Drawing.Size(30, 23);
             this.buttonIconBrowse.TabIndex = 11;
@@ -206,7 +229,7 @@
             // buttonStartInBrowse
             // 
             this.buttonStartInBrowse.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonStartInBrowse.Location = new System.Drawing.Point(409, 87);
+            this.buttonStartInBrowse.Location = new System.Drawing.Point(409, 114);
             this.buttonStartInBrowse.Name = "buttonStartInBrowse";
             this.buttonStartInBrowse.Size = new System.Drawing.Size(30, 23);
             this.buttonStartInBrowse.TabIndex = 8;
@@ -229,7 +252,7 @@
             // 
             this.textBoxIcon.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBoxIcon.Location = new System.Drawing.Point(87, 115);
+            this.textBoxIcon.Location = new System.Drawing.Point(87, 142);
             this.textBoxIcon.Name = "textBoxIcon";
             this.textBoxIcon.Size = new System.Drawing.Size(316, 20);
             this.textBoxIcon.TabIndex = 10;
@@ -238,7 +261,7 @@
             // 
             this.textBoxStartIn.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBoxStartIn.Location = new System.Drawing.Point(87, 89);
+            this.textBoxStartIn.Location = new System.Drawing.Point(87, 116);
             this.textBoxStartIn.Name = "textBoxStartIn";
             this.textBoxStartIn.Size = new System.Drawing.Size(316, 20);
             this.textBoxStartIn.TabIndex = 7;
@@ -264,7 +287,7 @@
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(10, 118);
+            this.label5.Location = new System.Drawing.Point(10, 145);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(31, 13);
             this.label5.TabIndex = 9;
@@ -273,7 +296,7 @@
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(10, 92);
+            this.label3.Location = new System.Drawing.Point(10, 119);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(43, 13);
             this.label3.TabIndex = 6;
@@ -297,31 +320,29 @@
             this.label1.TabIndex = 0;
             this.label1.Text = "Name:";
             // 
-            // buttonMoveUp
-            // 
-            this.buttonMoveUp.Location = new System.Drawing.Point(3, 201);
-            this.buttonMoveUp.Name = "buttonMoveUp";
-            this.buttonMoveUp.Size = new System.Drawing.Size(75, 23);
-            this.buttonMoveUp.TabIndex = 1;
-            this.buttonMoveUp.Text = "Move Up";
-            this.buttonMoveUp.UseVisualStyleBackColor = true;
-            this.buttonMoveUp.Click += new System.EventHandler(this.buttonMoveUp_Click);
-            // 
-            // buttonMoveDown
-            // 
-            this.buttonMoveDown.Location = new System.Drawing.Point(84, 201);
-            this.buttonMoveDown.Name = "buttonMoveDown";
-            this.buttonMoveDown.Size = new System.Drawing.Size(75, 23);
-            this.buttonMoveDown.TabIndex = 2;
-            this.buttonMoveDown.Text = "Move Down";
-            this.buttonMoveDown.UseVisualStyleBackColor = true;
-            this.buttonMoveDown.Click += new System.EventHandler(this.buttonMoveDown_Click);
-            // 
             // imageListIcons
             // 
             this.imageListIcons.ColorDepth = System.Windows.Forms.ColorDepth.Depth32Bit;
             this.imageListIcons.ImageSize = new System.Drawing.Size(32, 32);
             this.imageListIcons.TransparentColor = System.Drawing.Color.Transparent;
+            // 
+            // textBoxArguments
+            // 
+            this.textBoxArguments.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.textBoxArguments.Location = new System.Drawing.Point(87, 64);
+            this.textBoxArguments.Name = "textBoxArguments";
+            this.textBoxArguments.Size = new System.Drawing.Size(352, 20);
+            this.textBoxArguments.TabIndex = 3;
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(10, 67);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(60, 13);
+            this.label4.TabIndex = 2;
+            this.label4.Text = "Arguments:";
             // 
             // ShortcutsForm
             // 
@@ -369,5 +390,7 @@
         private System.Windows.Forms.Button buttonMoveDown;
         private System.Windows.Forms.Button buttonMoveUp;
         private System.Windows.Forms.ImageList imageListIcons;
+        private System.Windows.Forms.TextBox textBoxArguments;
+        private System.Windows.Forms.Label label4;
     }
 }

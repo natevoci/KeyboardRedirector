@@ -96,7 +96,9 @@ namespace ApplicationLauncher
                 if (shortcut.Icon.Length > 0)
                     index = _imageList.GetExecutableIndex(shortcut.Icon);
                 else
+                {
                     index = _imageList.GetExecutableIndex(shortcut.Executable);
+                }
 
                 Image image = null;
                 if (index >= 0)
@@ -149,18 +151,14 @@ namespace ApplicationLauncher
 
         private void ExecuteShortcut(Shortcut shortcut)
         {
-            string exe;
-            string args;
-            Shortcut.ParseCommandLine(shortcut.Executable, out exe, out args);
-
             if (shortcut.SwitchTasksIfAlreadyRunning)
             {
                 foreach (DesktopWindows.Window window in _windows.Windows)
                 {
                     string windowExe, windowArgs;
-                    Shortcut.ParseCommandLine(window.CmdLine, out windowExe, out windowArgs);
-                    if ((windowExe.Equals(exe, StringComparison.CurrentCultureIgnoreCase)) &&
-                        (windowArgs.Equals(args, StringComparison.CurrentCultureIgnoreCase)))
+                    ParseCommandLine(window.CmdLine, out windowExe, out windowArgs);
+                    if ((windowExe.Equals(shortcut.Executable, StringComparison.CurrentCultureIgnoreCase)) &&
+                        (windowArgs.Equals(shortcut.Arguments, StringComparison.CurrentCultureIgnoreCase)))
                     {
                         MS.Win32.SetForegroundWindow(window.Hwnd);
                         MS.Win32.WINDOWPLACEMENT placement = new MS.Win32.WINDOWPLACEMENT();
@@ -184,7 +182,7 @@ namespace ApplicationLauncher
                 Environment.CurrentDirectory = shortcut.WorkingFolder;
             }
 
-            Process process = System.Diagnostics.Process.Start(exe, args);
+            Process process = System.Diagnostics.Process.Start(shortcut.Executable, shortcut.Arguments);
 
             if (originalWorkingDirectory != null)
             {
@@ -193,6 +191,33 @@ namespace ApplicationLauncher
 
             Close();
         }
+
+        public static void ParseCommandLine(string commandLine, out string exe, out string args)
+        {
+            exe = commandLine.Trim();
+            args = "";
+
+            if (exe[0] == '"')
+            {
+                int endOfExeIndex = exe.IndexOf("\"", 1);
+                if (endOfExeIndex != -1)
+                {
+                    //endOfExeIndex++;
+                    args = exe.Substring(endOfExeIndex + 1).TrimStart();
+                    exe = exe.Substring(1, endOfExeIndex - 1);
+                }
+            }
+            else
+            {
+                int endOfExeIndex = exe.IndexOf(" ");
+                if (endOfExeIndex != -1)
+                {
+                    args = exe.Substring(endOfExeIndex + 1).TrimStart();
+                    exe = exe.Substring(0, endOfExeIndex);
+                }
+            }
+        }
+
 
         private void buttonEditShortcuts_Click(object sender, EventArgs e)
         {

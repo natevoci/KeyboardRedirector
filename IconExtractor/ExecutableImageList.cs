@@ -67,10 +67,12 @@ namespace IconExtractor
 
         public int GetExecutableIndex(string executable)
         {
-            executable = executable.ToLower();
-            if (_executables.ContainsKey(executable))
+            string exe = executable.ToLower();
+            if ((executable.Length >= 2) && executable.StartsWith("\"") && executable.EndsWith("\""))
+                executable = executable.Substring(1, executable.Length - 2);
+            if (_executables.ContainsKey(exe))
             {
-                return _executables[executable];
+                return _executables[exe];
             }
             else
             {
@@ -97,7 +99,7 @@ namespace IconExtractor
                 {
                     ImageList.Images.Add(bm);
                 }
-                _executables.Add(executable, index);
+                _executables.Add(exe, index);
                 return index;
 
             }

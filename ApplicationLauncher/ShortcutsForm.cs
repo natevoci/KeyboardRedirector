@@ -72,6 +72,7 @@ namespace ApplicationLauncher
                 splitContainer1.Panel2.Enabled = true;
                 textBoxName.Text = shortcut.Name;
                 textBoxExecutable.Text = shortcut.Executable;
+                textBoxArguments.Text = shortcut.Arguments;
                 checkBoxSwitchTasks.Checked = shortcut.SwitchTasksIfAlreadyRunning;
                 textBoxStartIn.Text = shortcut.WorkingFolder;
                 textBoxIcon.Text = shortcut.Icon;
@@ -89,6 +90,7 @@ namespace ApplicationLauncher
             Shortcut shortcut = Settings.Current.Shortcuts[objectListViewShortcuts.SelectedIndex];
             shortcut.Name = textBoxName.Text;
             shortcut.Executable = textBoxExecutable.Text;
+            shortcut.Arguments = textBoxArguments.Text;
             shortcut.SwitchTasksIfAlreadyRunning = checkBoxSwitchTasks.Checked;
             shortcut.WorkingFolder = textBoxStartIn.Text;
             shortcut.Icon = textBoxIcon.Text;
@@ -102,17 +104,15 @@ namespace ApplicationLauncher
             OpenFileDialog ofd = new OpenFileDialog();
             ofd.Multiselect = false;
 
-            string exe, args;
-            Shortcut.ParseCommandLine(textBoxExecutable.Text, out exe, out args);
-            if (exe.Length > 0)
+            if (textBoxExecutable.Text.Length > 0)
             {
-                if (System.IO.Directory.Exists(exe))
+                if (System.IO.Directory.Exists(textBoxExecutable.Text))
                 {
-                    ofd.InitialDirectory = exe;
+                    ofd.InitialDirectory = textBoxExecutable.Text;
                 }
-                else if (System.IO.File.Exists(exe))
+                else if (System.IO.File.Exists(textBoxExecutable.Text))
                 {
-                    ofd.FileName = exe;
+                    ofd.FileName = textBoxExecutable.Text;
                 }
             }
             DialogResult result = ofd.ShowDialog(this);
