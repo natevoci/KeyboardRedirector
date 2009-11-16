@@ -30,7 +30,7 @@ using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using System.Management;
 
-namespace KeyboardRedirector
+namespace MS
 {
     public class Win32
     {
@@ -958,6 +958,11 @@ namespace KeyboardRedirector
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         public static extern IntPtr SendMessage(IntPtr hWnd, UInt32 Msg, IntPtr wParam, IntPtr lParam);
 
+        [DllImport("user32.dll")]
+        public static extern bool ReleaseCapture();
+
+        public const int HT_CAPTION = 0x2;
+
         #endregion
 
         #region Window Handling
@@ -974,6 +979,9 @@ namespace KeyboardRedirector
                 focusControl = Control.FromHandle(focusHandle);
             return focusControl;
         }
+
+        [DllImport("User32")]
+        public static extern bool IsWindowVisible(IntPtr hwnd);
 
         [DllImport("User32")]
         public static extern int SetForegroundWindow(IntPtr hwnd);
@@ -1007,14 +1015,26 @@ namespace KeyboardRedirector
 
         [DllImport("user32.dll")]
         public static extern int EnumWindows(EnumWindowsProc ewp, int lParam);
+
+        [DllImport("user32.dll")]
+        public static extern bool EnumDesktopWindows(IntPtr hDesktop, EnumWindowsProc lpEnumCallbackFunction, IntPtr lPrarm);
+
         [DllImport("user32.dll", SetLastError = true)]
         public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
         public delegate bool EnumWindowsProc(IntPtr hWnd, int lParam);
 
+        public const int GETWINDOWTEXT_MAXLENGTH = 260;
         [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         public static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
 
-        
+        public static string GetWindowText(IntPtr hWnd)
+        {
+            StringBuilder sb = new StringBuilder(Win32.GETWINDOWTEXT_MAXLENGTH);
+            int titleLength = Win32.GetWindowText(hWnd, sb, sb.Capacity);
+            sb.Length = titleLength;
+            return sb.ToString();
+        }
+
         [DllImport("user32.dll")]
         public static extern IntPtr WindowFromPoint(System.Drawing.Point Point);
 
@@ -1027,6 +1047,346 @@ namespace KeyboardRedirector
             ROOT = 2,
             ROOTOWNER = 3
         }
+
+        [DllImport("user32.dll")]
+        public static extern IntPtr GetWindow(IntPtr hWnd, GW wCmd);
+
+        public enum GW : uint
+        {
+            HWNDNEXT = 2,
+            HWNDPREV = 3
+        }
+
+        [DllImport("user32.dll", EntryPoint = "GetClassLong")]
+        public static extern uint GetClassLongPtr32(IntPtr hWnd, int nIndex);
+
+        [DllImport("user32.dll", EntryPoint = "GetClassLongPtr")]
+        public static extern IntPtr GetClassLongPtr64(IntPtr hWnd, int nIndex);
+
+        public static IntPtr GetClassLongPtr(IntPtr hWnd, GCL nIndex)
+        {
+            if (IntPtr.Size > 4)
+                return GetClassLongPtr64(hWnd, (int)nIndex);
+            else
+                return new IntPtr(GetClassLongPtr32(hWnd, (int)nIndex));
+        }
+
+        public enum GCL : int
+        {
+            MENUNAME = -8,
+            HBRBACKGROUND = -10,
+            HCURSOR = -12,
+            HICON = -14,
+            HMODULE = -16,
+            CBWNDEXTRA = -18,
+            CBCLSEXTRA = -20,
+            WNDPROC = -24,
+            STYLE = -26,
+            ATOM = -32,
+            HICONSM = -34
+        }
+
+        [DllImport("user32.dll", EntryPoint = "GetWindowLong")]
+        private static extern IntPtr GetWindowLongPtr32(IntPtr hWnd, int nIndex);
+
+        [DllImport("user32.dll", EntryPoint = "GetWindowLongPtr")]
+        private static extern IntPtr GetWindowLongPtr64(IntPtr hWnd, int nIndex);
+
+        public static IntPtr GetWindowLongPtr(IntPtr hWnd, GWL nIndex)
+        {
+            if (IntPtr.Size == 8)
+                return GetWindowLongPtr64(hWnd, (int)nIndex);
+            else
+                return GetWindowLongPtr32(hWnd, (int)nIndex);
+        }
+
+        public enum GWL
+        {
+            WNDPROC = (-4),
+            HINSTANCE = (-6),
+            HWNDPARENT = (-8),
+            STYLE = (-16),
+            EXSTYLE = (-20),
+            USERDATA = (-21),
+            ID = (-12)
+        }
+
+        /// <summary>
+        /// Window Styles.
+        /// The following styles can be specified wherever a window style is required. After the control has been created, these styles cannot be modified, except as noted.
+        /// </summary>
+        [Flags]
+        public enum WindowStyles : uint
+        {
+            /// <summary>
+            /// Creates an overlapped window. An overlapped window usually has a caption and a border.
+            /// </summary>
+            WS_OVERLAPPED = 0x00000000,
+
+            /// <summary>
+            /// Creates a pop-up window. Cannot be used with the <see cref="WS_CHILD"/> style.
+            /// </summary>
+            WS_POPUP = 0x80000000,
+
+            /// <summary>
+            /// Creates a child window. Cannot be used with the <see cref="WS_POPUP"/> style.
+            /// </summary>
+            WS_CHILD = 0x40000000,
+
+            /// <summary>
+            /// Creates a window that is initially minimized. For use with the <see cref="WS_OVERLAPPED"/> style only.
+            /// </summary>
+            WS_MINIMIZE = 0x20000000,
+
+            /// <summary>
+            /// Creates a window that is initially visible.
+            /// </summary>
+            WS_VISIBLE = 0x10000000,
+
+            /// <summary>
+            /// Creates a window that is initially disabled.
+            /// </summary>
+            WS_DISABLED = 0x08000000,
+
+            /// <summary>
+            /// Clips child windows relative to each other; that is, when a particular child window receives a paint message, the WS_CLIPSIBLINGS style clips all other overlapped child windows out of the region of the child window to be updated. (If WS_CLIPSIBLINGS is not given and child windows overlap, when you draw within the client area of a child window, it is possible to draw within the client area of a neighboring child window.) For use with the <see cref="WS_CHILD"/> style only.
+            /// </summary>
+            WS_CLIPSIBLINGS = 0x04000000,
+
+            /// <summary>
+            /// Excludes the area occupied by child windows when you draw within the parent window.
+            /// Used when you create the parent window. 
+            /// </summary>
+            WS_CLIPCHILDREN = 0x02000000,
+
+            /// <summary>
+            /// Creates a window of maximum size.
+            /// </summary>
+            WS_MAXIMIZE = 0x01000000,
+
+            /// <summary>
+            /// Creates a window that has a border.
+            /// </summary>
+            WS_BORDER = 0x00800000,
+
+            /// <summary>
+            /// Creates a window with a double border but no title.
+            /// </summary>
+            WS_DLGFRAME = 0x00400000,
+
+            /// <summary>
+            /// Creates a window that has a vertical scroll bar.
+            /// </summary>
+            WS_VSCROLL = 0x00200000,
+
+            /// <summary>
+            /// Creates a window that has a horizontal scroll bar.
+            /// </summary>
+            WS_HSCROLL = 0x00100000,
+
+            /// <summary>
+            /// Creates a window that has a Control-menu box in its title bar. Used only for windows with title bars.
+            /// </summary>
+            WS_SYSMENU = 0x00080000,
+
+            /// <summary>
+            /// Creates a window with a thick frame that can be used to size the window.
+            /// </summary>
+            WS_THICKFRAME = 0x00040000,
+
+            /// <summary>
+            /// Specifies the first control of a group of controls in which the user can move from one control to the next with the arrow keys. All controls defined with the WS_GROUP style FALSE after the first control belong to the same group. The next control with the WS_GROUP style starts the next group (that is, one group ends where the next begins).
+            /// </summary>
+            WS_GROUP = 0x00020000,
+
+            /// <summary>
+            /// Specifies one of any number of controls through which the user can move by using the TAB key. The TAB key moves the user to the next control specified by the WS_TABSTOP style.
+            /// </summary>
+            WS_TABSTOP = 0x00010000,
+
+            /// <summary>
+            /// Creates a window that has a Minimize button.
+            /// </summary>
+            WS_MINIMIZEBOX = 0x00020000,
+
+            /// <summary>
+            /// Creates a window that has a Maximize button.
+            /// </summary>
+            WS_MAXIMIZEBOX = 0x00010000,
+
+            /// <summary>
+            /// Creates a window that has a title bar (implies the <see cref="WS_BORDER"/> style).
+            /// Cannot be used with the <see cref="WS_DLGFRAME"/> style.
+            /// </summary>
+            WS_CAPTION = WS_BORDER | WS_DLGFRAME,
+
+            /// <summary>
+            /// Creates an overlapped window. An overlapped window has a title bar and a border. Same as the <see cref="WS_OVERLAPPED"/> style.
+            /// </summary>
+            WS_TILED = WS_OVERLAPPED,
+
+            /// <summary>
+            /// Creates a window that is initially minimized. Same as the <see cref="WS_MINIMIZE"/> style. 
+            /// </summary>
+            WS_ICONIC = WS_MINIMIZE,
+
+            /// <summary>
+            /// Creates a window that has a sizing border. Same as the <see cref="WS_THICKFRAME"/> style.
+            /// </summary>
+            WS_SIZEBOX = WS_THICKFRAME,
+
+            /// <summary>
+            /// Creates an overlapped window with the <see cref="WS_OVERLAPPED"/>, <see cref="WS_CAPTION"/>, <see cref="WS_SYSMENU"/>, <see cref="WS_THICKFRAME"/>, <see cref="WS_MINIMIZEBOX"/>, and <see cref="WS_MAXIMIZEBOX"/> styles. Same as the <see cref="WS_OVERLAPPEDWINDOW"/> style.
+            /// </summary>
+            WS_TILEDWINDOW = WS_OVERLAPPEDWINDOW,
+
+            /// <summary>
+            /// Creates an overlapped window with the <see cref="WS_OVERLAPPED"/>, <see cref="WS_CAPTION"/>, <see cref="WS_SYSMENU"/>, <see cref="WS_THICKFRAME"/>, <see cref="WS_MINIMIZEBOX"/>, and <see cref="WS_MAXIMIZEBOX"/> styles. 
+            /// </summary>
+            WS_OVERLAPPEDWINDOW = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX,
+
+            /// <summary>
+            /// Creates a pop-up window with the <see cref="WS_BORDER"/>, <see cref="WS_POPUP"/>, and <see cref="WS_SYSMENU"/> styles. The WS_CAPTION style must be combined with the <see cref="WS_POPUPWINDOW"/> style to make the Control menu visible.
+            /// </summary>
+            WS_POPUPWINDOW = WS_POPUP | WS_BORDER | WS_SYSMENU,
+
+            /// <summary>
+            /// Same as the <see cref="WS_CHILD"/> style.
+            /// </summary>
+            WS_CHILDWINDOW = WS_CHILD,
+        }
+
+        [Flags]
+        public enum WindowExStyles : uint
+        {
+            /// <summary>
+            /// Specifies that a window created with this style accepts drag-drop files.
+            /// </summary>
+            WS_EX_ACCEPTFILES = 0x00000010,
+            /// <summary>
+            /// Forces a top-level window onto the taskbar when the window is visible.
+            /// </summary>
+            WS_EX_APPWINDOW = 0x00040000,
+            /// <summary>
+            /// Specifies that a window has a border with a sunken edge.
+            /// </summary>
+            WS_EX_CLIENTEDGE = 0x00000200,
+            /// <summary>
+            /// Windows XP: Paints all descendants of a window in bottom-to-top painting order using double-buffering. For more information, see Remarks. This cannot be used if the window has a class style of either CS_OWNDC or CS_CLASSDC. 
+            /// </summary>
+            WS_EX_COMPOSITED = 0x02000000,
+            /// <summary>
+            /// Includes a question mark in the title bar of the window. When the user clicks the question mark, the cursor changes to a question mark with a pointer. If the user then clicks a child window, the child receives a WM_HELP message. The child window should pass the message to the parent window procedure, which should call the WinHelp function using the HELP_WM_HELP command. The Help application displays a pop-up window that typically contains help for the child window.
+            /// WS_EX_CONTEXTHELP cannot be used with the WS_MAXIMIZEBOX or WS_MINIMIZEBOX styles.
+            /// </summary>
+            WS_EX_CONTEXTHELP = 0x00000400,
+            /// <summary>
+            /// The window itself contains child windows that should take part in dialog box navigation. If this style is specified, the dialog manager recurses into children of this window when performing navigation operations such as handling the TAB key, an arrow key, or a keyboard mnemonic.
+            /// </summary>
+            WS_EX_CONTROLPARENT = 0x00010000,
+            /// <summary>
+            /// Creates a window that has a double border; the window can, optionally, be created with a title bar by specifying the WS_CAPTION style in the dwStyle parameter.
+            /// </summary>
+            WS_EX_DLGMODALFRAME = 0x00000001,
+            /// <summary>
+            /// Windows 2000/XP: Creates a layered window. Note that this cannot be used for child windows. Also, this cannot be used if the window has a class style of either CS_OWNDC or CS_CLASSDC. 
+            /// </summary>
+            WS_EX_LAYERED = 0x00080000,
+            /// <summary>
+            /// Arabic and Hebrew versions of Windows 98/Me, Windows 2000/XP: Creates a window whose horizontal origin is on the right edge. Increasing horizontal values advance to the left. 
+            /// </summary>
+            WS_EX_LAYOUTRTL = 0x00400000,
+            /// <summary>
+            /// Creates a window that has generic left-aligned properties. This is the default.
+            /// </summary>
+            WS_EX_LEFT = 0x00000000,
+            /// <summary>
+            /// If the shell language is Hebrew, Arabic, or another language that supports reading order alignment, the vertical scroll bar (if present) is to the left of the client area. For other languages, the style is ignored.
+            /// </summary>
+            WS_EX_LEFTSCROLLBAR = 0x00004000,
+            /// <summary>
+            /// The window text is displayed using left-to-right reading-order properties. This is the default.
+            /// </summary>
+            WS_EX_LTRREADING = 0x00000000,
+            /// <summary>
+            /// Creates a multiple-document interface (MDI) child window.
+            /// </summary>
+            WS_EX_MDICHILD = 0x00000040,
+            /// <summary>
+            /// Windows 2000/XP: A top-level window created with this style does not become the foreground window when the user clicks it. The system does not bring this window to the foreground when the user minimizes or closes the foreground window. 
+            /// To activate the window, use the SetActiveWindow or SetForegroundWindow function.
+            /// The window does not appear on the taskbar by default. To force the window to appear on the taskbar, use the WS_EX_APPWINDOW style.
+            /// </summary>
+            WS_EX_NOACTIVATE = 0x08000000,
+            /// <summary>
+            /// Windows 2000/XP: A window created with this style does not pass its window layout to its child windows.
+            /// </summary>
+            WS_EX_NOINHERITLAYOUT = 0x00100000,
+            /// <summary>
+            /// Specifies that a child window created with this style does not send the WM_PARENTNOTIFY message to its parent window when it is created or destroyed.
+            /// </summary>
+            WS_EX_NOPARENTNOTIFY = 0x00000004,
+            /// <summary>
+            /// Combines the WS_EX_CLIENTEDGE and WS_EX_WINDOWEDGE styles.
+            /// </summary>
+            WS_EX_OVERLAPPEDWINDOW = WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE,
+            /// <summary>
+            /// Combines the WS_EX_WINDOWEDGE, WS_EX_TOOLWINDOW, and WS_EX_TOPMOST styles.
+            /// </summary>
+            WS_EX_PALETTEWINDOW = WS_EX_WINDOWEDGE | WS_EX_TOOLWINDOW | WS_EX_TOPMOST,
+            /// <summary>
+            /// The window has generic "right-aligned" properties. This depends on the window class. This style has an effect only if the shell language is Hebrew, Arabic, or another language that supports reading-order alignment; otherwise, the style is ignored.
+            /// Using the WS_EX_RIGHT style for static or edit controls has the same effect as using the SS_RIGHT or ES_RIGHT style, respectively. Using this style with button controls has the same effect as using BS_RIGHT and BS_RIGHTBUTTON styles.
+            /// </summary>
+            WS_EX_RIGHT = 0x00001000,
+            /// <summary>
+            /// Vertical scroll bar (if present) is to the right of the client area. This is the default.
+            /// </summary>
+            WS_EX_RIGHTSCROLLBAR = 0x00000000,
+            /// <summary>
+            /// If the shell language is Hebrew, Arabic, or another language that supports reading-order alignment, the window text is displayed using right-to-left reading-order properties. For other languages, the style is ignored.
+            /// </summary>
+            WS_EX_RTLREADING = 0x00002000,
+            /// <summary>
+            /// Creates a window with a three-dimensional border style intended to be used for items that do not accept user input.
+            /// </summary>
+            WS_EX_STATICEDGE = 0x00020000,
+            /// <summary>
+            /// Creates a tool window; that is, a window intended to be used as a floating toolbar. A tool window has a title bar that is shorter than a normal title bar, and the window title is drawn using a smaller font. A tool window does not appear in the taskbar or in the dialog that appears when the user presses ALT+TAB. If a tool window has a system menu, its icon is not displayed on the title bar. However, you can display the system menu by right-clicking or by typing ALT+SPACE. 
+            /// </summary>
+            WS_EX_TOOLWINDOW = 0x00000080,
+            /// <summary>
+            /// Specifies that a window created with this style should be placed above all non-topmost windows and should stay above them, even when the window is deactivated. To add or remove this style, use the SetWindowPos function.
+            /// </summary>
+            WS_EX_TOPMOST = 0x00000008,
+            /// <summary>
+            /// Specifies that a window created with this style should not be painted until siblings beneath the window (that were created by the same thread) have been painted. The window appears transparent because the bits of underlying sibling windows have already been painted.
+            /// To achieve transparency without these restrictions, use the SetWindowRgn function.
+            /// </summary>
+            WS_EX_TRANSPARENT = 0x00000020,
+            /// <summary>
+            /// Specifies that a window has a border with a raised edge.
+            /// </summary>
+            WS_EX_WINDOWEDGE = 0x00000100
+        }
+
+        [DllImport("user32.dll")]
+        public static extern bool GetWindowPlacement(IntPtr hWnd, ref WINDOWPLACEMENT lpwndpl);
+
+        [DllImport("user32.dll")]
+        public static extern bool SetWindowPlacement(IntPtr hWnd, [In] ref WINDOWPLACEMENT lpwndpl);
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct WINDOWPLACEMENT
+        {
+            public int length;
+            public int flags;
+            public SW showCmd;
+            public System.Drawing.Point ptMinPosition;
+            public System.Drawing.Point ptMaxPosition;
+            public System.Drawing.Rectangle rcNormalPosition;
+        }
+
 
         #endregion
 
@@ -1072,6 +1432,22 @@ namespace KeyboardRedirector
             foreach (ManagementObject result in resultCollection)
             {
                 return result["ExecutablePath"].ToString();
+            }
+            return "";
+        }
+        public static string GetProcessCmdLine(int processId)
+        {
+            string select = @"SELECT CommandLine FROM Win32_Process WHERE ProcessID = " + processId.ToString();
+            ObjectQuery query = new ObjectQuery(select);
+            ManagementObjectSearcher searcher = new ManagementObjectSearcher(query);
+            ManagementObjectCollection resultCollection = searcher.Get();
+            foreach (ManagementObject result in resultCollection)
+            {
+                foreach (PropertyData data in result.Properties)
+                {
+                    System.Diagnostics.Debug.WriteLine(data.Name + ": " + data.Value);
+                }
+                return result["CommandLine"].ToString();
             }
             return "";
         }
@@ -1281,7 +1657,7 @@ namespace KeyboardRedirector
 
         [DllImport("user32.dll")]
         public static extern IntPtr DispatchMessage([In] System.Windows.Forms.Message lpmsg);
-        
+
         #endregion
 
     }

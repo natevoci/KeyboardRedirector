@@ -1,0 +1,38 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationLauncher", "ApplicationLauncher\ApplicationLauncher.csproj", "{6066020E-6A8B-49F2-9A70-4B887CEF15ED}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Win32", "Win32\Win32.csproj", "{AC1273B1-6E65-4EBC-A129-63AF299B1AFB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ObjectListView2008", "ObjectListView\ObjectListView2008.csproj", "{18FEDA0C-D147-4286-B39A-01204808106A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IconExtractor", "IconExtractor\IconExtractor.csproj", "{6375CA24-A270-4CEA-8C7B-1A89A3F5EB4F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6066020E-6A8B-49F2-9A70-4B887CEF15ED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6066020E-6A8B-49F2-9A70-4B887CEF15ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6066020E-6A8B-49F2-9A70-4B887CEF15ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6066020E-6A8B-49F2-9A70-4B887CEF15ED}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AC1273B1-6E65-4EBC-A129-63AF299B1AFB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AC1273B1-6E65-4EBC-A129-63AF299B1AFB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AC1273B1-6E65-4EBC-A129-63AF299B1AFB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AC1273B1-6E65-4EBC-A129-63AF299B1AFB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{18FEDA0C-D147-4286-B39A-01204808106A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{18FEDA0C-D147-4286-B39A-01204808106A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{18FEDA0C-D147-4286-B39A-01204808106A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{18FEDA0C-D147-4286-B39A-01204808106A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6375CA24-A270-4CEA-8C7B-1A89A3F5EB4F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6375CA24-A270-4CEA-8C7B-1A89A3F5EB4F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6375CA24-A270-4CEA-8C7B-1A89A3F5EB4F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6375CA24-A270-4CEA-8C7B-1A89A3F5EB4F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

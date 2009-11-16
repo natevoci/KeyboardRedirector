@@ -32,6 +32,7 @@ using System.Text;
 using System.Windows.Forms;
 using System.Diagnostics;
 using System.Management;
+using MS;
 
 namespace KeyboardRedirector
 {
