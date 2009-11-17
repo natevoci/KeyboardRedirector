@@ -75,6 +75,14 @@ namespace ApplicationLauncher
             
             // Setup ObjectListViewShortcuts
             RebuildListShortcuts();
+
+            uint processId = 0;
+            uint idAttach = MS.Win32.GetWindowThreadProcessId(MS.Win32.GetForegroundWindow(), out processId);
+            uint idAttachTo = MS.Win32.GetCurrentThreadId();
+            MS.Win32.AttachThreadInput(idAttach, idAttachTo, true);
+            MS.Win32.SetForegroundWindow(this.Handle);
+            MS.Win32.SetFocus(this.Handle);
+            MS.Win32.AttachThreadInput(idAttach, idAttachTo, false);
         }
 
         private void RebuildListRunning()
@@ -132,6 +140,15 @@ namespace ApplicationLauncher
         {
             DesktopWindows.Window window = item.Tag as DesktopWindows.Window;
             MS.Win32.SetForegroundWindow(window.Hwnd);
+
+            MS.Win32.WINDOWPLACEMENT placement = new MS.Win32.WINDOWPLACEMENT();
+            MS.Win32.GetWindowPlacement(window.Hwnd, ref placement);
+            if ((placement.showCmd == MS.Win32.SW.MINIMIZE) ||
+                (placement.showCmd == MS.Win32.SW.SHOWMINIMIZED))
+            {
+                MS.Win32.ShowWindow(window.Hwnd, MS.Win32.SW.RESTORE);
+            }
+
             Close();
         }
         void buttonListControlShortcuts_ItemActivate(object sender, ButtonListControl.ButtonListControlItem item)
@@ -161,6 +178,7 @@ namespace ApplicationLauncher
                         (windowArgs.Equals(shortcut.Arguments, StringComparison.CurrentCultureIgnoreCase)))
                     {
                         MS.Win32.SetForegroundWindow(window.Hwnd);
+
                         MS.Win32.WINDOWPLACEMENT placement = new MS.Win32.WINDOWPLACEMENT();
                         MS.Win32.GetWindowPlacement(window.Hwnd, ref placement);
                         if ((placement.showCmd == MS.Win32.SW.MINIMIZE) || 

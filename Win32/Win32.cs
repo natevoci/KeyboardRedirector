@@ -989,6 +989,9 @@ namespace MS
         [DllImport("User32")]
         public static extern IntPtr GetForegroundWindow();
 
+        [DllImport("user32.dll")]
+        public static extern IntPtr SetFocus(IntPtr hWnd);
+
         [DllImportAttribute("User32.DLL")]
         public static extern bool ShowWindow(IntPtr hWnd, SW nCmdShow);
         //public const int SW_SHOW = 5;
@@ -1022,6 +1025,9 @@ namespace MS
         [DllImport("user32.dll", SetLastError = true)]
         public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
         public delegate bool EnumWindowsProc(IntPtr hWnd, int lParam);
+
+        [DllImport("kernel32.dll")]
+        public static extern uint GetCurrentThreadId();
 
         public const int GETWINDOWTEXT_MAXLENGTH = 260;
         [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
@@ -1422,6 +1428,9 @@ namespace MS
         //    ALL = 3,
         //    DEFAULT = 0
         //}
+
+        [DllImport("user32.dll")]
+        public static extern bool AttachThreadInput(uint idAttach, uint idAttachTo, bool fAttach);
 
         public static string GetProcessExecutableName(int processId)
         {

@@ -118,7 +118,7 @@ namespace ApplicationLauncher
             DialogResult result = ofd.ShowDialog(this);
             if (result == DialogResult.OK)
             {
-                textBoxExecutable.Text = "\"" + ofd.FileName + "\"";
+                textBoxExecutable.Text = ofd.FileName;
                 textBoxName.Text = System.IO.Path.GetFileNameWithoutExtension(ofd.FileName);
 
                 UpdateIcon();

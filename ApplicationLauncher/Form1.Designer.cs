@@ -192,7 +192,6 @@
             this.Name = "ApplicationLauncherForm";
             this.ShowInTaskbar = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.TopMost = true;
             this.Load += new System.EventHandler(this.ApplicationLauncherForm_Load);
             this.SizeChanged += new System.EventHandler(this.ApplicationLauncherForm_SizeChanged);
             this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.ApplicationLauncherForm_MouseDown);
