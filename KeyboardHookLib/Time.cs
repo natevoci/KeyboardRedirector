@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 
 namespace KeyboardRedirector.Utils
 {
-    class Time
+    public class Time
     {
         private static long ticksPerSecond;
         private static long baseTicks;

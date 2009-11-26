@@ -125,7 +125,6 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Settings.cs" />
-    <Compile Include="Time.cs" />
     <Compile Include="XMLFileStore.cs" />
   </ItemGroup>
   <ItemGroup>

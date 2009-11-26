@@ -62,8 +62,14 @@ namespace KeyboardRedirector
             info.KeyDown = keyDown;
             lock (_keyQueue)
             {
+                _keyQueue.Clear();
                 _keyQueue.Add(info);
+                if (info.KeyDown)
+                {
+                    WriteStatusMessage("   Queueing keystroke: " + key.ToString());
+                }
             }
+            //ProcessKeyInfo(info);
         }
 
         public void StartProcessingThread()
@@ -100,45 +106,48 @@ namespace KeyboardRedirector
                     }
                 }
 
-                if (info == null)
-                    continue;
+                ProcessKeyInfo(info);
+            }
+        }
 
-                if (info.KeyDown)
+        private void ProcessKeyInfo(KeyInformation info)
+        {
+            if (info == null)
+                return;
+
+            if (info.KeyDown)
+            {
+                string focussedExe = GetFocussedExecutable();
+
+                SettingsKeyboardKeyFocusedApplication application;
+                application = info.Key.FocusedApplications.FindByExecutable(focussedExe);
+                if (application == null)
                 {
-                    string focussedExe = GetFocussedExecutable();
-
-                    SettingsKeyboardKeyFocusedApplication application;
-                    application = info.Key.FocusedApplications.FindByExecutable(focussedExe);
-                    if (application == null)
-                    {
-                        if (info.Key.FocusedApplications.Count == 0)
-                            return;
-                        application = info.Key.FocusedApplications[0];
-                    }
-
-                    foreach (SettingsKeyboardKeyAction action in application.Actions)
-                    {
-                        try
-                        {
-                            switch (action.ActionType)
-                            {
-                                case SettingsKeyboardKeyActionType.LaunchApplication:
-                                    LaunchApplication(action.LaunchApplication);
-                                    break;
-
-                                case SettingsKeyboardKeyActionType.Keyboard:
-                                    Keyboard(action.Keyboard);
-                                    break;
-                            }
-                        }
-                        catch (Exception e)
-                        {
-                            WriteStatusMessage("Unexpected error: " + action.ToString() + " : " + e.Message);
-                        }
-                    }
-
+                    if (info.Key.FocusedApplications.Count == 0)
+                        return;
+                    application = info.Key.FocusedApplications[0];
                 }
 
+                foreach (SettingsKeyboardKeyAction action in application.Actions)
+                {
+                    try
+                    {
+                        switch (action.ActionType)
+                        {
+                            case SettingsKeyboardKeyActionType.LaunchApplication:
+                                LaunchApplication(action.LaunchApplication);
+                                break;
+
+                            case SettingsKeyboardKeyActionType.Keyboard:
+                                Keyboard(action.Keyboard);
+                                break;
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        WriteStatusMessage("Unexpected error: " + action.ToString() + " : " + e.Message);
+                    }
+                }
             }
         }
 
@@ -196,20 +205,55 @@ namespace KeyboardRedirector
 
         private void Keyboard(SettingsKeyboardKeyTypedActionKeyboard keyboard)
         {
-            if (KeyboardHookExternal.Current.KeysDownCount() > 0)
-            {
-                Log.MainLog.WriteInfo("Waiting for all keys to be up before sending new keystroke");
-                while (KeyboardHookExternal.Current.KeysDownCount() > 0)
-                {
-                    Thread.Sleep(10);
-                }
-            }
+            //int keysDown = KeyboardHookExternal.Current.KeysDownCount();
+            //WriteStatusMessage("Keys down: " + keysDown.ToString());
+            //if (keysDown > 0)
+            //{
+            //    //Log.MainLog.WriteInfo("Waiting for all keys to be up before sending new keystroke");
+            //    WriteStatusMessage("   Waiting for all keys to be up before sending new keystroke");
+            //    while (KeyboardHookExternal.Current.KeysDownCount() > 0)
+            //    {
+            //        Thread.Sleep(1);
+            //    }
+            //}
 
             WriteStatusMessage("Sending keystroke: " + keyboard.GetDetails());
 
             for (int repeat = 0; repeat < keyboard.RepeatCount; repeat++)
             {
                 List<Win32.INPUT> inputList = new List<Win32.INPUT>();
+
+                if (repeat == 0)
+                {
+                    List<KeysWithExtended> keysDown = new List<KeysWithExtended>();
+                    keysDown.AddRange(KeyboardHookExternal.Current.KeyStateLowLevel.Modifiers);
+                    if (KeyboardHookExternal.Current.KeyStateLowLevel.KeyDown)
+                        keysDown.Add(KeyboardHookExternal.Current.KeyStateLowLevel.KeyWithExtended);
+                    bool controlDown = false;
+                    bool shiftDown = false;
+                    bool altDown = false;
+                    foreach (KeysWithExtended key in keysDown)
+                    {
+                        controlDown |= key.IsControlKey;
+                        shiftDown |= key.IsShiftKey;
+                        altDown |= key.IsAltKey;
+                    }
+
+                    if (controlDown)
+                    {
+                        inputList.Add(CreateInputStruct((ushort)Keys.ControlKey, false));
+                    }
+
+                    if (shiftDown)
+                    {
+                        inputList.Add(CreateInputStruct((ushort)Keys.ShiftKey, false));
+                    }
+
+                    if (altDown)
+                    {
+                        inputList.Add(CreateInputStruct((ushort)Keys.Menu, false));
+                    }
+                }
 
                 if (keyboard.Control)
                     inputList.Add(CreateInputStruct((ushort)Keys.ControlKey, true));

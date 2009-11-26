@@ -178,8 +178,9 @@ namespace KeyboardRedirector
             get { return _keyCodes; }
         }
 
-        public bool Enabled = true;
-        public bool Capture = false;
+        public bool Enabled = false;
+        public bool Capture = true;
+        public int AntiRepeatTime = 0;
         public string Name = "";
 
         public SettingsKeyboardKeyFocusedApplicationList FocusedApplications = new SettingsKeyboardKeyFocusedApplicationList();
@@ -194,6 +195,8 @@ namespace KeyboardRedirector
                 _keyCodes.Add(key.keycode);
             }
             _keyCodes.Add(keyCombination.KeyWithExtended.keycode);
+
+
         }
 
         public override bool Equals(object obj)

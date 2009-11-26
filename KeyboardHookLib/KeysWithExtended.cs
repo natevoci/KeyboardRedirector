@@ -41,6 +41,33 @@ namespace KeyboardRedirector
             }
         }
 
+        public bool IsShiftKey
+        {
+            get
+            {
+                return ((Keys == Keys.ShiftKey) || (Keys == Keys.LShiftKey) || (Keys == Keys.RShiftKey));
+            }
+        }
+        public bool IsControlKey
+        {
+            get
+            {
+                return ((Keys == Keys.ControlKey) || (Keys == Keys.LControlKey) || (Keys == Keys.RControlKey));
+            }
+        }
+        public bool IsAltKey
+        {
+            get
+            {
+                return ((Keys == Keys.Menu) || (Keys == Keys.LMenu) || (Keys == Keys.RMenu));
+            }
+        }
+
+        public KeysWithExtended(KeysWithExtended keysWithExtended)
+        {
+            this.keycode = keysWithExtended.keycode;
+        }
+
         public KeysWithExtended(uint keycode)
         {
             this.keycode = keycode;
@@ -100,5 +127,6 @@ namespace KeyboardRedirector
             KeysWithExtended keysWithExtended = obj as KeysWithExtended;
             return (this.keycode == keysWithExtended.keycode);
         }
+
     }
 }

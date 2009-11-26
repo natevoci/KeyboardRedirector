@@ -56,6 +56,9 @@ namespace KeyboardRedirector
         private uint _hookMessageLowLevel = 0;
         private Process _hookProcess = null;
 
+        private KeyCombination _keyState = new KeyCombination();
+        private KeyCombination _keyStateLowLevel = new KeyCombination();
+
         public uint HookMessage
         {
             get { return _hookMessage; }
@@ -63,6 +66,14 @@ namespace KeyboardRedirector
         public uint HookMessageLowLevel
         {
             get { return _hookMessageLowLevel; }
+        }
+        public KeyCombination KeyState
+        {
+            get { return _keyState; }
+        }
+        public KeyCombination KeyStateLowLevel
+        {
+            get { return _keyStateLowLevel; }
         }
 
         public event KeyHookEventHandler KeyEvent;
@@ -123,7 +134,7 @@ namespace KeyboardRedirector
             return true;
         }
 
-        public bool Is64Bit()
+        public static bool Is64Bit()
         {
             if (Marshal.SizeOf(typeof(IntPtr)) == 8)
                 return true;
@@ -140,8 +151,6 @@ namespace KeyboardRedirector
             return false;
         }
 
-        private KeyCombination _keyState = new KeyCombination();
-        private KeyCombination _keyStateLowLevel = new KeyCombination();
         public int ProcessMessage(Message message)
         {
             bool handled = false;
@@ -197,7 +206,9 @@ namespace KeyboardRedirector
 
         public int KeysDownCount()
         {
-            return _keyState.KeysDownCount();
+            int keysLL = _keyStateLowLevel.KeysDownCount();
+            int keys = _keyState.KeysDownCount();
+            return (keysLL > keys) ? keysLL : keys;
         }
 
     }

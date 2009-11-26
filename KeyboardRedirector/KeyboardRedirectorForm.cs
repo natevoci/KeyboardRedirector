@@ -39,10 +39,15 @@ namespace KeyboardRedirector
         InputDevice _inputDevice;
         List<DeviceInformation> _keyboards;
         List<KeyToHookInformation> _keysToHook;
+        int _keysToHookAdded = 0;
+        int _keysToHookRemovedWithoutBlocking = 0;
+
         Dictionary<string, KeyCombination> _keyCombinations;
         ActionPerformer _actionPerformer;
         IconExtractor.ExecutableImageList _imageList;
         static bool _disableGlobalKeyboardHook = false;
+
+        Dictionary<SettingsKeyboardKey, double> _antiRepeatTimes;
 
         public static bool DisableGlobalKeyboardHook
         {
@@ -67,12 +72,12 @@ namespace KeyboardRedirector
 
         class KeyToHookInformation
         {
-            public KeyCombination KeyCombo;
+            public KeysWithExtended Key;
             public DateTime SeenAt;
 
-            public KeyToHookInformation(KeyCombination KeyCombo)
+            public KeyToHookInformation(KeysWithExtended key)
             {
-                this.KeyCombo = new KeyCombination(KeyCombo);
+                this.Key = new KeysWithExtended(key);
                 this.SeenAt = DateTime.Now;
             }
         }
@@ -84,6 +89,7 @@ namespace KeyboardRedirector
             _keyboards = new List<DeviceInformation>();
             _keysToHook = new List<KeyToHookInformation>();
             _keyCombinations = new Dictionary<string, KeyCombination>();
+            _antiRepeatTimes = new Dictionary<SettingsKeyboardKey, double>();
 
             InitializeComponent();
 
@@ -256,7 +262,7 @@ namespace KeyboardRedirector
                 //Log.MainLog.WriteDebug("   - KeysToHook: " + _keysToHook.Count.ToString());
                 for (int i = 0; i < _keysToHook.Count; i++)
                 {
-                    if (_keysToHook[i].KeyCombo.Equals(e.KeyCombination))
+                    if (_keysToHook[i].Key == e.KeyCombination.KeyWithExtended)
                     {
                         //Log.MainLog.WriteDebug("     - Equal: " + _keysToHook[i].KeyCombo.ToString() + i.ToString());
                         block = true;
@@ -274,6 +280,7 @@ namespace KeyboardRedirector
                 {
                     //Log.MainLog.WriteDebug("   - RemovingOldKey: " + _keysToHook[0].KeyCombo.ToString());
                     _keysToHook.RemoveAt(0);
+                    _keysToHookRemovedWithoutBlocking++;
                 }
             }
 
@@ -325,7 +332,17 @@ namespace KeyboardRedirector
                             e.Handled = true;
                         }
 
-                        _actionPerformer.EnqueueKey(settingsKey, e.KeyCombination.KeyDown);
+                        double currPressTime = Utils.Time.GetTime();
+                        double lastPressTime = 0.0;
+                        if (_antiRepeatTimes.ContainsKey(settingsKey))
+                            lastPressTime = _antiRepeatTimes[settingsKey];
+
+                        if (currPressTime - lastPressTime > settingsKey.AntiRepeatTime)
+                        {
+                            _antiRepeatTimes[settingsKey] = currPressTime;
+
+                            _actionPerformer.EnqueueKey(settingsKey, e.KeyCombination.KeyDown);
+                        }
                     }
                 }
             }
@@ -343,6 +360,18 @@ namespace KeyboardRedirector
 
         void InputDevice_DeviceEvent(object sender, InputDevice.DeviceInfo dInfo, InputDevice.RAWINPUT rawInput)
         {
+            if (_keysToHookAdded >= 5)
+            {
+                if (_keysToHookRemovedWithoutBlocking >= 5)
+                {
+                    // found a problem
+                    MessageBox.Show(this, "KeyboardRedirector detected that it's keyboard hooks are not working correctly." + Environment.NewLine + "You may need to restart KeyboardRedirector", "KeyboardRedirector", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+                // Reset counters
+                _keysToHookAdded = 0;
+                _keysToHookRemovedWithoutBlocking = 0;
+            }
+
             if (rawInput.header.dwType == InputDevice.DeviceType.Keyboard)
             {
                 Keys key = (Keys)rawInput.data.keyboard.VKey;
@@ -350,8 +379,7 @@ namespace KeyboardRedirector
                                 (rawInput.data.keyboard.Message == Win32.WM.SYSKEYDOWN));
                 bool extended = ((rawInput.data.keyboard.Flags & InputDevice.RawKeyboardFlags.E0) != 0);
 
-                string text = string.Format("{0} 0x{1:x}({2}) makecode:0x{3:x} flags:0x{4:x} extraInfo:{5} ext:{6}",
-                    rawInput.header.dwType,
+                string text = string.Format("0x{0:x}({1}) makecode:0x{2:x} flags:0x{3:x} extraInfo:{4} ext:{5}",
                     rawInput.data.keyboard.VKey,
                     key,
                     rawInput.data.keyboard.MakeCode,
@@ -380,7 +408,8 @@ namespace KeyboardRedirector
                     lock (_keysToHook)
                     {
                         //Log.MainLog.WriteDebug("RawInput-AddingKeyForDetector: " + keyCombo.ToString());
-                        _keysToHook.Add(new KeyToHookInformation(keyCombo));
+                        _keysToHook.Add(new KeyToHookInformation(keyCombo.KeyWithExtended));
+                        _keysToHookAdded++;
                     }
 
                     if (keyCombo.TransitionToKeyUp)
@@ -406,11 +435,22 @@ namespace KeyboardRedirector
                                 lock (_keysToHook)
                                 {
                                     //Log.MainLog.WriteDebug("RawInput-AddingKeyForCapture: " + keyCombo.ToString());
-                                    _keysToHook.Add(new KeyToHookInformation(keyCombo));
+                                    _keysToHook.Add(new KeyToHookInformation(keyCombo.KeyWithExtended));
+                                    _keysToHookAdded++;
                                 }
                             }
 
-                            _actionPerformer.EnqueueKey(settingsKey, keyDown);
+                            double currPressTime = Utils.Time.GetTime();
+                            double lastPressTime = 0.0;
+                            if (_antiRepeatTimes.ContainsKey(settingsKey))
+                                lastPressTime = _antiRepeatTimes[settingsKey];
+
+                            if (currPressTime - lastPressTime > settingsKey.AntiRepeatTime)
+                            {
+                                _antiRepeatTimes[settingsKey] = currPressTime;
+
+                                _actionPerformer.EnqueueKey(settingsKey, keyDown);
+                            }
                         }
                         else
                         {
@@ -419,7 +459,8 @@ namespace KeyboardRedirector
                                 lock (_keysToHook)
                                 {
                                     //Log.MainLog.WriteDebug("RawInput-AddingKeyForCaptureAll: " + keyCombo.ToString());
-                                    _keysToHook.Add(new KeyToHookInformation(keyCombo));
+                                    _keysToHook.Add(new KeyToHookInformation(keyCombo.KeyWithExtended));
+                                    _keysToHookAdded++;
                                 }
                             }
                         }
@@ -435,29 +476,39 @@ namespace KeyboardRedirector
             //WriteEvent(text + Environment.NewLine);
         }
 
+        private int eventCount = 1;
+
         private delegate void WriteDelegate(string message);
         private void WriteEvent(string message)
         {
+            string counter = (Utils.Time.GetTime() / 1000.0).ToString("0.000").PadLeft(8);
+            message = counter + ":" + message;
             System.Diagnostics.Debug.Write(message);
             richTextBoxEvents.AppendText(message);
             Log.MainLog.WriteInfo(message.TrimEnd('\r', '\n'));
         }
         private void WriteLowLevelEvent(string message)
         {
-            System.Diagnostics.Debug.Write("LL " + message);
-            richTextBoxKeyEventsLowLevel.AppendText(message);
-            Log.MainLog.WriteInfo("LL " + message.TrimEnd('\r', '\n'));
+            string counter = (Utils.Time.GetTime() / 1000.0).ToString("0.000").PadLeft(8);
+            message = counter + ":" + " LL" + message;
+            System.Diagnostics.Debug.Write(message);
+            richTextBoxEvents.AppendText(message);
+            Log.MainLog.WriteInfo(message.TrimEnd('\r', '\n'));
         }
         private void WriteHookEvent(string message)
         {
+            string counter = (Utils.Time.GetTime() / 1000.0).ToString("0.000").PadLeft(8);
+            message = counter + ":" + "   " + message;
             System.Diagnostics.Debug.Write(message);
-            richTextBoxKeyEventsHook.AppendText(message);
-            Log.MainLog.WriteInfo("   " + message.TrimEnd('\r', '\n'));
+            richTextBoxEvents.AppendText(message);
+            Log.MainLog.WriteInfo(message.TrimEnd('\r', '\n'));
         }
         private void WriteWMInputEvent(string message)
         {
+            string counter = (Utils.Time.GetTime() / 1000.0).ToString("0.000").PadLeft(8);
+            message = counter + ":" + "  " + message;
             System.Diagnostics.Debug.Write(message);
-            richTextBoxKeyEventsWMInput.AppendText(message);
+            richTextBoxEvents.AppendText(message);
             Log.MainLog.WriteInfo(message.TrimEnd('\r', '\n'));
         }
 
@@ -858,6 +909,7 @@ namespace KeyboardRedirector
             textBoxKeyName.Text = key.Name;
             checkBoxKeyEnabled.Checked = key.Enabled;
             checkBoxKeyCapture.Checked = key.Capture;
+            numericUpDownAntiRepeat.Value = key.AntiRepeatTime;
 
             RefreshApplicationsList();
             listViewApplicationsInFocus.SelectedIndex = 0;
@@ -919,6 +971,15 @@ namespace KeyboardRedirector
             }
         }
 
+        private void numericUpDownAntiRepeat_ValueChanged(object sender, EventArgs e)
+        {
+            SettingsKeyboardKey key = GetSelectedKeyFromTreeView();
+            if (key != null)
+            {
+                key.AntiRepeatTime = (int)numericUpDownAntiRepeat.Value;
+                Settings.Save();
+            }
+        }
 
         private void textBoxKeyboardName_TextChanged(object sender, EventArgs e)
         {
@@ -1150,10 +1211,11 @@ namespace KeyboardRedirector
 
         private void buttonClear_Click(object sender, EventArgs e)
         {
+            richTextBoxEvents.SelectionStart = 0;
             richTextBoxEvents.Clear();
-            richTextBoxKeyEventsLowLevel.Clear();
-            richTextBoxKeyEventsHook.Clear();
-            richTextBoxKeyEventsWMInput.Clear();
+            //richTextBoxKeyEventsLowLevel.Clear();
+            //richTextBoxKeyEventsHook.Clear();
+            //richTextBoxKeyEventsWMInput.Clear();
         }
 
     }

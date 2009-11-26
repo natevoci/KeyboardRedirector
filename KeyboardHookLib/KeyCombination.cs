@@ -15,7 +15,7 @@ namespace KeyboardRedirector
         private KeysWithExtended _stateKey;
         private List<KeysWithExtended> _stateModifiers = new List<KeysWithExtended>();
 
-        private DateTime _lastChange = DateTime.MinValue;
+        private double _lastChange = 0;
 
         public KeyCombination()
         {
@@ -72,11 +72,11 @@ namespace KeyboardRedirector
         private static bool IsModifierKey(KeysWithExtended keyWithExtended)
         {
             Keys key = keyWithExtended.Keys;
-            if ((key == Keys.ShiftKey) || (key == Keys.LShiftKey) || (key == Keys.RShiftKey))
+            if (keyWithExtended.IsShiftKey)
                 return true;
-            if ((key == Keys.ControlKey) || (key == Keys.LControlKey) || (key == Keys.RControlKey))
+            if (keyWithExtended.IsControlKey)
                 return true;
-            if ((key == Keys.Menu) || (key == Keys.LMenu) || (key == Keys.RMenu))
+            if (keyWithExtended.IsAltKey)
                 return true;
             if ((key == Keys.LWin) || (key == Keys.RWin))
                 return true;
@@ -85,9 +85,9 @@ namespace KeyboardRedirector
 
         public void KeyPress(bool keyDown, Keys key, bool extended)
         {
-            DateTime now = DateTime.Now;
-            TimeSpan timeSinceLastChange = now.Subtract(_lastChange);
-            if (timeSinceLastChange.TotalSeconds > 1)
+            double now = Utils.Time.GetTime();
+            double timeSinceLastChange = now - _lastChange;
+            if (timeSinceLastChange > 1000)
             {
                 _key = KeysWithExtended.None;
                 //_key.extended = false;
@@ -138,11 +138,14 @@ namespace KeyboardRedirector
 
         public int KeysDownCount()
         {
-            DateTime now = DateTime.Now;
-            TimeSpan timeSinceLastChange = now.Subtract(_lastChange);
-            if (timeSinceLastChange.TotalSeconds > 1)
+            double now = Utils.Time.GetTime();
+            double timeSinceLastChange = now - _lastChange;
+            if (timeSinceLastChange > 1000)
                 return 0;
-            return _modifiers.Count;
+            int count = _modifiers.Count;
+            if (_keyDown)
+                count++;
+            return count;
         }
 
         private bool ModifiersContains(KeysWithExtended key)
