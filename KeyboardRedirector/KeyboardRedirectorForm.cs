@@ -365,9 +365,12 @@ namespace KeyboardRedirector
                 if (_keysToHookRemovedWithoutBlocking >= 5)
                 {
                     // found a problem
-                    MessageBox.Show(this, "KeyboardRedirector detected that it's keyboard hooks are not working correctly." + Environment.NewLine + "You may need to restart KeyboardRedirector", "KeyboardRedirector", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    //MessageBox.Show(this, "KeyboardRedirector detected that it's keyboard hooks are not working correctly." + Environment.NewLine + "You may need to restart KeyboardRedirector", "KeyboardRedirector", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    WriteEvent("Detected hooks not working correctly. Restarting hooks." + Environment.NewLine);
+                    KeyboardHookExternal.Current.RestartHooks();
                 }
                 // Reset counters
+                _keysToHook.Clear();
                 _keysToHookAdded = 0;
                 _keysToHookRemovedWithoutBlocking = 0;
             }

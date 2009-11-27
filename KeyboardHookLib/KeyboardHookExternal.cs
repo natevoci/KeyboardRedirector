@@ -52,6 +52,7 @@ namespace KeyboardRedirector
             }
         }
 
+        private IntPtr _hwnd = IntPtr.Zero;
         private uint _hookMessage = 0;
         private uint _hookMessageLowLevel = 0;
         private Process _hookProcess = null;
@@ -113,6 +114,7 @@ namespace KeyboardRedirector
             if (_hookProcess.HasExited)
                 return false;
 
+            _hwnd = hwnd;
             _hookMessage = message;
             _hookMessageLowLevel = messageLowLevel;
 
@@ -132,6 +134,16 @@ namespace KeyboardRedirector
             }
 
             return true;
+        }
+
+        public void RestartHooks()
+        {
+            IntPtr hwnd = _hwnd;
+            uint hookMessage = _hookMessage;
+            uint hookMessageLowLevel = _hookMessageLowLevel;
+
+            ClearHook();
+            SetHook(hwnd, hookMessage, hookMessageLowLevel);
         }
 
         public static bool Is64Bit()

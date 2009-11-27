@@ -47,10 +47,18 @@ namespace KeyboardRedirector
                 return;
             }
 
+            AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
+
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             //Application.Run(new Form1());
             Application.Run(new KeyboardRedirectorForm());
+        }
+
+        static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            Exception ex = e.ExceptionObject as Exception;
+            Log.LogException(ex);
         }
 
         static bool IsThereAnInstanceOfThisProgramAlreadyRunning(bool activateThePreviousInstance)
