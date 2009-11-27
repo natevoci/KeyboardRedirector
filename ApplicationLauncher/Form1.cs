@@ -353,5 +353,24 @@ namespace ApplicationLauncher
             return base.ProcessDialogKey(keyData);
         }
 
+        private void ApplicationLauncherForm_Activated(object sender, EventArgs e)
+        {
+            if (_windows != null)
+            {
+                _windows.Refresh();
+                _windows.Windows.Sort(new WindowSorter(SortOrder.Ascending));
+
+                RebuildListRunning();
+
+                IntPtr lastForegroundHwnd = GetLastForegroundWindow();
+                foreach (DesktopWindows.Window window in _windows.Windows)
+                {
+                    if (window.Hwnd == lastForegroundHwnd)
+                        buttonListControlRunning.SelectObject(window);
+                }
+            }
+
+        }
+
     }
 }

@@ -194,6 +194,7 @@
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Load += new System.EventHandler(this.ApplicationLauncherForm_Load);
             this.SizeChanged += new System.EventHandler(this.ApplicationLauncherForm_SizeChanged);
+            this.Activated += new System.EventHandler(this.ApplicationLauncherForm_Activated);
             this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.ApplicationLauncherForm_MouseDown);
             this.Move += new System.EventHandler(this.ApplicationLauncherForm_Move);
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.ApplicationLauncherForm_FormClosing);
