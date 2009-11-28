@@ -151,6 +151,7 @@ namespace KeyboardRedirector
             }
         }
 
+        private Dictionary<uint, string> _cachedExecutableNames = new Dictionary<uint, string>();
         private string GetFocussedExecutable()
         {
             IntPtr hwnd = Win32.GetForegroundWindow();
@@ -164,7 +165,16 @@ namespace KeyboardRedirector
             uint processId = 0;
             Win32.GetWindowThreadProcessId(hwnd, out processId);
 
-            return Win32.GetProcessExecutableName((int)processId);
+            if (_cachedExecutableNames.ContainsKey(processId))
+            {
+                return _cachedExecutableNames[processId];
+            }
+            else
+            {
+                string name = Win32.GetProcessExecutableName((int)processId);
+                _cachedExecutableNames.Add(processId, name);
+                return name;
+            }
         }
 
 
