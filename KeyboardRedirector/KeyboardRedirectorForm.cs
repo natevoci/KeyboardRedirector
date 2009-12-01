@@ -583,7 +583,8 @@ namespace KeyboardRedirector
                 // Update the keyboard nodes
                 if (treeViewKeys.Nodes.Count == 0)
                 {
-                    TreeNode node = new TreeNode("Device Assignment");
+                    TreeNode node = new TreeNode("Settings");
+                    node.Tag = "Settings";
                     node.ImageIndex = 5;
                     node.SelectedImageIndex = 5;
                     treeViewKeys.Nodes.Add(node);
@@ -592,7 +593,7 @@ namespace KeyboardRedirector
                 List<TreeNode> staleKeyboardNodes = new List<TreeNode>();
                 foreach (TreeNode node in treeViewKeys.Nodes)
                 {
-                    if (node.Text == "Device Assignment")
+                    if ((node.Tag as string) == "Settings")
                         continue;
                     staleKeyboardNodes.Add(node);
                 }
@@ -778,41 +779,7 @@ namespace KeyboardRedirector
             {
                 panelKeyboardProperties.Visible = true;
 
-                StringBuilder details = new StringBuilder();
-
-                List<SettingsKeyboardDevice> keyboardDevices = Settings.Current.KeyboardDevices.FindByKeyboardId(keyboard.KeyboardId);
-                foreach (SettingsKeyboardDevice keyboardDevice in keyboardDevices)
-                {
-                    DeviceInformation deviceInformation = FindKeyboardDeviceInformation(keyboardDevice.DeviceName);
-                    if (deviceInformation == null)
-                    {
-                        details.AppendLine("Device not present: " + keyboardDevice.DeviceName);
-                    }
-                    else
-                    {
-                        details.AppendLine("Device: " + keyboardDevice.DeviceName);
-                    }
-                }
-                if (keyboardDevices.Count == 0)
-                {
-                    details.AppendLine("No devices attached to this keyboard.");
-                }
-                details.Remove(details.Length - 2, 2);
-
-                if (keyboard == Settings.Current.LowLevelKeyboard)
-                {
-                    panelKeyboardProperties.Enabled = false;
-                    textBoxKeyboardDetails.Text = "Low level keyboard hook";
-                }
-                else
-                {
-                    panelKeyboardProperties.Enabled = true;
-                    textBoxKeyboardDetails.Text = details.ToString();
-                }
-                textBoxKeyboardName.Text = keyboard.Name;
-
-                checkBoxCaptureAllKeys.Checked = keyboard.CaptureAllKeys;
-
+                RefreshKeyboardDetails();
             }
             else if (key != null)
             {
@@ -820,7 +787,7 @@ namespace KeyboardRedirector
 
                 RefreshKeyDetails();
             }
-            else if (e.Node.Text == "Device Assignment")
+            else if ((e.Node.Tag as string) == "Settings")
             {
                 panelDevices.Visible = true;
 
@@ -867,21 +834,27 @@ namespace KeyboardRedirector
                 if (keyboard.KeyboardId == 0)   // Low Level
                 {
                     deleteToolStripMenuItem.Visible = false;
-                    removeAllKeysToolStripMenuItem.Visible = true;
-                    executeActionsToolStripMenuItem.Visible = false;
                 }
                 else
                 {
                     deleteToolStripMenuItem.Visible = true;
-                    removeAllKeysToolStripMenuItem.Visible = true;
-                    executeActionsToolStripMenuItem.Visible = false;
                 }
+                removeAllKeysToolStripMenuItem.Visible = true;
+                executeActionsToolStripMenuItem.Visible = false;
+
+                toolStripMenuItemImportExportSplitter.Visible = true;
+                importToolStripMenuItem.Visible = true;
+                exportToolStripMenuItem.Visible = true;
             }
             else
             {
                 deleteToolStripMenuItem.Visible = true;
                 removeAllKeysToolStripMenuItem.Visible = false;
                 executeActionsToolStripMenuItem.Visible = true;
+
+                toolStripMenuItemImportExportSplitter.Visible = false;
+                importToolStripMenuItem.Visible = false;
+                exportToolStripMenuItem.Visible = false;
             }
         }
 
@@ -900,6 +873,15 @@ namespace KeyboardRedirector
             ExecuteActionsFromTreeViewKey();
         }
 
+        private void importToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            ImportSelectedTreeViewKeyboard();
+        }
+
+        private void exportToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            ExportSelectedTreeViewKeyboard();
+        }
 
         private SettingsKeyboard GetSelectedKeyboardFromTreeView()
         {
@@ -966,6 +948,122 @@ namespace KeyboardRedirector
             {
                 _actionPerformer.EnqueueKey(key, true);
             }
+        }
+
+        private void ExportSelectedTreeViewKeyboard()
+        {
+            SettingsKeyboard keyboard = GetSelectedKeyboardFromTreeView();
+            if (keyboard != null)
+            {
+                SaveFileDialog sfd = new SaveFileDialog();
+                sfd.Filter = "Xml Files (*.xml)|*.xml|All Files (*.*)|*.*";
+                sfd.DefaultExt = "xml";
+                DialogResult result = sfd.ShowDialog(this);
+                if (result == DialogResult.OK)
+                {
+                    XMLFileStore<SettingsKeyboardExport> fileStore = new XMLFileStore<SettingsKeyboardExport>(sfd.FileName);
+                    SettingsKeyboardExport export = new SettingsKeyboardExport();
+                    export.Keyboard = keyboard;
+                    foreach (SettingsKeyboardKey key in keyboard.Keys)
+                    {
+                        foreach (SettingsKeyboardKeyFocusedApplication focussedApp in key.FocusedApplications)
+                        {
+                            if (focussedApp.ApplicationName == "Default")
+                                continue;
+                            SettingsApplication app = export.Applications.FindByName(focussedApp.ApplicationName);
+                            if (app == null)
+                            {
+                                export.Applications.Add(focussedApp.Application);
+                            }
+                        }
+                    }
+
+                    fileStore.SetData(export);
+                    fileStore.Save();
+                }
+            }
+        }
+
+        private void ImportSelectedTreeViewKeyboard()
+        {
+            SettingsKeyboard keyboard = GetSelectedKeyboardFromTreeView();
+            if (keyboard != null)
+            {
+                DialogResult result;
+                result = MessageBox.Show(this, "Warning: Importing a keyboard from a file will replace any existing key definitions", "Keyboard Redirector", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning);
+                if (result == DialogResult.Cancel)
+                    return;
+
+                OpenFileDialog ofd = new OpenFileDialog();
+                ofd.Filter = "Xml Files (*.xml)|*.xml|All Files (*.*)|*.*";
+                ofd.Multiselect = false;
+                result = ofd.ShowDialog(this);
+                if (result == DialogResult.OK)
+                {
+                    XMLFileStore<SettingsKeyboardExport> fileStore = new XMLFileStore<SettingsKeyboardExport>(ofd.FileName);
+
+                    foreach (SettingsApplication application in fileStore.Data.Applications)
+                    {
+                        SettingsApplication app = Settings.Current.Applications.FindByName(application.Name);
+                        if (app == null)
+                        {
+                            Settings.Current.Applications.Add(application);
+                        }
+                    }
+
+                    if (keyboard.KeyboardId != 0)
+                        keyboard.Name = fileStore.Data.Keyboard.Name;
+                    keyboard.CaptureAllKeys = fileStore.Data.Keyboard.CaptureAllKeys;
+                    keyboard.Keys.Clear();
+                    keyboard.Keys.AddRange(fileStore.Data.Keyboard.Keys);
+                    Settings.Save();
+                    RefreshTreeView();
+                    RefreshKeyboardDetails();
+                }
+
+            }
+        }
+
+        private void RefreshKeyboardDetails()
+        {
+            SettingsKeyboard keyboard = GetSelectedKeyboardFromTreeView();
+            if (keyboard == null)
+                return;
+
+            StringBuilder details = new StringBuilder();
+
+            if (keyboard == Settings.Current.LowLevelKeyboard)
+            {
+                panelKeyboardProperties.Enabled = false;
+                textBoxKeyboardDetails.Text = "Low level keyboard hook";
+            }
+            else
+            {
+                List<SettingsKeyboardDevice> keyboardDevices = Settings.Current.KeyboardDevices.FindByKeyboardId(keyboard.KeyboardId);
+                foreach (SettingsKeyboardDevice keyboardDevice in keyboardDevices)
+                {
+                    DeviceInformation deviceInformation = FindKeyboardDeviceInformation(keyboardDevice.DeviceName);
+                    if (deviceInformation == null)
+                    {
+                        details.AppendLine("Device not present: " + keyboardDevice.DeviceName);
+                    }
+                    else
+                    {
+                        details.AppendLine("Device: " + keyboardDevice.DeviceName);
+                    }
+                }
+                if (keyboardDevices.Count == 0)
+                {
+                    details.AppendLine("No devices attached to this keyboard.");
+                }
+                details.Remove(details.Length - 2, 2);
+
+                panelKeyboardProperties.Enabled = true;
+                textBoxKeyboardDetails.Text = details.ToString();
+            }
+            textBoxKeyboardName.Text = keyboard.Name;
+
+            checkBoxCaptureAllKeys.Checked = keyboard.CaptureAllKeys;
         }
 
         private void RefreshKeyDetails()
@@ -1136,9 +1234,15 @@ namespace KeyboardRedirector
             // Only enable remove app button if any but the default app are selected
             if ((listViewApplicationsInFocus.SelectedIndices.Count == 1) &&
                 (listViewApplicationsInFocus.SelectedIndices[0] > 0))
+            {
+                buttonEditApplication.Enabled = true;
                 buttonRemoveApplication.Enabled = true;
+            }
             else
+            {
+                buttonEditApplication.Enabled = false;
                 buttonRemoveApplication.Enabled = false;
+            }
         }
 
         private void buttonAddApplications_Click(object sender, EventArgs e)
@@ -1158,6 +1262,29 @@ namespace KeyboardRedirector
             SettingsKeyboardKeyFocusedApplication focusedApplication = new SettingsKeyboardKeyFocusedApplication();
             focusedApplication.Application = dialog.SelectedApplication;
             key.FocusedApplications.Add(focusedApplication);
+            Settings.Save();
+
+            RefreshApplicationsList();
+        }
+
+        private void buttonEditApplication_Click(object sender, EventArgs e)
+        {
+            SettingsKeyboardKey key = GetSelectedKeyFromTreeView();
+            if (key == null)
+                throw new NullReferenceException("Selected key value missing");
+
+            SettingsKeyboardKeyFocusedApplication app = listViewApplicationsInFocus.SelectedItem as SettingsKeyboardKeyFocusedApplication;
+            if (app == null)
+                throw new NullReferenceException("Focussed application value missing");
+
+            EditApplicationsDialog dialog = new EditApplicationsDialog();
+            dialog.SelectedApplication = app.Application;
+            DialogResult result = dialog.ShowDialog(this);
+            if (result != DialogResult.OK)
+                return;
+
+            app.Application = dialog.SelectedApplication;
+
             Settings.Save();
 
             RefreshApplicationsList();
@@ -1358,6 +1485,15 @@ namespace KeyboardRedirector
                 }
             }
         }
+
+        private void buttonEditApplications_Click(object sender, EventArgs e)
+        {
+            EditApplicationsDialog dialog = new EditApplicationsDialog();
+            DialogResult result = dialog.ShowDialog(this);
+            if (result != DialogResult.OK)
+                return;
+        }
+
 
 
     }

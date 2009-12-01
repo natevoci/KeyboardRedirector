@@ -48,6 +48,11 @@ namespace KeyboardRedirector
             EnsureXmlStoreExists();
             _xmlStore.Save();
         }
+        public static void RevertToSaved()
+        {
+            EnsureXmlStoreExists();
+            _xmlStore.Reload();
+        }
         public static Settings Current
         {
             get
@@ -107,8 +112,10 @@ namespace KeyboardRedirector
     {
         public string Name = "New Application";
 
+        public bool UseWindowTitle = false;
         public string WindowTitle = "";
-        public string ClassName = "";
+
+        public bool UseExecutable = false;
         public string Executable = "";
 
         public override string ToString()
@@ -194,7 +201,11 @@ namespace KeyboardRedirector
         }
     }
 
-
+    public class SettingsKeyboardExport
+    {
+        public SettingsKeyboard Keyboard;
+        public SettingsApplicationList Applications = new SettingsApplicationList();
+    }
 
     public class SettingsKeyboardKeyList : List<SettingsKeyboardKey>
     {
@@ -292,11 +303,24 @@ namespace KeyboardRedirector
             }
             return null;
         }
-        public SettingsKeyboardKeyFocusedApplication FindByExecutable(string executable)
+        public SettingsKeyboardKeyFocusedApplication FindByExecutable(string windowTitle, string executable)
         {
             foreach (SettingsKeyboardKeyFocusedApplication app in this)
             {
-                if (string.Equals(app.Application.Executable, executable, StringComparison.CurrentCultureIgnoreCase))
+                bool use = true;
+                bool tested = false;
+                if (app.Application.UseExecutable)
+                {
+                    use &= (string.Equals(app.Application.Executable, executable, StringComparison.CurrentCultureIgnoreCase));
+                    tested = true;
+                }
+                if (app.Application.UseWindowTitle)
+                {
+                    use &= (string.Equals(app.Application.WindowTitle, windowTitle, StringComparison.CurrentCultureIgnoreCase));
+                    tested = true;
+                }
+
+                if (use && tested)
                     return app;
             }
             return null;

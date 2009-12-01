@@ -64,6 +64,9 @@ namespace KeyboardRedirector
             RefreshApplicationsList();
             listViewApplications.SelectedIndices.Clear();
             listViewApplications.SelectedIndices.Add(0);
+
+            if (_selectedApplication != null)
+                listViewApplications.SelectedItem = _selectedApplication;
         }
 
         private void RefreshApplicationsList()
@@ -99,6 +102,12 @@ namespace KeyboardRedirector
             Settings.Save();
         }
 
+        private void buttonCancel_Click(object sender, EventArgs e)
+        {
+            _selectedApplication = null;
+            Settings.RevertToSaved();
+        }
+
         private void listViewApplications_SelectedIndexChanged(object sender, EventArgs e)
         {
             SettingsApplication app = listViewApplications.SelectedItem as SettingsApplication;
@@ -107,8 +116,14 @@ namespace KeyboardRedirector
                 buttonRemove.Enabled = false;
                 textBoxApplicationName.Text = "";
                 textBoxApplicationName.Enabled = false;
+                textBoxWindowTitle.Text = "";
+                textBoxWindowTitle.Enabled = false;
+                checkBoxUseWindowTitle.Checked = false;
+                checkBoxUseWindowTitle.Enabled = false;
                 textBoxExecutable.Text = "";
                 textBoxExecutable.Enabled = false;
+                checkBoxUseExecutable.Checked = false;
+                checkBoxUseExecutable.Enabled = false;
                 buttonBrowse.Enabled = false;
                 //labelFindFromWindow.Enabled = false;
             }
@@ -117,8 +132,14 @@ namespace KeyboardRedirector
                 buttonRemove.Enabled = false;
                 textBoxApplicationName.Text = "Default";
                 textBoxApplicationName.Enabled = false;
+                textBoxWindowTitle.Text = "";
+                textBoxWindowTitle.Enabled = false;
+                checkBoxUseWindowTitle.Checked = false;
+                checkBoxUseWindowTitle.Enabled = false;
                 textBoxExecutable.Text = "";
                 textBoxExecutable.Enabled = false;
+                checkBoxUseExecutable.Checked = false;
+                checkBoxUseExecutable.Enabled = false;
                 buttonBrowse.Enabled = false;
                 //labelFindFromWindow.Enabled = false;
             }
@@ -127,8 +148,14 @@ namespace KeyboardRedirector
                 buttonRemove.Enabled = true;
                 textBoxApplicationName.Text = app.Name;
                 textBoxApplicationName.Enabled = true;
+                textBoxWindowTitle.Text = app.WindowTitle;
+                textBoxWindowTitle.Enabled = true;
+                checkBoxUseWindowTitle.Checked = app.UseWindowTitle;
+                checkBoxUseWindowTitle.Enabled = true;
                 textBoxExecutable.Text = app.Executable;
                 textBoxExecutable.Enabled = true;
+                checkBoxUseExecutable.Checked = app.UseExecutable;
+                checkBoxUseExecutable.Enabled = true;
                 buttonBrowse.Enabled = true;
                 //labelFindFromWindow.Enabled = true;
             }
@@ -137,7 +164,6 @@ namespace KeyboardRedirector
         private void buttonAdd_Click(object sender, EventArgs e)
         {
             Settings.Current.Applications.Add(new SettingsApplication());
-            Settings.Save();
             RefreshApplicationsList();
             listViewApplications.SelectedIndices.Clear();
             listViewApplications.SelectedIndices.Add(listViewApplications.Items.Count - 1);
@@ -149,7 +175,6 @@ namespace KeyboardRedirector
             if (app == null)
                 return;
             Settings.Current.Applications.Remove(app);
-            Settings.Save();
             RefreshApplicationsList();
         }
 
@@ -161,6 +186,33 @@ namespace KeyboardRedirector
                 return;
 
             app.Name = textBoxApplicationName.Text;
+        }
+
+        private void checkBoxUseWindowTitle_CheckedChanged(object sender, EventArgs e)
+        {
+            SettingsApplication app = listViewApplications.SelectedItem as SettingsApplication;
+            if (app == null)
+                return;
+
+            app.UseWindowTitle = checkBoxUseWindowTitle.Checked;
+        }
+
+        private void textBoxWindowTitle_TextChanged(object sender, EventArgs e)
+        {
+            SettingsApplication app = listViewApplications.SelectedItem as SettingsApplication;
+            if (app == null)
+                return;
+
+            app.WindowTitle = textBoxWindowTitle.Text;
+        }
+
+        private void checkBoxUseExecutable_CheckedChanged(object sender, EventArgs e)
+        {
+            SettingsApplication app = listViewApplications.SelectedItem as SettingsApplication;
+            if (app == null)
+                return;
+
+            app.UseExecutable = checkBoxUseExecutable.Checked;
         }
 
         private void textBoxExecutable_TextChanged(object sender, EventArgs e)
@@ -228,7 +280,6 @@ namespace KeyboardRedirector
             SettingsApplication app = new SettingsApplication();
             app.Name = "Find Window";
             Settings.Current.Applications.Add(app);
-            Settings.Save();
             RefreshApplicationsList();
             listViewApplications.SelectedIndices.Clear();
             listViewApplications.SelectedIndices.Add(listViewApplications.Items.Count - 1);
@@ -247,7 +298,6 @@ namespace KeyboardRedirector
                     Settings.Current.Applications.Remove(app);
             }
 
-            Settings.Save();
             RefreshApplicationsList();
         }
         private void buttonFindFromWindow_MouseMove(object sender, MouseEventArgs e)
@@ -292,11 +342,14 @@ namespace KeyboardRedirector
                     string name = process.ProcessName;
                     string executable = Win32.GetProcessExecutableName(process.Id);
                     
-                    //StringBuilder windowTitle = new StringBuilder("1024");
-                    //Win32.GetWindowText(hwnd, windowTitle, windowTitle.Capacity);
+                    StringBuilder windowTitle = new StringBuilder(Win32.GETWINDOWTEXT_MAXLENGTH);
+                    Win32.GetWindowText(hwnd, windowTitle, windowTitle.Capacity);
+                    textBoxWindowTitle.Text = windowTitle.ToString();
+                    checkBoxUseWindowTitle.Checked = false;
 
                     textBoxApplicationName.Text = name;
                     textBoxExecutable.Text = executable;
+                    checkBoxUseExecutable.Checked = true;
 
                     _findFromWindowValid = true;
                 }

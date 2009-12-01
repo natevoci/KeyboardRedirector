@@ -50,6 +50,9 @@ namespace IconExtractor
 
         public Icon ExtractAssociatedIcon(string filename)
         {
+            if (System.IO.File.Exists(filename) == false)
+                return null;
+
             int index = 0;
             StringBuilder sbFilename = new StringBuilder(260);
             sbFilename.Append(filename);
@@ -67,6 +70,9 @@ namespace IconExtractor
 
         public Icon LoadIcon(string filename, LoadIconFlags flags)
         {
+            if (System.IO.File.Exists(filename) == false)
+                return null;
+
             SHFILEINFO fileinfo = new SHFILEINFO();
             SHGFIFLAGS gfiflags = SHGFIFLAGS.SHGFI_ICON;// | SHGFIFLAGS.SHGFI_ADDOVERLAYS;
             if ((flags & LoadIconFlags.LargeIcon) != 0)
@@ -86,6 +92,9 @@ namespace IconExtractor
 
         public Bitmap LoadThumbnailFromImageFactory(string filename, Size requestedSize, bool onlyThumbnail)
         {
+            if (System.IO.File.Exists(filename) == false)
+                return null;
+
             Bitmap bm1 = null;
             IntPtr hbitmap = IntPtr.Zero;
             SIZE sz = new SIZE(requestedSize.Width, requestedSize.Height);
@@ -156,6 +165,9 @@ namespace IconExtractor
 
         public Bitmap LoadThumbnailFromExtractImage(string filename, Size requestedSize)
         {
+            if (System.IO.File.Exists(filename) == false)
+                return null;
+
             Bitmap bm1 = null;
             IntPtr hbitmap = IntPtr.Zero;
             SIZE sz = new SIZE(requestedSize.Width, requestedSize.Height);
@@ -242,6 +254,9 @@ namespace IconExtractor
 
         public Bitmap LoadImageFromExtractIcon(string filename)
         {
+            if (System.IO.File.Exists(filename) == false)
+                return null;
+
             Bitmap bm1 = null;
             IntPtr hbitmap = IntPtr.Zero;
 

@@ -117,10 +117,12 @@ namespace KeyboardRedirector
 
             if (info.KeyDown)
             {
-                string focussedExe = GetFocussedExecutable();
+                string focussedWindowTitle;
+                string focussedExecutable;
+                GetFocussedExecutable(out focussedWindowTitle, out focussedExecutable);
 
                 SettingsKeyboardKeyFocusedApplication application;
-                application = info.Key.FocusedApplications.FindByExecutable(focussedExe);
+                application = info.Key.FocusedApplications.FindByExecutable(focussedWindowTitle, focussedExecutable);
                 if (application == null)
                 {
                     if (info.Key.FocusedApplications.Count == 0)
@@ -152,28 +154,34 @@ namespace KeyboardRedirector
         }
 
         private Dictionary<uint, string> _cachedExecutableNames = new Dictionary<uint, string>();
-        private string GetFocussedExecutable()
+        private void GetFocussedExecutable(out string windowTitle, out string executable)
         {
+            windowTitle = null;
+            executable = null;
+
             IntPtr hwnd = Win32.GetForegroundWindow();
             if (hwnd == IntPtr.Zero)
-                return "";
+                return;
 
             hwnd = Win32.GetAncestor(hwnd, Win32.GA.ROOT);
             if (hwnd == IntPtr.Zero)
-                return "";
+                return;
+
+            StringBuilder windowTitleString = new StringBuilder(Win32.GETWINDOWTEXT_MAXLENGTH);
+            Win32.GetWindowText(hwnd, windowTitleString, windowTitleString.Capacity);
+            windowTitle = windowTitleString.ToString();
 
             uint processId = 0;
             Win32.GetWindowThreadProcessId(hwnd, out processId);
 
             if (_cachedExecutableNames.ContainsKey(processId))
             {
-                return _cachedExecutableNames[processId];
+                executable = _cachedExecutableNames[processId];
             }
             else
             {
-                string name = Win32.GetProcessExecutableName((int)processId);
-                _cachedExecutableNames.Add(processId, name);
-                return name;
+                executable = Win32.GetProcessExecutableName((int)processId);
+                _cachedExecutableNames.Add(processId, executable);
             }
         }
 

@@ -56,19 +56,23 @@ namespace KeyboardRedirector
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(EditApplicationsDialog));
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
-            this.listViewApplications = new KeyboardRedirector.BindingListView();
             this.imageListApplicationIcons = new System.Windows.Forms.ImageList(this.components);
             this.labelFindFromWindow = new System.Windows.Forms.Label();
             this.buttonRemove = new System.Windows.Forms.Button();
             this.buttonAdd = new System.Windows.Forms.Button();
+            this.checkBoxUseExecutable = new System.Windows.Forms.CheckBox();
+            this.checkBoxUseWindowTitle = new System.Windows.Forms.CheckBox();
             this.pictureBoxExeIcon = new System.Windows.Forms.PictureBox();
             this.buttonCancel = new System.Windows.Forms.Button();
             this.buttonOK = new System.Windows.Forms.Button();
             this.buttonBrowse = new System.Windows.Forms.Button();
+            this.textBoxWindowTitle = new System.Windows.Forms.TextBox();
             this.textBoxExecutable = new System.Windows.Forms.TextBox();
             this.textBoxApplicationName = new System.Windows.Forms.TextBox();
+            this.label1 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
+            this.listViewApplications = new KeyboardRedirector.BindingListView();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
             this.splitContainer1.SuspendLayout();
@@ -92,42 +96,21 @@ namespace KeyboardRedirector
             // 
             // splitContainer1.Panel2
             // 
+            this.splitContainer1.Panel2.Controls.Add(this.checkBoxUseExecutable);
+            this.splitContainer1.Panel2.Controls.Add(this.checkBoxUseWindowTitle);
             this.splitContainer1.Panel2.Controls.Add(this.pictureBoxExeIcon);
             this.splitContainer1.Panel2.Controls.Add(this.buttonCancel);
             this.splitContainer1.Panel2.Controls.Add(this.buttonOK);
             this.splitContainer1.Panel2.Controls.Add(this.buttonBrowse);
+            this.splitContainer1.Panel2.Controls.Add(this.textBoxWindowTitle);
             this.splitContainer1.Panel2.Controls.Add(this.textBoxExecutable);
             this.splitContainer1.Panel2.Controls.Add(this.textBoxApplicationName);
+            this.splitContainer1.Panel2.Controls.Add(this.label1);
             this.splitContainer1.Panel2.Controls.Add(this.label3);
             this.splitContainer1.Panel2.Controls.Add(this.label2);
-            this.splitContainer1.Size = new System.Drawing.Size(413, 257);
-            this.splitContainer1.SplitterDistance = 139;
+            this.splitContainer1.Size = new System.Drawing.Size(413, 275);
+            this.splitContainer1.SplitterDistance = 146;
             this.splitContainer1.TabIndex = 0;
-            // 
-            // listViewApplications
-            // 
-            this.listViewApplications.AllowColumnSort = false;
-            this.listViewApplications.AllowDrop = true;
-            this.listViewApplications.AllowReorder = false;
-            this.listViewApplications.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-                        | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
-            this.listViewApplications.DataSource = null;
-            this.listViewApplications.Filter = "";
-            this.listViewApplications.FullRowSelect = true;
-            this.listViewApplications.HideSelection = false;
-            this.listViewApplications.Location = new System.Drawing.Point(3, 3);
-            this.listViewApplications.MultiSelect = false;
-            this.listViewApplications.Name = "listViewApplications";
-            this.listViewApplications.OwnerDraw = true;
-            this.listViewApplications.SelectedIndex = -1;
-            this.listViewApplications.SelectedItem = null;
-            this.listViewApplications.Size = new System.Drawing.Size(205, 132);
-            this.listViewApplications.SmallImageList = this.imageListApplicationIcons;
-            this.listViewApplications.TabIndex = 0;
-            this.listViewApplications.UseCompatibleStateImageBehavior = false;
-            this.listViewApplications.View = System.Windows.Forms.View.Details;
-            this.listViewApplications.SelectedIndexChanged += new System.EventHandler(this.listViewApplications_SelectedIndexChanged);
             // 
             // imageListApplicationIcons
             // 
@@ -145,7 +128,7 @@ namespace KeyboardRedirector
             this.labelFindFromWindow.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.labelFindFromWindow.Location = new System.Drawing.Point(214, 58);
             this.labelFindFromWindow.Name = "labelFindFromWindow";
-            this.labelFindFromWindow.Size = new System.Drawing.Size(187, 77);
+            this.labelFindFromWindow.Size = new System.Drawing.Size(187, 84);
             this.labelFindFromWindow.TabIndex = 3;
             this.labelFindFromWindow.Text = "Click here and drag to find an application from it\'s window";
             this.labelFindFromWindow.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -175,9 +158,29 @@ namespace KeyboardRedirector
             this.buttonAdd.UseVisualStyleBackColor = true;
             this.buttonAdd.Click += new System.EventHandler(this.buttonAdd_Click);
             // 
+            // checkBoxUseExecutable
+            // 
+            this.checkBoxUseExecutable.AutoSize = true;
+            this.checkBoxUseExecutable.Location = new System.Drawing.Point(107, 67);
+            this.checkBoxUseExecutable.Name = "checkBoxUseExecutable";
+            this.checkBoxUseExecutable.Size = new System.Drawing.Size(15, 14);
+            this.checkBoxUseExecutable.TabIndex = 6;
+            this.checkBoxUseExecutable.UseVisualStyleBackColor = true;
+            this.checkBoxUseExecutable.CheckedChanged += new System.EventHandler(this.checkBoxUseExecutable_CheckedChanged);
+            // 
+            // checkBoxUseWindowTitle
+            // 
+            this.checkBoxUseWindowTitle.AutoSize = true;
+            this.checkBoxUseWindowTitle.Location = new System.Drawing.Point(107, 40);
+            this.checkBoxUseWindowTitle.Name = "checkBoxUseWindowTitle";
+            this.checkBoxUseWindowTitle.Size = new System.Drawing.Size(15, 14);
+            this.checkBoxUseWindowTitle.TabIndex = 3;
+            this.checkBoxUseWindowTitle.UseVisualStyleBackColor = true;
+            this.checkBoxUseWindowTitle.CheckedChanged += new System.EventHandler(this.checkBoxUseWindowTitle_CheckedChanged);
+            // 
             // pictureBoxExeIcon
             // 
-            this.pictureBoxExeIcon.Location = new System.Drawing.Point(85, 54);
+            this.pictureBoxExeIcon.Location = new System.Drawing.Point(85, 66);
             this.pictureBoxExeIcon.Name = "pictureBoxExeIcon";
             this.pictureBoxExeIcon.Size = new System.Drawing.Size(16, 16);
             this.pictureBoxExeIcon.TabIndex = 8;
@@ -187,21 +190,22 @@ namespace KeyboardRedirector
             // 
             this.buttonCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.buttonCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.buttonCancel.Location = new System.Drawing.Point(326, 79);
+            this.buttonCancel.Location = new System.Drawing.Point(326, 90);
             this.buttonCancel.Name = "buttonCancel";
             this.buttonCancel.Size = new System.Drawing.Size(75, 23);
-            this.buttonCancel.TabIndex = 6;
+            this.buttonCancel.TabIndex = 10;
             this.buttonCancel.Text = "Cancel";
             this.buttonCancel.UseVisualStyleBackColor = true;
+            this.buttonCancel.Click += new System.EventHandler(this.buttonCancel_Click);
             // 
             // buttonOK
             // 
             this.buttonOK.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.buttonOK.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.buttonOK.Location = new System.Drawing.Point(245, 79);
+            this.buttonOK.Location = new System.Drawing.Point(245, 90);
             this.buttonOK.Name = "buttonOK";
             this.buttonOK.Size = new System.Drawing.Size(75, 23);
-            this.buttonOK.TabIndex = 5;
+            this.buttonOK.TabIndex = 9;
             this.buttonOK.Text = "OK";
             this.buttonOK.UseVisualStyleBackColor = true;
             this.buttonOK.Click += new System.EventHandler(this.buttonOK_Click);
@@ -209,22 +213,33 @@ namespace KeyboardRedirector
             // buttonBrowse
             // 
             this.buttonBrowse.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonBrowse.Location = new System.Drawing.Point(373, 51);
+            this.buttonBrowse.Location = new System.Drawing.Point(373, 64);
             this.buttonBrowse.Name = "buttonBrowse";
             this.buttonBrowse.Size = new System.Drawing.Size(28, 21);
-            this.buttonBrowse.TabIndex = 4;
+            this.buttonBrowse.TabIndex = 8;
             this.buttonBrowse.Text = "...";
             this.buttonBrowse.UseVisualStyleBackColor = true;
             this.buttonBrowse.Click += new System.EventHandler(this.buttonBrowse_Click);
+            // 
+            // textBoxWindowTitle
+            // 
+            this.textBoxWindowTitle.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.textBoxWindowTitle.Location = new System.Drawing.Point(128, 37);
+            this.textBoxWindowTitle.Name = "textBoxWindowTitle";
+            this.textBoxWindowTitle.Size = new System.Drawing.Size(239, 21);
+            this.textBoxWindowTitle.TabIndex = 4;
+            this.textBoxWindowTitle.TextChanged += new System.EventHandler(this.textBoxWindowTitle_TextChanged);
+            this.textBoxWindowTitle.Leave += new System.EventHandler(this.textBoxExecutable_Leave);
             // 
             // textBoxExecutable
             // 
             this.textBoxExecutable.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBoxExecutable.Location = new System.Drawing.Point(107, 51);
+            this.textBoxExecutable.Location = new System.Drawing.Point(128, 64);
             this.textBoxExecutable.Name = "textBoxExecutable";
-            this.textBoxExecutable.Size = new System.Drawing.Size(260, 21);
-            this.textBoxExecutable.TabIndex = 3;
+            this.textBoxExecutable.Size = new System.Drawing.Size(239, 21);
+            this.textBoxExecutable.TabIndex = 7;
             this.textBoxExecutable.TextChanged += new System.EventHandler(this.textBoxExecutable_TextChanged);
             this.textBoxExecutable.Leave += new System.EventHandler(this.textBoxExecutable_Leave);
             // 
@@ -238,13 +253,22 @@ namespace KeyboardRedirector
             this.textBoxApplicationName.TabIndex = 1;
             this.textBoxApplicationName.TextChanged += new System.EventHandler(this.textBoxApplicationName_TextChanged);
             // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(12, 40);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(68, 13);
+            this.label1.TabIndex = 2;
+            this.label1.Text = "Window Title";
+            // 
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(12, 54);
+            this.label3.Location = new System.Drawing.Point(12, 67);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(60, 13);
-            this.label3.TabIndex = 2;
+            this.label3.TabIndex = 5;
             this.label3.Text = "Executable";
             // 
             // label2
@@ -256,12 +280,37 @@ namespace KeyboardRedirector
             this.label2.TabIndex = 0;
             this.label2.Text = "Application Name";
             // 
+            // listViewApplications
+            // 
+            this.listViewApplications.AllowColumnSort = false;
+            this.listViewApplications.AllowDrop = true;
+            this.listViewApplications.AllowReorder = false;
+            this.listViewApplications.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+                        | System.Windows.Forms.AnchorStyles.Left)
+                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.listViewApplications.DataSource = null;
+            this.listViewApplications.Filter = "";
+            this.listViewApplications.FullRowSelect = true;
+            this.listViewApplications.HideSelection = false;
+            this.listViewApplications.Location = new System.Drawing.Point(3, 3);
+            this.listViewApplications.MultiSelect = false;
+            this.listViewApplications.Name = "listViewApplications";
+            this.listViewApplications.OwnerDraw = true;
+            this.listViewApplications.SelectedIndex = -1;
+            this.listViewApplications.SelectedItem = null;
+            this.listViewApplications.Size = new System.Drawing.Size(205, 139);
+            this.listViewApplications.SmallImageList = this.imageListApplicationIcons;
+            this.listViewApplications.TabIndex = 0;
+            this.listViewApplications.UseCompatibleStateImageBehavior = false;
+            this.listViewApplications.View = System.Windows.Forms.View.Details;
+            this.listViewApplications.SelectedIndexChanged += new System.EventHandler(this.listViewApplications_SelectedIndexChanged);
+            // 
             // EditApplicationsDialog
             // 
             this.AcceptButton = this.buttonOK;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(413, 257);
+            this.ClientSize = new System.Drawing.Size(413, 275);
             this.Controls.Add(this.splitContainer1);
             this.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.Name = "EditApplicationsDialog";
@@ -293,5 +342,9 @@ namespace KeyboardRedirector
         private System.Windows.Forms.Label labelFindFromWindow;
         private System.Windows.Forms.PictureBox pictureBoxExeIcon;
         private System.Windows.Forms.Button buttonCancel;
+        private System.Windows.Forms.CheckBox checkBoxUseExecutable;
+        private System.Windows.Forms.CheckBox checkBoxUseWindowTitle;
+        private System.Windows.Forms.TextBox textBoxWindowTitle;
+        private System.Windows.Forms.Label label1;
     }
 }

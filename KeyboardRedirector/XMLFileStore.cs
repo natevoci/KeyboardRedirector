@@ -36,6 +36,7 @@ namespace KeyboardRedirector
         private T _data;
         private string _xmlFilename;
         private DateTime _lastModified;
+        private DateTime _lastModifiedLastChecked;
         private object _lock;
 
         public XMLFileStore(string xmlFilename)
@@ -43,6 +44,7 @@ namespace KeyboardRedirector
             _data = null;
             _xmlFilename = xmlFilename;
             _lastModified = DateTime.MinValue;
+            _lastModifiedLastChecked = DateTime.MinValue;
             _lock = new object();
         }
 
@@ -55,21 +57,41 @@ namespace KeyboardRedirector
             }
         }
 
+        public void SetData(T data)
+        {
+            _data = data;
+        }
+
+        public void Reload()
+        {
+            lock (_lock)
+            {
+                _lastModifiedLastChecked = DateTime.MinValue;
+                _data = null;
+                Load();
+            }
+        }
+
         private void Load()
         {
             lock (_lock)
             {
+                if (DateTime.Now.Subtract(_lastModifiedLastChecked).TotalSeconds < 1.0)
+                    return;
+                _lastModifiedLastChecked = DateTime.Now;
+
                 DateTime lastModified = DateTime.MinValue;
-                if (File.Exists(_xmlFilename))
+                bool fileExists = File.Exists(_xmlFilename);
+                if (fileExists)
                 {
                     lastModified = File.GetLastWriteTimeUtc(_xmlFilename);
                 }
 
                 if ((_data == null) || (lastModified > _lastModified))
                 {
-                    if (File.Exists(_xmlFilename))
+                    if (fileExists)
                     {
-                        _lastModified = File.GetLastWriteTimeUtc(_xmlFilename);
+                        _lastModified = lastModified;
                         try
                         {
                             using (Stream inStream = File.Open(_xmlFilename, FileMode.Open, FileAccess.Read, FileShare.Read))
