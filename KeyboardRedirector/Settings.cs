@@ -118,6 +118,8 @@ namespace KeyboardRedirector
         public bool UseExecutable = false;
         public string Executable = "";
 
+        public ImageEx ExecutableImage = new ImageEx();
+
         public override string ToString()
         {
             return Name;
@@ -311,7 +313,12 @@ namespace KeyboardRedirector
                 bool tested = false;
                 if (app.Application.UseExecutable)
                 {
-                    use &= (string.Equals(app.Application.Executable, executable, StringComparison.CurrentCultureIgnoreCase));
+                    string settingExe = app.Application.Executable;
+                    string focusedExe = executable;
+                    if (!settingExe.Contains(@"\"))
+                        focusedExe = System.IO.Path.GetFileName(executable);
+
+                    use &= (string.Equals(settingExe, focusedExe, StringComparison.CurrentCultureIgnoreCase));
                     tested = true;
                 }
                 if (app.Application.UseWindowTitle)

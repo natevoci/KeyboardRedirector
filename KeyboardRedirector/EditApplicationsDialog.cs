@@ -82,9 +82,15 @@ namespace KeyboardRedirector
             {
                 SettingsApplication application = item.Tag as SettingsApplication;
                 if (application.Name == "Default")
+                {
                     item.ImageIndex = 0;
+                }
                 else
+                {
+                    if (application.ExecutableImage.Image != null)
+                        _imageList.AddImage(application.Executable, application.ExecutableImage.Image);
                     item.ImageIndex = _imageList.GetExecutableIndex(application.Executable);
+                }
             }
 
             if (selectedIndex >= listViewApplications.Items.Count)
@@ -231,6 +237,7 @@ namespace KeyboardRedirector
             else
             {
                 pictureBoxExeIcon.Image = imageListApplicationIcons.Images[imageIndex];
+                app.ExecutableImage.Image = imageListApplicationIcons.Images[imageIndex];
             }
         }
         private void textBoxExecutable_Leave(object sender, EventArgs e)
@@ -262,7 +269,13 @@ namespace KeyboardRedirector
 
         private void SetExecutable(string executable)
         {
-            textBoxExecutable.Text = executable;
+            int imageIndex = _imageList.GetExecutableIndex(executable);
+            if (imageIndex > 1)
+            {
+                _imageList.AddImage(System.IO.Path.GetFileName(executable), imageListApplicationIcons.Images[imageIndex]);
+            }
+
+            textBoxExecutable.Text = System.IO.Path.GetFileName(executable);
             SettingsApplication newApplication = new SettingsApplication();
             if ((textBoxApplicationName.Text.Length == 0) || (textBoxApplicationName.Text == newApplication.Name))
                 textBoxApplicationName.Text = System.IO.Path.GetFileNameWithoutExtension(executable);
@@ -347,8 +360,14 @@ namespace KeyboardRedirector
                     textBoxWindowTitle.Text = windowTitle.ToString();
                     checkBoxUseWindowTitle.Checked = false;
 
+                    int imageIndex = _imageList.GetExecutableIndex(executable);
+                    if (imageIndex > 1)
+                    {
+                        _imageList.AddImage(System.IO.Path.GetFileName(executable), imageListApplicationIcons.Images[imageIndex]);
+                    }
+
                     textBoxApplicationName.Text = name;
-                    textBoxExecutable.Text = executable;
+                    textBoxExecutable.Text = System.IO.Path.GetFileName(executable);
                     checkBoxUseExecutable.Checked = true;
 
                     _findFromWindowValid = true;

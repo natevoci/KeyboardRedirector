@@ -65,18 +65,36 @@ namespace IconExtractor
             _preferLarge = preferLarge;
         }
 
+        public int AddImage(string executable, Image image)
+        {
+            executable = StripQuotes(executable);
+            string exe = GetExecutableKey(executable);
+
+            int index = ImageList.Images.Count;
+            if (_executables.ContainsKey(exe))
+            {
+                index = _executables[exe];
+                ImageList.Images[index] = image;
+            }
+            else
+            {
+                ImageList.Images.Add(image);
+                _executables.Add(exe, index);
+            }
+            return index;
+        }
+
         public int GetExecutableIndex(string executable)
         {
-            string exe = executable.ToLower();
-            if ((executable.Length >= 2) && executable.StartsWith("\"") && executable.EndsWith("\""))
-                executable = executable.Substring(1, executable.Length - 2);
+            executable = StripQuotes(executable);
+            string exe = GetExecutableKey(executable);
+
             if (_executables.ContainsKey(exe))
             {
                 return _executables[exe];
             }
             else
             {
-                int index = ImageList.Images.Count;
                 Size size = new Size(16, 16);
                 IconExtractor.LoadIconFlags flags = IconExtractor.LoadIconFlags.SmallIcon;
                 if (_preferLarge)
@@ -92,17 +110,23 @@ namespace IconExtractor
                     if (exeIcon == null)
                         return NonExistantImage;
 
-                    ImageList.Images.Add(exeIcon);
+                    bm = exeIcon.ToBitmap();
                 }
-                else
-                {
-                    ImageList.Images.Add(bm);
-                }
-                _executables.Add(exe, index);
-                return index;
+                return AddImage(executable, bm);
 
             }
+        }
 
+        private string StripQuotes(string executable)
+        {
+            if ((executable.Length >= 2) && executable.StartsWith("\"") && executable.EndsWith("\""))
+                executable = executable.Substring(1, executable.Length - 2);
+            return executable;
+        }
+
+        private string GetExecutableKey(string executable)
+        {
+            return StripQuotes(executable).ToLower();
         }
     }
 }

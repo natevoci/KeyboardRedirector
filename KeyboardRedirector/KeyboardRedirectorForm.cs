@@ -1216,9 +1216,15 @@ namespace KeyboardRedirector
                 SettingsKeyboardKeyFocusedApplication focussedApp = item.Tag as SettingsKeyboardKeyFocusedApplication;
 
                 if (focussedApp.Application.Name == "Default")
+                {
                     item.ImageIndex = 0;
+                }
                 else
+                {
+                    if (focussedApp.Application.ExecutableImage.Image != null)
+                        _imageList.AddImage(focussedApp.Application.Executable, focussedApp.Application.ExecutableImage.Image);
                     item.ImageIndex = _imageList.GetExecutableIndex(focussedApp.Application.Executable);
+                }
 
                 if (focussedApp == previouslySelectedApp)
                     selectIndex = item.Index;

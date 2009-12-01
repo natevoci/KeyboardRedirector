@@ -77,6 +77,7 @@
     <Compile Include="EditApplicationsDialog.Designer.cs">
       <DependentUpon>EditApplicationsDialog.cs</DependentUpon>
     </Compile>
+    <Compile Include="ImageEx.cs" />
     <Compile Include="InputDevice.cs" />
     <Compile Include="KeyboardRedirectorForm.cs">
       <SubType>Form</SubType>
