@@ -19,6 +19,9 @@ namespace ApplicationLauncher
 
         public ApplicationLauncherForm()
         {
+            string exeFilename = System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName;
+            this.Icon = System.Drawing.Icon.ExtractAssociatedIcon(exeFilename);
+
             InitializeComponent();
 
             buttonListControlRunning.ItemActivate += new ButtonListControl.ItemActivateEventHandler(buttonListControlRunning_ItemActivate);

@@ -46,7 +46,9 @@ echo ######################## Update-VersionNumbers ########################
 
     REM back up files that hold versions so they can be restored after the build
     REM  (this is just so that these files don't keep showing up in the svn commit dialog)
-    call exec copy /Y "..\KeyboardRedirector\Properties\AssemblyInfo.cs" ".\Temp\AssemblyInfo.cs"
+    call exec copy /Y "..\KeyboardRedirector\Properties\AssemblyInfo.cs" ".\Temp\KeyboardRedirectorAssemblyInfo.cs"
+	if not %ERRORLEVEL%==0 exit /B %ERRORLEVEL%
+    call exec copy /Y "..\ApplicationLauncher\Properties\AssemblyInfo.cs" ".\Temp\ApplicationLauncherAssemblyInfo.cs"
 	if not %ERRORLEVEL%==0 exit /B %ERRORLEVEL%
     call exec copy /Y "..\KeyboardHook\Hook.rc" ".\Temp\Hook.rc"
 	if not %ERRORLEVEL%==0 exit /B %ERRORLEVEL%
@@ -57,6 +59,9 @@ echo ######################## Update-VersionNumbers ########################
 	call exec ".\bin\fregex.exe" "s/AssemblyVersion.*$/AssemblyVersion(\"%VERSION%\")]/" "s/AssemblyFileVersion.*$/AssemblyFileVersion(\"%VERSION%\")]/" -i "..\KeyboardRedirector\Properties\AssemblyInfo.cs" -o "..\KeyboardRedirector\Properties\AssemblyInfo.cs"
 	if not %ERRORLEVEL%==0 exit /B %ERRORLEVEL%
 
+	call exec ".\bin\fregex.exe" "s/AssemblyVersion.*$/AssemblyVersion(\"%VERSION%\")]/" "s/AssemblyFileVersion.*$/AssemblyFileVersion(\"%VERSION%\")]/" -i "..\ApplicationLauncher\Properties\AssemblyInfo.cs" -o "..\ApplicationLauncher\Properties\AssemblyInfo.cs"
+	if not %ERRORLEVEL%==0 exit /B %ERRORLEVEL%
+    
 	call exec ".\bin\fregex.exe" "s/FILEVERSION .*$/FILEVERSION %VERSION_A%,%VERSION_B%,%VERSION_C%,%VERSION_D%/" "s/FileVersion\".*$/FileVersion\", \"%VERSION%\"/" -i "..\KeyboardHook\Hook.rc" -o "..\KeyboardHook\Hook.rc"
 	if not %ERRORLEVEL%==0 exit /B %ERRORLEVEL%
 	call exec ".\bin\fregex.exe" "s/PRODUCTVERSION .*$/PRODUCTVERSION %VERSION_A%,%VERSION_B%,%VERSION_C%,%VERSION_D%/" "s/ProductVersion\".*$/ProductVersion\", \"%VERSION%\"/" -i "..\KeyboardHook\Hook.rc" -o "..\KeyboardHook\Hook.rc"
@@ -90,9 +95,20 @@ echo ################## Build-KeyboardRedirector ##################
 	if not %ERRORLEVEL%==0 exit /B %ERRORLEVEL%
 
     REM restore AssemblyInfo.cs to original (unaltered version number)
-    call exec copy /Y ".\Temp\AssemblyInfo.cs" "..\KeyboardRedirector\Properties\AssemblyInfo.cs"
+    call exec copy /Y ".\Temp\KeyboardRedirectorAssemblyInfo.cs" "..\KeyboardRedirector\Properties\AssemblyInfo.cs"
 	if not %ERRORLEVEL%==0 exit /B %ERRORLEVEL%
     
+
+:Build-ApplicationLauncher
+echo ################## Build-ApplicationLauncher ##################
+
+	call exec "%VS9PATH%\devenv.exe" "..\ApplicationLauncher.sln" /rebuild "Release" /out devenv.log
+	if not %ERRORLEVEL%==0 exit /B %ERRORLEVEL%
+
+    REM restore AssemblyInfo.cs to original (unaltered version number)
+    call exec copy /Y ".\Temp\ApplicationLauncherAssemblyInfo.cs" "..\ApplicationLauncher\Properties\AssemblyInfo.cs"
+    if not %ERRORLEVEL%==0 exit /B %ERRORLEVEL%
+
 
 :CreateBuildOutput
 
@@ -102,11 +118,15 @@ echo ################## Build-KeyboardRedirector ##################
     if not exist "..\builds\KeyboardRedirector-%VERSION%" mkdir "..\builds\KeyboardRedirector-%VERSION%"
 	if not %ERRORLEVEL%==0 exit /B %ERRORLEVEL%
     
+    copy /Y "..\ApplicationLauncher\bin\ApplicationLauncher.exe" "..\builds\KeyboardRedirector-%VERSION%"
+    copy /Y "..\ApplicationLauncher\bin\*.dll" "..\builds\KeyboardRedirector-%VERSION%"
+
     copy /Y "..\KeyboardRedirector\bin\*.exe" "..\builds\KeyboardRedirector-%VERSION%"
     copy /Y "..\KeyboardRedirector\bin\*.dll" "..\builds\KeyboardRedirector-%VERSION%"
     if exist "..\builds\KeyboardRedirector-%VERSION%\KeyboardRedirector.vshost.exe" (
         del "..\builds\KeyboardRedirector-%VERSION%\KeyboardRedirector.vshost.exe"
     )
+    
     
 GOTO end
 
