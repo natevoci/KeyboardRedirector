@@ -295,7 +295,7 @@ namespace KeyboardRedirector
                 // Remove any old stale entries
                 while ((_keysToHook.Count > 0) && (DateTime.Now.Subtract(_keysToHook[0].SeenAt).TotalMilliseconds > 500))
                 {
-                    //Log.MainLog.WriteDebug("   - RemovingOldKey: " + _keysToHook[0].KeyCombo.ToString());
+                    Log.MainLog.WriteDebug("KeyboardHook_KeyEvent - Removing Stale Key: " + _keysToHook[0].Key.ToString());
                     _keysToHook.RemoveAt(0);
                     _keysToHookRemovedWithoutBlocking++;
                 }
@@ -385,9 +385,9 @@ namespace KeyboardRedirector
                     //MessageBox.Show(this, "KeyboardRedirector detected that it's keyboard hooks are not working correctly." + Environment.NewLine + "You may need to restart KeyboardRedirector", "KeyboardRedirector", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     WriteEvent("Detected hooks not working correctly. Restarting hooks." + Environment.NewLine);
                     KeyboardHookExternal.Current.RestartHooks();
+                    _keysToHook.Clear();
                 }
                 // Reset counters
-                _keysToHook.Clear();
                 _keysToHookAdded = 0;
                 _keysToHookRemovedWithoutBlocking = 0;
             }
