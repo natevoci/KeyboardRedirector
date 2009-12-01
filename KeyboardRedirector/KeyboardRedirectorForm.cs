@@ -508,7 +508,8 @@ namespace KeyboardRedirector
             string counter = (Utils.Time.GetTime() / 1000.0).ToString("0.000").PadLeft(8);
             message = counter + ":" + message;
             System.Diagnostics.Debug.Write(message);
-            richTextBoxEvents.AppendText(message);
+            if (checkBoxDisplayLogMessages.Checked)
+                richTextBoxEvents.AppendText(message);
             Log.MainLog.WriteInfo(message.TrimEnd('\r', '\n'));
         }
         private void WriteLowLevelEvent(string message)
@@ -516,7 +517,8 @@ namespace KeyboardRedirector
             string counter = (Utils.Time.GetTime() / 1000.0).ToString("0.000").PadLeft(8);
             message = counter + ":" + " LL" + message;
             System.Diagnostics.Debug.Write(message);
-            richTextBoxEvents.AppendText(message);
+            if (checkBoxDisplayLogMessages.Checked)
+                richTextBoxEvents.AppendText(message);
             Log.MainLog.WriteInfo(message.TrimEnd('\r', '\n'));
         }
         private void WriteHookEvent(string message)
@@ -524,7 +526,8 @@ namespace KeyboardRedirector
             string counter = (Utils.Time.GetTime() / 1000.0).ToString("0.000").PadLeft(8);
             message = counter + ":" + "   " + message;
             System.Diagnostics.Debug.Write(message);
-            richTextBoxEvents.AppendText(message);
+            if (checkBoxDisplayLogMessages.Checked)
+                richTextBoxEvents.AppendText(message);
             Log.MainLog.WriteInfo(message.TrimEnd('\r', '\n'));
         }
         private void WriteWMInputEvent(string message)
@@ -532,7 +535,8 @@ namespace KeyboardRedirector
             string counter = (Utils.Time.GetTime() / 1000.0).ToString("0.000").PadLeft(8);
             message = counter + ":" + "  " + message;
             System.Diagnostics.Debug.Write(message);
-            richTextBoxEvents.AppendText(message);
+            if (checkBoxDisplayLogMessages.Checked)
+                richTextBoxEvents.AppendText(message);
             Log.MainLog.WriteInfo(message.TrimEnd('\r', '\n'));
         }
 
@@ -769,6 +773,8 @@ namespace KeyboardRedirector
 
         private void treeViewKeys_AfterSelect(object sender, TreeViewEventArgs e)
         {
+            e.Node.NodeFont = new Font(treeViewKeys.Font, FontStyle.Bold);
+
             SettingsKeyboard keyboard = e.Node.Tag as SettingsKeyboard;
             SettingsKeyboardKey key = e.Node.Tag as SettingsKeyboardKey;
 
@@ -795,6 +801,13 @@ namespace KeyboardRedirector
                 RefreshDevicesListView();
             }
         }
+
+        private void treeViewKeys_BeforeSelect(object sender, TreeViewCancelEventArgs e)
+        {
+            if (treeViewKeys.SelectedNode != null)
+                treeViewKeys.SelectedNode.NodeFont = null;
+        }
+
 
         private void treeViewKeys_KeyUp(object sender, KeyEventArgs e)
         {
