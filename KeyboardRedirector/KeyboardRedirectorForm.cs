@@ -100,6 +100,8 @@ namespace KeyboardRedirector
             panelKeyboardProperties.Size = new Size(panelKeyboardProperties.Parent.Size.Width - 6, panelKeyboardProperties.Parent.Size.Height - 6);
             panelKeyProperties.Location = new Point(3, 3);
             panelKeyProperties.Size = new Size(panelKeyProperties.Parent.Size.Width - 6, panelKeyProperties.Parent.Size.Height - 6);
+            panelDevices.Location = new Point(3, 3);
+            panelDevices.Size = new Size(panelDevices.Parent.Size.Width - 6, panelDevices.Parent.Size.Height - 6);
 
             _actionPerformer = new ActionPerformer();
             _actionPerformer.StatusMessage += new ActionPerformer.StatusMessageHandler(_actionPerformer_StatusMessage);
@@ -179,20 +181,34 @@ namespace KeyboardRedirector
                     {
                         _keyboards.Add(new DeviceInformation(info));
 
-                        SettingsKeyboard keyboard = Settings.Current.Keyboards.FindByDeviceName(info.DeviceName);
-                        if (keyboard == null)
+                        lock (Settings.Current)
                         {
-                            keyboard = new SettingsKeyboard();
-                            keyboard.Name = info.Name;
-                            keyboard.DeviceName = info.DeviceName;
-                            Settings.Current.Keyboards.Add(keyboard);
-                            Settings.Save();
-                            WriteEvent("New Keyboard Added : " + keyboard.Name + Environment.NewLine);
-                        }
-                        else
-                        {
-                            WriteEvent("Keyboard Added : " + keyboard.Name + Environment.NewLine);
-                        }
+                            SettingsKeyboard keyboard = null;
+                            SettingsKeyboardDevice keyboardDevice = Settings.Current.KeyboardDevices.FindByDeviceName(info.DeviceName);
+                            if (keyboardDevice == null)
+                            {
+                                keyboardDevice = new SettingsKeyboardDevice();
+                                keyboardDevice.DeviceName = info.DeviceName;
+                                keyboardDevice.Name = info.Name;
+                                keyboardDevice.KeyboardId = Settings.Current.KeyboardDevices.MaxId() + 1;
+
+                                keyboard = new SettingsKeyboard();
+                                keyboard.Name = info.Name;
+                                keyboard.KeyboardId = keyboardDevice.KeyboardId;
+                                Settings.Current.Keyboards.Add(keyboard);
+                                Settings.Current.KeyboardDevices.Add(keyboardDevice);
+                                Settings.Save();
+                                WriteEvent("New Keyboard Added : " + keyboard.Name + Environment.NewLine);
+                            }
+                            else
+                            {
+                                keyboard = Settings.Current.Keyboards.FindByKeyboardId(keyboardDevice.KeyboardId);
+                                if (keyboard == null)
+                                    WriteEvent("Keyboard Not Used : " + keyboardDevice.DeviceName + Environment.NewLine);
+                                else
+                                    WriteEvent("Keyboard Added : " + keyboard.Name + Environment.NewLine);
+                            }
+                        }                        
                     }
                     else
                     {
@@ -202,7 +218,7 @@ namespace KeyboardRedirector
 
                 foreach (string deviceName in keyboardsBeforeRefresh)
                 {
-                    DeviceInformation deviceInformation = FindKeyboardDevice(deviceName);
+                    DeviceInformation deviceInformation = FindKeyboardDeviceInformation(deviceName);
                     _keyboards.Remove(deviceInformation);
 
                     WriteEvent("Keyboard Removed : " + deviceInformation.DeviceInfo.Name + Environment.NewLine);
@@ -425,49 +441,53 @@ namespace KeyboardRedirector
 
                 lock (Settings.Current)
                 {
-                    SettingsKeyboard keyboard = Settings.Current.Keyboards.FindByDeviceName(dInfo.DeviceName);
-                    if (keyboard != null)
+                    SettingsKeyboardDevice keyboardDevice = Settings.Current.KeyboardDevices.FindByDeviceName(dInfo.DeviceName);
+                    if (keyboardDevice != null)
                     {
-                        SettingsKeyboardKey settingsKey = keyboard.Keys.FindKey(keyCombo);
-
-                        if ((settingsKey != null) && settingsKey.Enabled)
+                        SettingsKeyboard keyboard = Settings.Current.Keyboards.FindByKeyboardId(keyboardDevice.KeyboardId);
+                        if (keyboard != null)
                         {
-                            // Intercept key if we need to
-                            if (keyboard.CaptureAllKeys || (keyCombo.KeyDown && settingsKey.Capture))
+                            SettingsKeyboardKey settingsKey = keyboard.Keys.FindKey(keyCombo);
+
+                            if ((settingsKey != null) && settingsKey.Enabled)
                             {
-                                lock (_keysToHook)
+                                // Intercept key if we need to
+                                if (keyboard.CaptureAllKeys || (keyCombo.KeyDown && settingsKey.Capture))
                                 {
-                                    //Log.MainLog.WriteDebug("RawInput-AddingKeyForCapture: " + keyCombo.ToString());
-                                    _keysToHook.Add(new KeyToHookInformation(keyCombo.KeyWithExtended));
-                                    _keysToHookAdded++;
+                                    lock (_keysToHook)
+                                    {
+                                        //Log.MainLog.WriteDebug("RawInput-AddingKeyForCapture: " + keyCombo.ToString());
+                                        _keysToHook.Add(new KeyToHookInformation(keyCombo.KeyWithExtended));
+                                        _keysToHookAdded++;
+                                    }
+                                }
+
+                                double currPressTime = Utils.Time.GetTime();
+                                double lastPressTime = 0.0;
+                                if (_antiRepeatTimes.ContainsKey(settingsKey))
+                                    lastPressTime = _antiRepeatTimes[settingsKey];
+
+                                if (currPressTime - lastPressTime > settingsKey.AntiRepeatTime)
+                                {
+                                    _antiRepeatTimes[settingsKey] = currPressTime;
+
+                                    _actionPerformer.EnqueueKey(settingsKey, keyDown);
+                                }
+                            }
+                            else
+                            {
+                                if (keyboard.CaptureAllKeys)
+                                {
+                                    lock (_keysToHook)
+                                    {
+                                        //Log.MainLog.WriteDebug("RawInput-AddingKeyForCaptureAll: " + keyCombo.ToString());
+                                        _keysToHook.Add(new KeyToHookInformation(keyCombo.KeyWithExtended));
+                                        _keysToHookAdded++;
+                                    }
                                 }
                             }
 
-                            double currPressTime = Utils.Time.GetTime();
-                            double lastPressTime = 0.0;
-                            if (_antiRepeatTimes.ContainsKey(settingsKey))
-                                lastPressTime = _antiRepeatTimes[settingsKey];
-
-                            if (currPressTime - lastPressTime > settingsKey.AntiRepeatTime)
-                            {
-                                _antiRepeatTimes[settingsKey] = currPressTime;
-
-                                _actionPerformer.EnqueueKey(settingsKey, keyDown);
-                            }
                         }
-                        else
-                        {
-                            if (keyboard.CaptureAllKeys)
-                            {
-                                lock (_keysToHook)
-                                {
-                                    //Log.MainLog.WriteDebug("RawInput-AddingKeyForCaptureAll: " + keyCombo.ToString());
-                                    _keysToHook.Add(new KeyToHookInformation(keyCombo.KeyWithExtended));
-                                    _keysToHookAdded++;
-                                }
-                            }
-                        }
-
                     }
                 }
             }
@@ -515,7 +535,7 @@ namespace KeyboardRedirector
             Log.MainLog.WriteInfo(message.TrimEnd('\r', '\n'));
         }
 
-        private DeviceInformation FindKeyboardDevice(string deviceName)
+        private DeviceInformation FindKeyboardDeviceInformation(string deviceName)
         {
             foreach (DeviceInformation info in _keyboards)
             {
@@ -561,10 +581,19 @@ namespace KeyboardRedirector
                 treeViewKeys.BeginUpdate();
 
                 // Update the keyboard nodes
+                if (treeViewKeys.Nodes.Count == 0)
+                {
+                    TreeNode node = new TreeNode("Device Assignment");
+                    node.ImageIndex = 5;
+                    node.SelectedImageIndex = 5;
+                    treeViewKeys.Nodes.Add(node);
+                }
 
                 List<TreeNode> staleKeyboardNodes = new List<TreeNode>();
                 foreach (TreeNode node in treeViewKeys.Nodes)
                 {
+                    if (node.Text == "Device Assignment")
+                        continue;
                     staleKeyboardNodes.Add(node);
                 }
 
@@ -592,12 +621,11 @@ namespace KeyboardRedirector
                     // Update node data
                     keyboardNode.Text = keyboard.Name;
 
-                    DeviceInformation deviceInformation = FindKeyboardDevice(keyboard.DeviceName);
                     int imageIndex = 0;
                     if (keyboard == Settings.Current.LowLevelKeyboard)
-                        imageIndex = 2;
-                    else if (deviceInformation == null)
-                        imageIndex = 1;
+                        imageIndex = 6;
+                    //else if (deviceInformation == null)
+                    //    imageIndex = 1;
                     else if (keyboard.CaptureAllKeys)
                         imageIndex = 3;
                     keyboardNode.ImageIndex = imageIndex;
@@ -674,6 +702,9 @@ namespace KeyboardRedirector
                 {
                     foreach (TreeNode node in collections[0])
                     {
+                        if (node.Tag == null)
+                            continue;
+
                         if (node.Tag.Equals(tag))
                             return node;
 
@@ -688,11 +719,15 @@ namespace KeyboardRedirector
 
         private void AddAndSelectKey(string deviceName, KeyCombination keyCombo)
         {
-            SettingsKeyboard keyboard;
+            SettingsKeyboard keyboard = null;
             if (deviceName == "LowLevel")
                 keyboard = Settings.Current.LowLevelKeyboard;
             else
-                keyboard = Settings.Current.Keyboards.FindByDeviceName(deviceName);
+            {
+                SettingsKeyboardDevice keyboardDevice = Settings.Current.KeyboardDevices.FindByDeviceName(deviceName);
+                if (keyboardDevice != null)
+                    keyboard = Settings.Current.Keyboards.FindByKeyboardId(keyboardDevice.KeyboardId);
+            }
             if (keyboard == null)
                 return;
 
@@ -737,23 +772,32 @@ namespace KeyboardRedirector
 
             panelKeyboardProperties.Visible = false;
             panelKeyProperties.Visible = false;
+            panelDevices.Visible = false;
 
             if (keyboard != null)
             {
                 panelKeyboardProperties.Visible = true;
 
                 StringBuilder details = new StringBuilder();
-                details.AppendLine("DeviceName: " + keyboard.DeviceName);
 
-                DeviceInformation deviceInformation = FindKeyboardDevice(keyboard.DeviceName);
-                if ((deviceInformation == null) || (deviceInformation.DeviceInfo == null))
+                List<SettingsKeyboardDevice> keyboardDevices = Settings.Current.KeyboardDevices.FindByKeyboardId(keyboard.KeyboardId);
+                foreach (SettingsKeyboardDevice keyboardDevice in keyboardDevices)
                 {
-                    details.Append("Device not present.");
+                    DeviceInformation deviceInformation = FindKeyboardDeviceInformation(keyboardDevice.DeviceName);
+                    if (deviceInformation == null)
+                    {
+                        details.AppendLine("Device not present: " + keyboardDevice.DeviceName);
+                    }
+                    else
+                    {
+                        details.AppendLine("Device: " + keyboardDevice.DeviceName);
+                    }
                 }
-                else
+                if (keyboardDevices.Count == 0)
                 {
-                    details.Append("DeviceDesc: " + deviceInformation.DeviceInfo.DeviceDesc);
+                    details.AppendLine("No devices attached to this keyboard.");
                 }
+                details.Remove(details.Length - 2, 2);
 
                 if (keyboard == Settings.Current.LowLevelKeyboard)
                 {
@@ -776,6 +820,31 @@ namespace KeyboardRedirector
 
                 RefreshKeyDetails();
             }
+            else if (e.Node.Text == "Device Assignment")
+            {
+                panelDevices.Visible = true;
+
+                listViewDevices.BeginUpdate();
+                listViewDevices.Items.Clear();
+                foreach (SettingsKeyboardDevice keyboardDevice in Settings.Current.KeyboardDevices)
+                {
+                    ListViewItem item = new ListViewItem(new string[] { keyboardDevice.Name, keyboardDevice.DeviceName });
+                    item.Tag = keyboardDevice;
+
+                    int imageIndex = 0;
+                    DeviceInformation deviceInformation = FindKeyboardDeviceInformation(keyboardDevice.DeviceName);
+                    if (deviceInformation == null)
+                        imageIndex = 1;
+
+                    item.ImageIndex = imageIndex;
+                    item.StateImageIndex = imageIndex;
+
+                    listViewDevices.Items.Add(item);
+                }
+                listViewDevices.EndUpdate();
+
+                BindListviewDevicesKeyboard();
+            }
         }
 
         private void treeViewKeys_KeyUp(object sender, KeyEventArgs e)
@@ -795,7 +864,7 @@ namespace KeyboardRedirector
             //SettingsKeyboardKey key = GetSelectedKeyFromTreeView();
             if (keyboard != null)
             {
-                if (keyboard.DeviceName == "LowLevel")
+                if (keyboard.KeyboardId == 0)   // Low Level
                 {
                     deleteToolStripMenuItem.Visible = false;
                     removeAllKeysToolStripMenuItem.Visible = true;
@@ -946,6 +1015,7 @@ namespace KeyboardRedirector
             }
 
         }
+
 
         private void checkBoxKeyEnabled_CheckedChanged(object sender, EventArgs e)
         {
@@ -1220,6 +1290,75 @@ namespace KeyboardRedirector
             //richTextBoxKeyEventsHook.Clear();
             //richTextBoxKeyEventsWMInput.Clear();
         }
+
+
+        private void listViewDevices_ItemSelectionChanged(object sender, ListViewItemSelectionChangedEventArgs e)
+        {
+            listViewDevicesKeyboard.Items.Clear();
+
+            if (e.IsSelected == false)
+                return;
+
+            BindListviewDevicesKeyboard();
+        }
+
+        private void BindListviewDevicesKeyboard()
+        {
+            listViewDevicesKeyboard.BeginUpdate();
+            listViewDevicesKeyboard.Items.Clear();
+
+
+            if (listViewDevices.SelectedItems.Count > 0)
+            {
+                SettingsKeyboardDevice keyboardDevice = listViewDevices.SelectedItems[0].Tag as SettingsKeyboardDevice;
+
+                foreach (SettingsKeyboard keyboard in Settings.Current.Keyboards)
+                {
+                    ListViewItem item = new ListViewItem(new string[] { keyboard.Name });
+                    item.Tag = keyboard;
+
+                    listViewDevicesKeyboard.Items.Add(item);
+
+                    if (keyboard.KeyboardId == keyboardDevice.KeyboardId)
+                        item.Checked = true;
+                }
+            }
+            listViewDevicesKeyboard.EndUpdate();
+        }
+
+        private void listViewDevicesKeyboard_ItemCheck(object sender, ItemCheckEventArgs e)
+        {
+            if (listViewDevices.SelectedItems.Count == 0)
+                return;
+
+            SettingsKeyboardDevice keyboardDevice = listViewDevices.SelectedItems[0].Tag as SettingsKeyboardDevice;
+            if (keyboardDevice == null)
+                return;
+
+            SettingsKeyboard keyboard = listViewDevicesKeyboard.Items[e.Index].Tag as SettingsKeyboard;
+            if (keyboard == null)
+                return;
+
+            if ((e.CurrentValue != CheckState.Checked) && (e.NewValue == CheckState.Checked))
+            {
+                if (keyboardDevice.KeyboardId != keyboard.KeyboardId)
+                {
+                    keyboardDevice.KeyboardId = keyboard.KeyboardId;
+                    Settings.Save();
+                    BindListviewDevicesKeyboard();
+                }
+            }
+            else if ((e.CurrentValue == CheckState.Checked) && (e.NewValue != CheckState.Checked))
+            {
+                if (keyboardDevice.KeyboardId != -1)
+                {
+                    keyboardDevice.KeyboardId = -1;
+                    Settings.Save();
+                    BindListviewDevicesKeyboard();
+                }
+            }
+        }
+
 
     }
 }

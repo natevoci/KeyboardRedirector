@@ -88,7 +88,6 @@ namespace IconExtractor
                 Bitmap bm = _iconExtractor.LoadThumbnailFromImageFactory(executable, size, false);
                 if (bm == null)
                 {
-                    //Icon exeIcon = Icon.ExtractAssociatedIcon(executable);
                     Icon exeIcon = _iconExtractor.LoadIcon(executable, flags);
                     if (exeIcon == null)
                         return NonExistantImage;

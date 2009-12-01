@@ -125,8 +125,6 @@ namespace KeyboardRedirector
         {
             if (_hookProcess != null)
             {
-                //Win32.SendMessage(_hookProcess.MainWindowHandle, (uint)Win32.WM.CLOSE, IntPtr.Zero, IntPtr.Zero);
-                //_hookProcess.WaitForExit();
                 if (_hookProcess.HasExited == false)
                     _hookProcess.Kill();
                 _hookProcess.Close();
@@ -188,11 +186,6 @@ namespace KeyboardRedirector
                 }
                 if (message.Msg == _hookMessageLowLevel)
                 {
-                    //Keys key = (Keys)message.LParam.ToInt32();
-                    //int msgId = message.WParam.ToInt32();
-                    //bool keyDown = ((msgId == (int)Win32.WM.KEYDOWN) ||
-                    //                (msgId == (int)Win32.WM.SYSKEYDOWN));
-
                     Keys key = (Keys)message.WParam.ToInt32();
 
                     long lParam = message.LParam.ToInt64();

@@ -67,6 +67,7 @@ namespace KeyboardRedirector
         #endregion
 
         public bool MinimizeOnStart = false;
+        public SettingsKeyboardDeviceList KeyboardDevices = new SettingsKeyboardDeviceList();
         public SettingsKeyboardList Keyboards = new SettingsKeyboardList();
         public SettingsKeyboard LowLevelKeyboard = new SettingsKeyboard();
         public SettingsApplicationList Applications = new SettingsApplicationList();
@@ -74,7 +75,7 @@ namespace KeyboardRedirector
         public Settings()
         {
             LowLevelKeyboard.Name = "Low Level";
-            LowLevelKeyboard.DeviceName = "LowLevel";
+            LowLevelKeyboard.KeyboardId = 0;
         }
     }
 
@@ -116,15 +117,54 @@ namespace KeyboardRedirector
         }
     }
 
+    public class SettingsKeyboardDeviceList : List<SettingsKeyboardDevice>
+    {
+        public SettingsKeyboardDevice FindByDeviceName(string deviceName)
+        {
+            foreach (SettingsKeyboardDevice kb in this)
+            {
+                if (kb.DeviceName == deviceName)
+                    return kb;
+            }
+            return null;
+        }
+        public List<SettingsKeyboardDevice> FindByKeyboardId(int id)
+        {
+            List<SettingsKeyboardDevice> result = new List<SettingsKeyboardDevice>();
+            foreach (SettingsKeyboardDevice kb in this)
+            {
+                if (kb.KeyboardId == id)
+                    result.Add(kb);
+            }
+            return result;
+        }
+        public int MaxId()
+        {
+            int id = 0;
+            foreach (SettingsKeyboardDevice kb in this)
+            {
+                if (kb.KeyboardId > id)
+                    id = kb.KeyboardId;
+            }
+            return id;
+        }
+    }
+    public class SettingsKeyboardDevice
+    {
+        public string DeviceName = "";
+        public string Name = "";
+        public int KeyboardId = 0;
+    }
+
 
 
     public class SettingsKeyboardList : List<SettingsKeyboard>
     {
-        public SettingsKeyboard FindByDeviceName(string deviceName)
+        public SettingsKeyboard FindByKeyboardId(int id)
         {
             foreach (SettingsKeyboard kb in this)
             {
-                if (kb.DeviceName == deviceName)
+                if (kb.KeyboardId == id)
                     return kb;
             }
             return null;
@@ -133,7 +173,7 @@ namespace KeyboardRedirector
     public class SettingsKeyboard
     {
         public string Name = "";
-        public string DeviceName = "";
+        public int KeyboardId = -1;
 
         public bool CaptureAllKeys = false;
 
@@ -142,11 +182,11 @@ namespace KeyboardRedirector
         public override bool Equals(object obj)
         {
             SettingsKeyboard objTyped = obj as SettingsKeyboard;
-            return ((objTyped != null) && (DeviceName == objTyped.DeviceName));
+            return ((objTyped != null) && (KeyboardId == objTyped.KeyboardId));
         }
         public override int GetHashCode()
         {
-            return DeviceName.GetHashCode();
+            return KeyboardId.GetHashCode();
         }
         public override string ToString()
         {
@@ -178,7 +218,7 @@ namespace KeyboardRedirector
             get { return _keyCodes; }
         }
 
-        public bool Enabled = false;
+        public bool Enabled = true;
         public bool Capture = true;
         public int AntiRepeatTime = 0;
         public string Name = "";
