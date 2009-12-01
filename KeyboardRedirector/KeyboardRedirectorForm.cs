@@ -225,6 +225,7 @@ namespace KeyboardRedirector
                 }
 
                 RefreshTreeView();
+                RefreshDevicesListView();
             }
         }
 
@@ -791,26 +792,7 @@ namespace KeyboardRedirector
             {
                 panelDevices.Visible = true;
 
-                listViewDevices.BeginUpdate();
-                listViewDevices.Items.Clear();
-                foreach (SettingsKeyboardDevice keyboardDevice in Settings.Current.KeyboardDevices)
-                {
-                    ListViewItem item = new ListViewItem(new string[] { keyboardDevice.Name, keyboardDevice.DeviceName });
-                    item.Tag = keyboardDevice;
-
-                    int imageIndex = 0;
-                    DeviceInformation deviceInformation = FindKeyboardDeviceInformation(keyboardDevice.DeviceName);
-                    if (deviceInformation == null)
-                        imageIndex = 1;
-
-                    item.ImageIndex = imageIndex;
-                    item.StateImageIndex = imageIndex;
-
-                    listViewDevices.Items.Add(item);
-                }
-                listViewDevices.EndUpdate();
-
-                BindListviewDevicesKeyboard();
+                RefreshDevicesListView();
             }
         }
 
@@ -1424,6 +1406,30 @@ namespace KeyboardRedirector
             //richTextBoxKeyEventsWMInput.Clear();
         }
 
+
+        private void RefreshDevicesListView()
+        {
+            listViewDevices.BeginUpdate();
+            listViewDevices.Items.Clear();
+            foreach (SettingsKeyboardDevice keyboardDevice in Settings.Current.KeyboardDevices)
+            {
+                ListViewItem item = new ListViewItem(new string[] { keyboardDevice.Name, keyboardDevice.DeviceName });
+                item.Tag = keyboardDevice;
+
+                int imageIndex = 0;
+                DeviceInformation deviceInformation = FindKeyboardDeviceInformation(keyboardDevice.DeviceName);
+                if (deviceInformation == null)
+                    imageIndex = 1;
+
+                item.ImageIndex = imageIndex;
+                item.StateImageIndex = imageIndex;
+
+                listViewDevices.Items.Add(item);
+            }
+            listViewDevices.EndUpdate();
+
+            BindListviewDevicesKeyboard();
+        }
 
         private void listViewDevices_ItemSelectionChanged(object sender, ListViewItemSelectionChangedEventArgs e)
         {
