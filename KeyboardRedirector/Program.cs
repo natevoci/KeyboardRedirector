@@ -41,24 +41,46 @@ namespace KeyboardRedirector
         [STAThread]
         static void Main()
         {
-            if (IsThereAnInstanceOfThisProgramAlreadyRunning(true))
+            try
             {
-                Application.Exit();
-                return;
+                if (IsThereAnInstanceOfThisProgramAlreadyRunning(true))
+                {
+                    Application.Exit();
+                    return;
+                }
+
+                Application.ThreadException += new System.Threading.ThreadExceptionEventHandler(Application_ThreadException);
+
+                Application.EnableVisualStyles();
+                Application.SetCompatibleTextRenderingDefault(false);
+                Application.Run(new KeyboardRedirectorForm());
             }
+            catch (Exception e)
+            {
+                LogException(e);
 
-            AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
-
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-            //Application.Run(new Form1());
-            Application.Run(new KeyboardRedirectorForm());
+                string message = "";
+                message += "An exception has occurred in Keyboard Redirector." + Environment.NewLine;
+                message += Environment.NewLine;
+                message += e.ToString();
+                MessageBox.Show(message, "Keyboard Redirector", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
-        static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        static void Application_ThreadException(object sender, System.Threading.ThreadExceptionEventArgs e)
         {
-            Exception ex = e.ExceptionObject as Exception;
-            Log.LogException(ex);
+            LogException(e.Exception);
+        }
+
+        static void LogException(Exception e)
+        {
+            Log.LogException(e);
+
+            string message = "";
+            message += "An exception has occurred in Keyboard Redirector." + Environment.NewLine;
+            message += Environment.NewLine;
+            message += e.ToString();
+            MessageBox.Show(message, "Keyboard Redirector", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
 
         static bool IsThereAnInstanceOfThisProgramAlreadyRunning(bool activateThePreviousInstance)

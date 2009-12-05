@@ -96,17 +96,23 @@ namespace KeyboardRedirector
         {
             while (_stopProcessing.WaitOne(10) == false)
             {
-                KeyInformation info = null;
-                lock (_keyQueue)
+                try
                 {
-                    if (_keyQueue.Count > 0)
+                    KeyInformation info = null;
+                    lock (_keyQueue)
                     {
-                        info = _keyQueue[0];
-                        _keyQueue.RemoveAt(0);
+                        if (_keyQueue.Count > 0)
+                        {
+                            info = _keyQueue[0];
+                            _keyQueue.RemoveAt(0);
+                            ProcessKeyInfo(info);
+                        }
                     }
                 }
-
-                ProcessKeyInfo(info);
+                catch (Exception e)
+                {
+                    Log.LogException(e);
+                }
             }
         }
 

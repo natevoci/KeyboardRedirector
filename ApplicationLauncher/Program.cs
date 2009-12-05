@@ -15,17 +15,41 @@ namespace ApplicationLauncher
         [STAThread]
         static void Main()
         {
-            if (IsThereAnInstanceOfThisProgramAlreadyRunning(true))
+            try
             {
-                Application.Exit();
-                return;
+                if (IsThereAnInstanceOfThisProgramAlreadyRunning(true))
+                {
+                    Application.Exit();
+                    return;
+                }
+
+                AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
+                Application.ThreadException += new System.Threading.ThreadExceptionEventHandler(Application_ThreadException);
+
+                Application.EnableVisualStyles();
+                Application.SetCompatibleTextRenderingDefault(false);
+                Application.Run(new ApplicationLauncherForm());
             }
+            catch (Exception e)
+            {
+                LogException(e);
+            }
+        }
 
-            AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
+        static void Application_ThreadException(object sender, System.Threading.ThreadExceptionEventArgs e)
+        {
+            LogException(e.Exception);
+        }
 
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new ApplicationLauncherForm());
+        static void LogException(Exception e)
+        {
+            Log.LogException(e);
+
+            string message = "";
+            message += "An exception has occurred in ApplicationLauncher." + Environment.NewLine;
+            message += Environment.NewLine;
+            message += e.ToString();
+            MessageBox.Show(message, "ApplicationLauncher", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
 
         static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)

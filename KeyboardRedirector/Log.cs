@@ -41,8 +41,8 @@ namespace KeyboardRedirector
             {
                 lock (_exceptionLock)
                 {
-                    string path = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-                    using (System.IO.StreamWriter writer = new System.IO.StreamWriter(path + @"\KeyboardRedirector\exception.log", true))
+                    string path = Settings.SettingsPath;
+                    using (System.IO.StreamWriter writer = new System.IO.StreamWriter(path + @"exception.log", true))
                     {
                         writer.WriteLine("Unhandled Exception: " + ex.Message + Environment.NewLine);
                         writer.WriteLine(ex.ToString());
