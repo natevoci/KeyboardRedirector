@@ -350,13 +350,24 @@ namespace KeyboardRedirector
             string id_03 = split[2];    // 3&13c0b0c5&0 (Protocol code)
             //The final part is the class GUID and is not needed here
 
-            //Open the appropriate key as read-only so no permissions
-            //are needed.
-            RegistryKey OurKey = Registry.LocalMachine;
-
             string findme = string.Format( @"System\CurrentControlSet\Enum\{0}\{1}\{2}", id_01, id_02, id_03 );
-            
-            OurKey = OurKey.OpenSubKey( findme, false );
+
+            RegistryKey OurKey = Registry.LocalMachine.OpenSubKey(findme, false);
+
+            int retryCount = 0;
+            while (OurKey == null)
+            {
+                if (retryCount > 20)
+                {
+                    // Failed to find the information about this item in the registry
+                    isKeyboard = false;
+                    return item;
+                }
+
+                System.Threading.Thread.Sleep(100);
+                OurKey = Registry.LocalMachine.OpenSubKey(findme, false);
+                retryCount++;
+            }
 
             //Retrieve the desired information and set isKeyboard
             string deviceDesc  = (string)OurKey.GetValue( "DeviceDesc" );
@@ -496,7 +507,7 @@ namespace KeyboardRedirector
         /// keyboard events that occur.
         /// </summary>
         /// <param name="message">The WM_INPUT message to process.</param>
-        public void ProcessInputCommand( Message message )
+        public void ProcessInputCommand(IntPtr message_LParam)
         {
             uint dwSize = 0;
 
@@ -505,7 +516,7 @@ namespace KeyboardRedirector
             // First call to GetRawInputData sets the value of dwSize,
             // which can then be used to allocate the appropriate amount of memory,
             // storing the pointer in "buffer".
-            GetRawInputData( message.LParam, 
+            GetRawInputData( message_LParam, 
                              RID_INPUT, IntPtr.Zero, 
                              ref dwSize, 
                              (uint)Marshal.SizeOf( typeof( RAWINPUTHEADER )));
@@ -522,7 +533,7 @@ namespace KeyboardRedirector
 
                 // call GetRawInputData again to fill the allocated memory
                 // with information about the input
-                uint bytesCopied = GetRawInputData(message.LParam,
+                uint bytesCopied = GetRawInputData(message_LParam,
                                                    RID_INPUT,
                                                    buffer,
                                                    ref dwSize,
@@ -614,7 +625,7 @@ namespace KeyboardRedirector
                             // raise the KeyPressed event.
                             if (dInfo != null)
                             {
-                                KeyPressed(this, new KeyControlEventArgs(dInfo, GetDevice(message.LParam.ToInt32())));
+                                KeyPressed(this, new KeyControlEventArgs(dInfo, GetDevice(message_LParam.ToInt32())));
                             }
                             else
                             {
@@ -694,6 +705,10 @@ namespace KeyboardRedirector
         {
             return (message.Msg == (int)Win32.WM.INPUT);
         }
+        public bool IsInputMessage(Win32.MSG message)
+        {
+            return (message.msg == (int)Win32.WM.INPUT);
+        }
 
         /// <summary>
         /// Filters Windows messages for WM_INPUT messages and calls
@@ -704,8 +719,15 @@ namespace KeyboardRedirector
 		{
             if (IsInputMessage(message))
 	        {
-	            ProcessInputCommand( message );
+	            ProcessInputCommand( message.LParam );
 	        }
+        }
+        public void ProcessMessage(Win32.MSG message)
+        {
+            if (IsInputMessage(message))
+            {
+                ProcessInputCommand(message.lParam);
+            }
         }
 
         #endregion ProcessMessage( Message message )

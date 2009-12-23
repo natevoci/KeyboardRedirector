@@ -244,12 +244,13 @@ namespace KeyboardRedirector
             if (KeyboardHookExternal.Current.IsHookMessage(message))
             {
                 // If there's a WM_INPUT message in the message queue then we'll process that first
-                Message msg;
+                Win32.MSG msg;
                 Win32.PeekMessage(out msg, this.Handle, (uint)Win32.WM.INPUT, (uint)Win32.WM.INPUT, Win32.PeekMessageRemoveFlag.PM_REMOVE);
-                if (msg.Msg != 0)
+                if (msg.msg != 0)
                 {
                     //Log.MainLog.WriteInfo("PeekMessage found WM_INPUT message waiting : " + msg.ToString());
-                    Win32.DispatchMessage(msg);
+                    //Win32.DispatchMessage(msg);
+                    _inputDevice.ProcessMessage(msg);
                     //Log.MainLog.WriteInfo("Finished dispatching");
                 }
             }

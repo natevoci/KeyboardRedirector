@@ -1658,14 +1658,31 @@ namespace MS
         [DllImport("user32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool PeekMessage(
-            out System.Windows.Forms.Message lpmsg,
+            out MSG lpmsg,
             IntPtr hwnd,
             uint wMsgFilterMin,
             uint wMsgFilterMax,
             PeekMessageRemoveFlag wRemoveMsg);
 
         [DllImport("user32.dll")]
-        public static extern IntPtr DispatchMessage([In] System.Windows.Forms.Message lpmsg);
+        public static extern IntPtr DispatchMessage([In] MSG lpmsg);
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct MSG
+        {
+            public IntPtr hWnd;
+            public UInt32 msg;
+            public IntPtr wParam;
+            public IntPtr lParam;
+            public UInt32 time;
+            public System.Drawing.Point pt;
+
+            public override string ToString()
+            {
+                WM m = (WM)msg;
+                return "msg=0x" + Convert.ToString(msg, 0x10) + "(" + m.ToString() + ") hwnd=0x" + Convert.ToString((long) hWnd, 0x10) + " wparam=0x" + Convert.ToString((long) wParam, 0x10) + " lparam=0x" + Convert.ToString((long) lParam, 0x10);
+            }
+        }
 
         #endregion
 
