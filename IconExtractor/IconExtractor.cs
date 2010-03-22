@@ -50,7 +50,7 @@ namespace IconExtractor
 
         public Icon ExtractAssociatedIcon(string filename)
         {
-            if (System.IO.File.Exists(filename) == false)
+            if (!System.IO.Directory.Exists(filename) && !System.IO.File.Exists(filename))
                 return null;
 
             int index = 0;
@@ -70,7 +70,7 @@ namespace IconExtractor
 
         public Icon LoadIcon(string filename, LoadIconFlags flags)
         {
-            if (System.IO.File.Exists(filename) == false)
+            if (!System.IO.Directory.Exists(filename) && !System.IO.File.Exists(filename))
                 return null;
 
             SHFILEINFO fileinfo = new SHFILEINFO();
@@ -92,7 +92,7 @@ namespace IconExtractor
 
         public Bitmap LoadThumbnailFromImageFactory(string filename, Size requestedSize, bool onlyThumbnail)
         {
-            if (System.IO.File.Exists(filename) == false)
+            if (!System.IO.Directory.Exists(filename) && !System.IO.File.Exists(filename))
                 return null;
 
             Bitmap bm1 = null;
@@ -165,7 +165,7 @@ namespace IconExtractor
 
         public Bitmap LoadThumbnailFromExtractImage(string filename, Size requestedSize)
         {
-            if (System.IO.File.Exists(filename) == false)
+            if (!System.IO.Directory.Exists(filename) && !System.IO.File.Exists(filename))
                 return null;
 
             Bitmap bm1 = null;
@@ -254,7 +254,7 @@ namespace IconExtractor
 
         public Bitmap LoadImageFromExtractIcon(string filename)
         {
-            if (System.IO.File.Exists(filename) == false)
+            if (!System.IO.Directory.Exists(filename) && !System.IO.File.Exists(filename))
                 return null;
 
             Bitmap bm1 = null;
