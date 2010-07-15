@@ -94,7 +94,7 @@ namespace KeyboardRedirector
 
         public void KeyProcessingThreadProc()
         {
-            while (_stopProcessing.WaitOne(10) == false)
+            while (_stopProcessing.WaitOne(10, true) == false)
             {
                 try
                 {

@@ -50,6 +50,7 @@ namespace KeyboardRedirector
                 }
 
                 Application.ThreadException += new System.Threading.ThreadExceptionEventHandler(Application_ThreadException);
+                AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
 
                 Application.EnableVisualStyles();
                 Application.SetCompatibleTextRenderingDefault(false);
@@ -70,6 +71,11 @@ namespace KeyboardRedirector
         static void Application_ThreadException(object sender, System.Threading.ThreadExceptionEventArgs e)
         {
             LogException(e.Exception);
+        }
+
+        static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            LogException(e.ExceptionObject as Exception);
         }
 
         static void LogException(Exception e)
