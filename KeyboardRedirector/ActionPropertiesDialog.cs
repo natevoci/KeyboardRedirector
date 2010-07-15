@@ -68,6 +68,8 @@ namespace KeyboardRedirector
                 checkBoxKeyboardControl.Checked = Action.Keyboard.Control;
                 checkBoxKeyboardShift.Checked = Action.Keyboard.Shift;
                 checkBoxKeyboardAlt.Checked = Action.Keyboard.Alt;
+                checkBoxKeyboardLWin.Checked = Action.Keyboard.LWin;
+                checkBoxKeyboardRWin.Checked = Action.Keyboard.RWin;
                 comboBoxKeyboardKey.Text = NiceKeyName.GetName(Action.Keyboard.VirtualKey);
                 checkBoxKeyboardExtended.Checked = Action.Keyboard.Extended;
                 numericUpDown1.Value = Action.Keyboard.RepeatCount;
@@ -98,6 +100,8 @@ namespace KeyboardRedirector
                 Action.Keyboard.Control = checkBoxKeyboardControl.Checked;
                 Action.Keyboard.Shift = checkBoxKeyboardShift.Checked;
                 Action.Keyboard.Alt = checkBoxKeyboardAlt.Checked;
+                Action.Keyboard.LWin = checkBoxKeyboardLWin.Checked;
+                Action.Keyboard.RWin = checkBoxKeyboardRWin.Checked;
                 Keys key = NiceKeyName.GetKey(comboBoxKeyboardKey.Text);
                 Action.Keyboard.VirtualKey = key;
                 Action.Keyboard.Extended = checkBoxKeyboardExtended.Checked;
@@ -148,14 +152,21 @@ namespace KeyboardRedirector
             checkBoxKeyboardControl.Checked = false;
             checkBoxKeyboardShift.Checked = false;
             checkBoxKeyboardAlt.Checked = false;
+            checkBoxKeyboardLWin.Checked = false;
+            checkBoxKeyboardRWin.Checked = false;
             foreach (KeysWithExtended key in e.KeyCombination.Modifiers)
             {
-                if ((key.Keys == Keys.ControlKey) || (key.Keys == Keys.LControlKey) || (key.Keys == Keys.RControlKey))
+
+                if (key.IsControlKey)
                     checkBoxKeyboardControl.Checked = true;
-                if ((key.Keys == Keys.ShiftKey) || (key.Keys == Keys.LShiftKey) || (key.Keys == Keys.RShiftKey))
+                if (key.IsShiftKey)
                     checkBoxKeyboardShift.Checked = true;
-                if ((key.Keys == Keys.Menu) || (key.Keys == Keys.LMenu) || (key.Keys == Keys.RMenu))
+                if (key.IsAltKey)
                     checkBoxKeyboardAlt.Checked = true;
+                if (key.IsLWinKey)
+                    checkBoxKeyboardLWin.Checked = true;
+                if (key.IsRWinKey)
+                    checkBoxKeyboardRWin.Checked = true;
             }
 
             comboBoxKeyboardKey.Text = NiceKeyName.GetName(e.KeyCombination.KeyWithExtended.Keys);

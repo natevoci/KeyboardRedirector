@@ -421,6 +421,8 @@ namespace KeyboardRedirector
         public bool Control = false;
         public bool Shift = false;
         public bool Alt = false;
+        public bool LWin = false;
+        public bool RWin = false;
         public ushort VirtualKeyCode = 0;
         public bool Extended = false;
         public int RepeatCount = 1;
@@ -445,6 +447,10 @@ namespace KeyboardRedirector
                 sb.Append("Shift + ");
             if (Alt)
                 sb.Append("Alt + ");
+            if (LWin)
+                sb.Append("LWin + ");
+            if (RWin)
+                sb.Append("RWin + ");
             KeysWithExtended keys = new KeysWithExtended(VirtualKey, Extended);
             sb.Append(keys.ToString());
             if (RepeatCount > 1)

@@ -87,6 +87,20 @@ namespace KeyboardRedirector
                 return ((Keys == Keys.Menu) || (Keys == Keys.LMenu) || (Keys == Keys.RMenu));
             }
         }
+        public bool IsLWinKey
+        {
+            get
+            {
+                return ((Keys == Keys.LWin));
+            }
+        }
+        public bool IsRWinKey
+        {
+            get
+            {
+                return ((Keys == Keys.RWin));
+            }
+        }
 
         public KeysWithExtended(KeysWithExtended keysWithExtended)
         {

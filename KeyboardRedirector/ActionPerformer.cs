@@ -256,11 +256,15 @@ namespace KeyboardRedirector
                     bool controlDown = false;
                     bool shiftDown = false;
                     bool altDown = false;
+                    bool lWinDown = false;
+                    bool rWinDown = false;
                     foreach (KeysWithExtended key in keysDown)
                     {
                         controlDown |= key.IsControlKey;
                         shiftDown |= key.IsShiftKey;
                         altDown |= key.IsAltKey;
+                        lWinDown |= key.IsLWinKey;
+                        rWinDown |= key.IsRWinKey;
                     }
 
                     if (controlDown)
@@ -277,6 +281,16 @@ namespace KeyboardRedirector
                     {
                         inputList.Add(CreateInputStruct((ushort)Keys.Menu, false));
                     }
+
+                    if (lWinDown)
+                    {
+                        inputList.Add(CreateInputStruct((ushort)Keys.LWin, false));
+                    }
+
+                    if (rWinDown)
+                    {
+                        inputList.Add(CreateInputStruct((ushort)Keys.RWin, false));
+                    }
                 }
 
                 if (keyboard.Control)
@@ -288,9 +302,21 @@ namespace KeyboardRedirector
                 if (keyboard.Alt)
                     inputList.Add(CreateInputStruct((ushort)Keys.Menu, true));
 
+                if (keyboard.LWin)
+                    inputList.Add(CreateInputStruct((ushort)Keys.LWin, true));
+
+                if (keyboard.RWin)
+                    inputList.Add(CreateInputStruct((ushort)Keys.RWin, true));
+
                 inputList.Add(CreateInputStruct((ushort)keyboard.VirtualKeyCode, true));
 
                 inputList.Add(CreateInputStruct((ushort)keyboard.VirtualKeyCode, false));
+
+                if (keyboard.RWin)
+                    inputList.Add(CreateInputStruct((ushort)Keys.RWin, false));
+
+                if (keyboard.LWin)
+                    inputList.Add(CreateInputStruct((ushort)Keys.LWin, false));
 
                 if (keyboard.Alt)
                     inputList.Add(CreateInputStruct((ushort)Keys.Menu, false));

@@ -54,6 +54,17 @@ namespace KeyboardRedirector
         private void InitializeComponent()
         {
             this.tabControl1 = new System.Windows.Forms.TabControl();
+            this.tabPageKeyboard = new System.Windows.Forms.TabPage();
+            this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.label2 = new System.Windows.Forms.Label();
+            this.label1 = new System.Windows.Forms.Label();
+            this.numericUpDown1 = new System.Windows.Forms.NumericUpDown();
+            this.richTextBoxKeyDetector = new System.Windows.Forms.RichTextBox();
+            this.comboBoxKeyboardKey = new System.Windows.Forms.ComboBox();
+            this.checkBoxKeyboardControl = new System.Windows.Forms.CheckBox();
+            this.checkBoxKeyboardExtended = new System.Windows.Forms.CheckBox();
+            this.checkBoxKeyboardAlt = new System.Windows.Forms.CheckBox();
+            this.checkBoxKeyboardShift = new System.Windows.Forms.CheckBox();
             this.tabPageLaunchApplication = new System.Windows.Forms.TabPage();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.radioButtonLaunchApplicationWaitForExit = new System.Windows.Forms.RadioButton();
@@ -67,25 +78,16 @@ namespace KeyboardRedirector
             this.label8 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.label9 = new System.Windows.Forms.Label();
-            this.tabPageKeyboard = new System.Windows.Forms.TabPage();
-            this.groupBox1 = new System.Windows.Forms.GroupBox();
-            this.label2 = new System.Windows.Forms.Label();
-            this.label1 = new System.Windows.Forms.Label();
-            this.numericUpDown1 = new System.Windows.Forms.NumericUpDown();
-            this.richTextBoxKeyDetector = new System.Windows.Forms.RichTextBox();
-            this.comboBoxKeyboardKey = new System.Windows.Forms.ComboBox();
-            this.checkBoxKeyboardControl = new System.Windows.Forms.CheckBox();
-            this.checkBoxKeyboardExtended = new System.Windows.Forms.CheckBox();
-            this.checkBoxKeyboardAlt = new System.Windows.Forms.CheckBox();
-            this.checkBoxKeyboardShift = new System.Windows.Forms.CheckBox();
             this.buttonOK = new System.Windows.Forms.Button();
             this.buttonCancel = new System.Windows.Forms.Button();
+            this.checkBoxKeyboardLWin = new System.Windows.Forms.CheckBox();
+            this.checkBoxKeyboardRWin = new System.Windows.Forms.CheckBox();
             this.tabControl1.SuspendLayout();
-            this.tabPageLaunchApplication.SuspendLayout();
-            this.groupBox2.SuspendLayout();
             this.tabPageKeyboard.SuspendLayout();
             this.groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).BeginInit();
+            this.tabPageLaunchApplication.SuspendLayout();
+            this.groupBox2.SuspendLayout();
             this.SuspendLayout();
             // 
             // tabControl1
@@ -102,6 +104,141 @@ namespace KeyboardRedirector
             this.tabControl1.SelectedIndex = 0;
             this.tabControl1.Size = new System.Drawing.Size(478, 280);
             this.tabControl1.TabIndex = 0;
+            // 
+            // tabPageKeyboard
+            // 
+            this.tabPageKeyboard.Controls.Add(this.groupBox1);
+            this.tabPageKeyboard.Location = new System.Drawing.Point(4, 25);
+            this.tabPageKeyboard.Name = "tabPageKeyboard";
+            this.tabPageKeyboard.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPageKeyboard.Size = new System.Drawing.Size(470, 251);
+            this.tabPageKeyboard.TabIndex = 1;
+            this.tabPageKeyboard.Text = "Keyboard";
+            this.tabPageKeyboard.UseVisualStyleBackColor = true;
+            // 
+            // groupBox1
+            // 
+            this.groupBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+                        | System.Windows.Forms.AnchorStyles.Left)
+                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.groupBox1.Controls.Add(this.label2);
+            this.groupBox1.Controls.Add(this.label1);
+            this.groupBox1.Controls.Add(this.numericUpDown1);
+            this.groupBox1.Controls.Add(this.richTextBoxKeyDetector);
+            this.groupBox1.Controls.Add(this.comboBoxKeyboardKey);
+            this.groupBox1.Controls.Add(this.checkBoxKeyboardRWin);
+            this.groupBox1.Controls.Add(this.checkBoxKeyboardLWin);
+            this.groupBox1.Controls.Add(this.checkBoxKeyboardControl);
+            this.groupBox1.Controls.Add(this.checkBoxKeyboardExtended);
+            this.groupBox1.Controls.Add(this.checkBoxKeyboardAlt);
+            this.groupBox1.Controls.Add(this.checkBoxKeyboardShift);
+            this.groupBox1.Location = new System.Drawing.Point(6, 6);
+            this.groupBox1.Name = "groupBox1";
+            this.groupBox1.Size = new System.Drawing.Size(458, 239);
+            this.groupBox1.TabIndex = 0;
+            this.groupBox1.TabStop = false;
+            this.groupBox1.Text = "Keystroke details";
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(104, 119);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(31, 13);
+            this.label2.TabIndex = 7;
+            this.label2.Text = "times";
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(6, 119);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(42, 13);
+            this.label1.TabIndex = 5;
+            this.label1.Text = "Repeat";
+            // 
+            // numericUpDown1
+            // 
+            this.numericUpDown1.Location = new System.Drawing.Point(54, 117);
+            this.numericUpDown1.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.numericUpDown1.Name = "numericUpDown1";
+            this.numericUpDown1.Size = new System.Drawing.Size(44, 20);
+            this.numericUpDown1.TabIndex = 6;
+            this.numericUpDown1.Value = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            // 
+            // richTextBoxKeyDetector
+            // 
+            this.richTextBoxKeyDetector.AcceptsTab = true;
+            this.richTextBoxKeyDetector.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.richTextBoxKeyDetector.Font = new System.Drawing.Font("Verdana", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.richTextBoxKeyDetector.Location = new System.Drawing.Point(6, 19);
+            this.richTextBoxKeyDetector.Name = "richTextBoxKeyDetector";
+            this.richTextBoxKeyDetector.Size = new System.Drawing.Size(446, 29);
+            this.richTextBoxKeyDetector.TabIndex = 0;
+            this.richTextBoxKeyDetector.Text = "Type here to detect key";
+            this.richTextBoxKeyDetector.Enter += new System.EventHandler(this.richTextBoxKeyDetector_Enter);
+            this.richTextBoxKeyDetector.Leave += new System.EventHandler(this.richTextBoxKeyDetector_Leave);
+            // 
+            // comboBoxKeyboardKey
+            // 
+            this.comboBoxKeyboardKey.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.comboBoxKeyboardKey.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBoxKeyboardKey.FormattingEnabled = true;
+            this.comboBoxKeyboardKey.Location = new System.Drawing.Point(168, 61);
+            this.comboBoxKeyboardKey.Name = "comboBoxKeyboardKey";
+            this.comboBoxKeyboardKey.Size = new System.Drawing.Size(207, 21);
+            this.comboBoxKeyboardKey.TabIndex = 4;
+            // 
+            // checkBoxKeyboardControl
+            // 
+            this.checkBoxKeyboardControl.AutoSize = true;
+            this.checkBoxKeyboardControl.Location = new System.Drawing.Point(6, 63);
+            this.checkBoxKeyboardControl.Name = "checkBoxKeyboardControl";
+            this.checkBoxKeyboardControl.Size = new System.Drawing.Size(59, 17);
+            this.checkBoxKeyboardControl.TabIndex = 1;
+            this.checkBoxKeyboardControl.Text = "Control";
+            this.checkBoxKeyboardControl.UseVisualStyleBackColor = true;
+            // 
+            // checkBoxKeyboardExtended
+            // 
+            this.checkBoxKeyboardExtended.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.checkBoxKeyboardExtended.AutoSize = true;
+            this.checkBoxKeyboardExtended.Location = new System.Drawing.Point(381, 63);
+            this.checkBoxKeyboardExtended.Name = "checkBoxKeyboardExtended";
+            this.checkBoxKeyboardExtended.Size = new System.Drawing.Size(71, 17);
+            this.checkBoxKeyboardExtended.TabIndex = 3;
+            this.checkBoxKeyboardExtended.Text = "Extended";
+            this.checkBoxKeyboardExtended.UseVisualStyleBackColor = true;
+            // 
+            // checkBoxKeyboardAlt
+            // 
+            this.checkBoxKeyboardAlt.AutoSize = true;
+            this.checkBoxKeyboardAlt.Location = new System.Drawing.Point(124, 63);
+            this.checkBoxKeyboardAlt.Name = "checkBoxKeyboardAlt";
+            this.checkBoxKeyboardAlt.Size = new System.Drawing.Size(38, 17);
+            this.checkBoxKeyboardAlt.TabIndex = 3;
+            this.checkBoxKeyboardAlt.Text = "Alt";
+            this.checkBoxKeyboardAlt.UseVisualStyleBackColor = true;
+            // 
+            // checkBoxKeyboardShift
+            // 
+            this.checkBoxKeyboardShift.AutoSize = true;
+            this.checkBoxKeyboardShift.Location = new System.Drawing.Point(71, 63);
+            this.checkBoxKeyboardShift.Name = "checkBoxKeyboardShift";
+            this.checkBoxKeyboardShift.Size = new System.Drawing.Size(47, 17);
+            this.checkBoxKeyboardShift.TabIndex = 2;
+            this.checkBoxKeyboardShift.Text = "Shift";
+            this.checkBoxKeyboardShift.UseVisualStyleBackColor = true;
             // 
             // tabPageLaunchApplication
             // 
@@ -252,139 +389,6 @@ namespace KeyboardRedirector
             this.label9.TabIndex = 5;
             this.label9.Text = "notepad C:\\Users\\Nate\\Documents\\notes.txt";
             // 
-            // tabPageKeyboard
-            // 
-            this.tabPageKeyboard.Controls.Add(this.groupBox1);
-            this.tabPageKeyboard.Location = new System.Drawing.Point(4, 25);
-            this.tabPageKeyboard.Name = "tabPageKeyboard";
-            this.tabPageKeyboard.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPageKeyboard.Size = new System.Drawing.Size(470, 251);
-            this.tabPageKeyboard.TabIndex = 1;
-            this.tabPageKeyboard.Text = "Keyboard";
-            this.tabPageKeyboard.UseVisualStyleBackColor = true;
-            // 
-            // groupBox1
-            // 
-            this.groupBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-                        | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
-            this.groupBox1.Controls.Add(this.label2);
-            this.groupBox1.Controls.Add(this.label1);
-            this.groupBox1.Controls.Add(this.numericUpDown1);
-            this.groupBox1.Controls.Add(this.richTextBoxKeyDetector);
-            this.groupBox1.Controls.Add(this.comboBoxKeyboardKey);
-            this.groupBox1.Controls.Add(this.checkBoxKeyboardControl);
-            this.groupBox1.Controls.Add(this.checkBoxKeyboardExtended);
-            this.groupBox1.Controls.Add(this.checkBoxKeyboardAlt);
-            this.groupBox1.Controls.Add(this.checkBoxKeyboardShift);
-            this.groupBox1.Location = new System.Drawing.Point(6, 6);
-            this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(458, 239);
-            this.groupBox1.TabIndex = 0;
-            this.groupBox1.TabStop = false;
-            this.groupBox1.Text = "Keystroke details";
-            // 
-            // label2
-            // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(104, 94);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(31, 13);
-            this.label2.TabIndex = 7;
-            this.label2.Text = "times";
-            // 
-            // label1
-            // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(6, 94);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(42, 13);
-            this.label1.TabIndex = 5;
-            this.label1.Text = "Repeat";
-            // 
-            // numericUpDown1
-            // 
-            this.numericUpDown1.Location = new System.Drawing.Point(54, 92);
-            this.numericUpDown1.Minimum = new decimal(new int[] {
-            1,
-            0,
-            0,
-            0});
-            this.numericUpDown1.Name = "numericUpDown1";
-            this.numericUpDown1.Size = new System.Drawing.Size(44, 20);
-            this.numericUpDown1.TabIndex = 6;
-            this.numericUpDown1.Value = new decimal(new int[] {
-            1,
-            0,
-            0,
-            0});
-            // 
-            // richTextBoxKeyDetector
-            // 
-            this.richTextBoxKeyDetector.AcceptsTab = true;
-            this.richTextBoxKeyDetector.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
-            this.richTextBoxKeyDetector.Font = new System.Drawing.Font("Verdana", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.richTextBoxKeyDetector.Location = new System.Drawing.Point(6, 19);
-            this.richTextBoxKeyDetector.Name = "richTextBoxKeyDetector";
-            this.richTextBoxKeyDetector.Size = new System.Drawing.Size(446, 29);
-            this.richTextBoxKeyDetector.TabIndex = 0;
-            this.richTextBoxKeyDetector.Text = "Type here to detect key";
-            this.richTextBoxKeyDetector.Enter += new System.EventHandler(this.richTextBoxKeyDetector_Enter);
-            this.richTextBoxKeyDetector.Leave += new System.EventHandler(this.richTextBoxKeyDetector_Leave);
-            // 
-            // comboBoxKeyboardKey
-            // 
-            this.comboBoxKeyboardKey.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
-            this.comboBoxKeyboardKey.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.comboBoxKeyboardKey.FormattingEnabled = true;
-            this.comboBoxKeyboardKey.Location = new System.Drawing.Point(168, 61);
-            this.comboBoxKeyboardKey.Name = "comboBoxKeyboardKey";
-            this.comboBoxKeyboardKey.Size = new System.Drawing.Size(207, 21);
-            this.comboBoxKeyboardKey.TabIndex = 4;
-            // 
-            // checkBoxKeyboardControl
-            // 
-            this.checkBoxKeyboardControl.AutoSize = true;
-            this.checkBoxKeyboardControl.Location = new System.Drawing.Point(6, 63);
-            this.checkBoxKeyboardControl.Name = "checkBoxKeyboardControl";
-            this.checkBoxKeyboardControl.Size = new System.Drawing.Size(59, 17);
-            this.checkBoxKeyboardControl.TabIndex = 1;
-            this.checkBoxKeyboardControl.Text = "Control";
-            this.checkBoxKeyboardControl.UseVisualStyleBackColor = true;
-            // 
-            // checkBoxKeyboardExtended
-            // 
-            this.checkBoxKeyboardExtended.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.checkBoxKeyboardExtended.AutoSize = true;
-            this.checkBoxKeyboardExtended.Location = new System.Drawing.Point(381, 63);
-            this.checkBoxKeyboardExtended.Name = "checkBoxKeyboardExtended";
-            this.checkBoxKeyboardExtended.Size = new System.Drawing.Size(71, 17);
-            this.checkBoxKeyboardExtended.TabIndex = 3;
-            this.checkBoxKeyboardExtended.Text = "Extended";
-            this.checkBoxKeyboardExtended.UseVisualStyleBackColor = true;
-            // 
-            // checkBoxKeyboardAlt
-            // 
-            this.checkBoxKeyboardAlt.AutoSize = true;
-            this.checkBoxKeyboardAlt.Location = new System.Drawing.Point(124, 63);
-            this.checkBoxKeyboardAlt.Name = "checkBoxKeyboardAlt";
-            this.checkBoxKeyboardAlt.Size = new System.Drawing.Size(38, 17);
-            this.checkBoxKeyboardAlt.TabIndex = 3;
-            this.checkBoxKeyboardAlt.Text = "Alt";
-            this.checkBoxKeyboardAlt.UseVisualStyleBackColor = true;
-            // 
-            // checkBoxKeyboardShift
-            // 
-            this.checkBoxKeyboardShift.AutoSize = true;
-            this.checkBoxKeyboardShift.Location = new System.Drawing.Point(71, 63);
-            this.checkBoxKeyboardShift.Name = "checkBoxKeyboardShift";
-            this.checkBoxKeyboardShift.Size = new System.Drawing.Size(47, 17);
-            this.checkBoxKeyboardShift.TabIndex = 2;
-            this.checkBoxKeyboardShift.Text = "Shift";
-            this.checkBoxKeyboardShift.UseVisualStyleBackColor = true;
-            // 
             // buttonOK
             // 
             this.buttonOK.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
@@ -408,6 +412,26 @@ namespace KeyboardRedirector
             this.buttonCancel.Text = "Cancel";
             this.buttonCancel.UseVisualStyleBackColor = true;
             // 
+            // checkBoxKeyboardLWin
+            // 
+            this.checkBoxKeyboardLWin.AutoSize = true;
+            this.checkBoxKeyboardLWin.Location = new System.Drawing.Point(6, 86);
+            this.checkBoxKeyboardLWin.Name = "checkBoxKeyboardLWin";
+            this.checkBoxKeyboardLWin.Size = new System.Drawing.Size(51, 17);
+            this.checkBoxKeyboardLWin.TabIndex = 1;
+            this.checkBoxKeyboardLWin.Text = "LWin";
+            this.checkBoxKeyboardLWin.UseVisualStyleBackColor = true;
+            // 
+            // checkBoxKeyboardRWin
+            // 
+            this.checkBoxKeyboardRWin.AutoSize = true;
+            this.checkBoxKeyboardRWin.Location = new System.Drawing.Point(71, 86);
+            this.checkBoxKeyboardRWin.Name = "checkBoxKeyboardRWin";
+            this.checkBoxKeyboardRWin.Size = new System.Drawing.Size(53, 17);
+            this.checkBoxKeyboardRWin.TabIndex = 1;
+            this.checkBoxKeyboardRWin.Text = "RWin";
+            this.checkBoxKeyboardRWin.UseVisualStyleBackColor = true;
+            // 
             // ActionPropertiesDialog
             // 
             this.AcceptButton = this.buttonOK;
@@ -424,13 +448,13 @@ namespace KeyboardRedirector
             this.Deactivate += new System.EventHandler(this.ActionPropertiesDialog_Deactivate);
             this.Load += new System.EventHandler(this.ActionPropertiesDialog_Load);
             this.tabControl1.ResumeLayout(false);
-            this.tabPageLaunchApplication.ResumeLayout(false);
-            this.groupBox2.ResumeLayout(false);
-            this.groupBox2.PerformLayout();
             this.tabPageKeyboard.ResumeLayout(false);
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).EndInit();
+            this.tabPageLaunchApplication.ResumeLayout(false);
+            this.groupBox2.ResumeLayout(false);
+            this.groupBox2.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -464,5 +488,7 @@ namespace KeyboardRedirector
         private System.Windows.Forms.RadioButton radioButtonLaunchApplicationDoNotWait;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.CheckBox checkBoxKeyboardExtended;
+        private System.Windows.Forms.CheckBox checkBoxKeyboardRWin;
+        private System.Windows.Forms.CheckBox checkBoxKeyboardLWin;
     }
 }
