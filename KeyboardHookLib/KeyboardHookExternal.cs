@@ -101,8 +101,15 @@ namespace KeyboardRedirector
             Process[] running = Process.GetProcessesByName(exeName);
             foreach (Process proc in running)
             {
-                if (proc.MainModule.FileName.Equals(exeFolder, StringComparison.CurrentCultureIgnoreCase))
-                    proc.Kill();
+                try
+                {
+                    if (proc.MainModule.FileName.Equals(exeFolder, StringComparison.CurrentCultureIgnoreCase))
+                        proc.Kill();
+                }
+                catch (System.ComponentModel.Win32Exception)
+                {
+                    // ignore Access is denied errors.
+                }
             }
 
             string args = hwnd.ToInt32().ToString() + @" " + message.ToString() + @" " + messageLowLevel.ToString();
@@ -134,14 +141,25 @@ namespace KeyboardRedirector
             return true;
         }
 
+        private object _restartLock = new object();
+        private DateTime _lastRestarted = DateTime.MinValue;
         public void RestartHooks()
         {
-            IntPtr hwnd = _hwnd;
-            uint hookMessage = _hookMessage;
-            uint hookMessageLowLevel = _hookMessageLowLevel;
+            DateTime startTime = DateTime.Now;
+            lock (_restartLock)
+            {
+                if (startTime < _lastRestarted)
+                    return;
 
-            ClearHook();
-            SetHook(hwnd, hookMessage, hookMessageLowLevel);
+                IntPtr hwnd = _hwnd;
+                uint hookMessage = _hookMessage;
+                uint hookMessageLowLevel = _hookMessageLowLevel;
+
+                ClearHook();
+                SetHook(hwnd, hookMessage, hookMessageLowLevel);
+
+                _lastRestarted = DateTime.Now;
+            }
         }
 
         public static bool Is64Bit()

@@ -40,6 +40,7 @@
             this.richTextBoxEvents.Name = "richTextBoxEvents";
             this.richTextBoxEvents.Size = new System.Drawing.Size(321, 258);
             this.richTextBoxEvents.TabIndex = 0;
+            this.richTextBoxEvents.TabStop = false;
             this.richTextBoxEvents.Text = "";
             // 
             // KeyTesterForm

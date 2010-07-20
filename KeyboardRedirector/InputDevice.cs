@@ -337,51 +337,62 @@ namespace KeyboardRedirector
         /// <returns>The device description stored in the Registry entry's DeviceDesc value.</returns>
         private string ReadReg( string item, ref bool isKeyboard )
         {
-            // Example Device Identification string
-            // @"\??\ACPI#PNP0303#3&13c0b0c5&0#{884b96c3-56ef-11d1-bc8c-00a0c91405dd}";
-
-            // remove the \??\
-            item = item.Substring( 4 ); 
-
-            string[] split = item.Split( '#' );
-
-            string id_01 = split[0];    // ACPI (Class code)
-            string id_02 = split[1];    // PNP0303 (SubClass code)
-            string id_03 = split[2];    // 3&13c0b0c5&0 (Protocol code)
-            //The final part is the class GUID and is not needed here
-
-            string findme = string.Format( @"System\CurrentControlSet\Enum\{0}\{1}\{2}", id_01, id_02, id_03 );
-
-            RegistryKey OurKey = Registry.LocalMachine.OpenSubKey(findme, false);
-
+            RegistryKey OurKey = null;
             int retryCount = 0;
-            while (OurKey == null)
+            string deviceDesc = null;
+            string deviceClass = null;
+            try
             {
-                if (retryCount > 20)
+                // Example Device Identification string
+                // @"\??\ACPI#PNP0303#3&13c0b0c5&0#{884b96c3-56ef-11d1-bc8c-00a0c91405dd}";
+
+                // remove the \??\
+                item = item.Substring(4);
+
+                string[] split = item.Split('#');
+
+                string id_01 = split[0];    // ACPI (Class code)
+                string id_02 = split[1];    // PNP0303 (SubClass code)
+                string id_03 = split[2];    // 3&13c0b0c5&0 (Protocol code)
+                //The final part is the class GUID and is not needed here
+
+                string findme = string.Format(@"System\CurrentControlSet\Enum\{0}\{1}\{2}", id_01, id_02, id_03);
+
+                OurKey = Registry.LocalMachine.OpenSubKey(findme, false);
+
+                while (OurKey == null)
                 {
-                    // Failed to find the information about this item in the registry
-                    isKeyboard = false;
-                    return item;
+                    if (retryCount > 20)
+                    {
+                        // Failed to find the information about this item in the registry
+                        isKeyboard = false;
+                        return item;
+                    }
+
+                    System.Threading.Thread.Sleep(100);
+                    OurKey = Registry.LocalMachine.OpenSubKey(findme, false);
+                    retryCount++;
                 }
 
-                System.Threading.Thread.Sleep(100);
-                OurKey = Registry.LocalMachine.OpenSubKey(findme, false);
-                retryCount++;
-            }
+                //Retrieve the desired information and set isKeyboard
+                deviceDesc = (string)OurKey.GetValue("DeviceDesc");
+                deviceClass = (string)OurKey.GetValue("Class");
 
-            //Retrieve the desired information and set isKeyboard
-            string deviceDesc  = (string)OurKey.GetValue( "DeviceDesc" );
-            string deviceClass = (string)OurKey.GetValue( "Class" );
-            
-            if( deviceClass.ToUpper().Equals( "KEYBOARD" ))
-            {
-                isKeyboard = true;
+                if (deviceClass.ToUpper().Equals("KEYBOARD"))
+                {
+                    isKeyboard = true;
+                }
+                else
+                {
+                    isKeyboard = false;
+                }
+
+                return deviceDesc;
             }
-            else
+            catch (NullReferenceException ex)
             {
-                isKeyboard = false;
+                throw new NullReferenceException("Object reference not set to an instance of an object. item=" + item + ", OurKey " + ((OurKey == null) ? "not found" : "found") + ", retryCount=" + retryCount.ToString() + ", deviceDesc=" + deviceDesc + ", deviceClass=" + deviceClass, ex);
             }
-            return deviceDesc;
         }
 
         #endregion ReadReg( string item, ref bool isKeyboard )
