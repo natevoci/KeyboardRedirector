@@ -174,7 +174,10 @@ namespace KeyboardRedirector
         {
             if (_hookProcess != null)
             {
-                return (message.Msg == _hookMessage);
+                if (message.Msg == _hookMessage)
+                    return true;
+                if (message.Msg == _hookMessageLowLevel)
+                    return true;
             }
             return false;
         }

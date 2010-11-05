@@ -564,16 +564,24 @@ namespace KeyboardRedirector
         {
             // Note: We can't use this.Invoke here because we can end up with a 
             //       recursive call to WndProc.
-            //this.Invoke(new WriteDelegate(WriteEvent), new object[] { text + Environment.NewLine });
 
             if (this.InvokeRequired)
             {
-                _actionPerformer_StatusMessageDelegate function = new _actionPerformer_StatusMessageDelegate(_actionPerformer_StatusMessage);
+                _actionPerformer_StatusMessageDelegate function = new _actionPerformer_StatusMessageDelegate(_actionPerformer_StatusMessage_Invoke);
                 function.BeginInvoke(text, asyncResult => { function.EndInvoke(asyncResult); }, null);
-                return;
             }
+            else
+            {
+                WriteEvent(text + Environment.NewLine);
+            }
+        }
 
-            WriteEvent(text + Environment.NewLine);
+        void _actionPerformer_StatusMessage_Invoke(string text)
+        {
+            if (this.InvokeRequired)
+                this.Invoke(new WriteDelegate(WriteEvent), new object[] { text + Environment.NewLine });
+            else
+                WriteEvent(text + Environment.NewLine);
         }
 
         private delegate void WriteDelegate(string message);

@@ -149,12 +149,33 @@ namespace KeyboardRedirector
             if (e.KeyCombination.KeyDown == false)
                 return;
 
+            if (this.InvokeRequired)
+            {
+                Current_KeyEventLowLevelDelegate function = new Current_KeyEventLowLevelDelegate(Current_KeyEventLowLevelThread);
+                function.BeginInvoke(e.KeyCombination, asyncResult => { function.EndInvoke(asyncResult); }, null);
+            }
+            else
+            {
+                Current_KeyEventLowLevel(e.KeyCombination);
+            }
+
+            e.Handled = true;
+        }
+
+        delegate void Current_KeyEventLowLevelDelegate(KeyCombination keyCombination);
+        void Current_KeyEventLowLevelThread(KeyCombination keyCombination)
+        {
+            this.Invoke(new Current_KeyEventLowLevelDelegate(Current_KeyEventLowLevel), keyCombination);
+        }
+
+        void Current_KeyEventLowLevel(KeyCombination keyCombination)
+        {
             checkBoxKeyboardControl.Checked = false;
             checkBoxKeyboardShift.Checked = false;
             checkBoxKeyboardAlt.Checked = false;
             checkBoxKeyboardLWin.Checked = false;
             checkBoxKeyboardRWin.Checked = false;
-            foreach (KeysWithExtended key in e.KeyCombination.Modifiers)
+            foreach (KeysWithExtended key in keyCombination.Modifiers)
             {
 
                 if (key.IsControlKey)
@@ -169,10 +190,9 @@ namespace KeyboardRedirector
                     checkBoxKeyboardRWin.Checked = true;
             }
 
-            comboBoxKeyboardKey.Text = NiceKeyName.GetName(e.KeyCombination.KeyWithExtended.Keys);
-            checkBoxKeyboardExtended.Checked = e.KeyCombination.KeyWithExtended.Extended;
+            comboBoxKeyboardKey.Text = NiceKeyName.GetName(keyCombination.KeyWithExtended.Keys);
+            checkBoxKeyboardExtended.Checked = keyCombination.KeyWithExtended.Extended;
 
-            e.Handled = true;
         }
 
         private void ActionPropertiesDialog_Deactivate(object sender, EventArgs e)

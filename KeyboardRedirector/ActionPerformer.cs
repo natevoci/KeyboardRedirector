@@ -230,11 +230,9 @@ namespace KeyboardRedirector
         private void Keyboard(SettingsKeyboardKeyTypedActionKeyboard keyboard)
         {
             int keysDownCount = KeyboardHookExternal.Current.KeysDownCount();
-            WriteStatusMessage("Keys down: " + keysDownCount.ToString());
             if (keysDownCount > 0)
             {
-                //Log.MainLog.WriteInfo("Waiting for all keys to be up before sending new keystroke");
-                WriteStatusMessage("   Waiting for all keys to be up before sending new keystroke");
+                WriteStatusMessage("   Waiting for all keys to be up before sending new keystroke : keys down = " + keysDownCount.ToString());
                 while (KeyboardHookExternal.Current.KeysDownCount() > 0)
                 {
                     Thread.Sleep(1);
