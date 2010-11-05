@@ -1,7 +1,7 @@
-#region Copyright (C) 2009 Nate
+#region Copyright (C) 2009,2010 Nate
 
 /* 
- *	Copyright (C) 2009 Nate
+ *	Copyright (C) 2009,2010 Nate
  *	http://nate.dynalias.net
  *
  *  This Program is free software; you can redistribute it and/or modify
@@ -23,6 +23,8 @@
 
 #endregion
 
+#define EXTENDED_LOGGING_FOR_WNDPROC
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -36,11 +38,17 @@ namespace KeyboardRedirector
 {
     public partial class KeyboardRedirectorForm : MinimizeToTrayForm
     {
+        IntPtr _handle = IntPtr.Zero;
+        bool _keyDetectorFocused = false;
+        bool _captureLowLevelChecked = false;
+
+        const int HookTimeout = 2000;
+
         InputDevice _inputDevice;
         List<DeviceInformation> _keyboards;
-        List<KeyToHookInformation> _keysToHook;
-        int _keysToHookAdded = 0;
-        int _keysToHookRemovedWithoutBlocking = 0;
+
+        KeysToHookList _keysSeen = new KeysToHookList();
+        KeysToHookList _keysToHook = new KeysToHookList();
 
         Dictionary<string, KeyCombination> _keyCombinations;
         ActionPerformer _actionPerformer;
@@ -70,30 +78,21 @@ namespace KeyboardRedirector
             }
         }
 
-        class KeyToHookInformation
-        {
-            public KeysWithExtended Key;
-            public DateTime SeenAt;
-
-            public KeyToHookInformation(KeysWithExtended key)
-            {
-                this.Key = new KeysWithExtended(key);
-                this.SeenAt = DateTime.Now;
-            }
-        }
 
         public KeyboardRedirectorForm()
         {
             Log.MainLog.SetFilename(Settings.SettingsPath + @"main.log");
+            Log.MainLog.WriteInfo("--------");
 
             _keyboards = new List<DeviceInformation>();
-            _keysToHook = new List<KeyToHookInformation>();
+
             _keyCombinations = new Dictionary<string, KeyCombination>();
             _antiRepeatTimes = new Dictionary<SettingsKeyboardKey, double>();
 
-            InitializeComponent();
+            _keysSeen.Timeout = HookTimeout;
+            _keysSeen.TestModifiers = false;
 
-            
+            InitializeComponent();
 
             treeViewKeys.Nodes.Clear();
             panelKeyboardProperties.Location = new Point(3, 3);
@@ -229,78 +228,117 @@ namespace KeyboardRedirector
             }
         }
 
+#if EXTENDED_LOGGING_FOR_WNDPROC
+        private int _logCounter = 1;
+#endif
         protected override void WndProc(ref Message message)
         {
-            //System.Diagnostics.Debug.WriteLine(message.ToString());
-
             if (_inputDevice != null)
             {
-                if (_inputDevice.IsInputMessage(message))
+                if (_inputDevice.IsInputMessage(message) || KeyboardHookExternal.Current.IsHookMessage(message))
                 {
-                    _inputDevice.ProcessMessage(message);
+#if EXTENDED_LOGGING_FOR_WNDPROC
+                    System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
+                    string logPrefix = System.Threading.Thread.CurrentThread.ManagedThreadId.ToString() + " " + _logCounter++.ToString();
+                    stopwatch.Start();
+
+                    Log.MainLog.WriteInfo("ENTER: " + logPrefix + "  " + message.ToString());
+                    Log.MainLog.WriteDebug(StackTrace.GetStackTrace());
+#endif
+                    _keyDetectorFocused = richTextBoxKeyDetector.Focused;
+                    _captureLowLevelChecked = checkBoxCaptureLowLevel.Checked;
+                    _handle = this.Handle;
+
+                    try
+                    {
+                        int result = 0;
+
+                        if (KeyboardHookExternal.Current.IsHookMessage(message))
+                        {
+                            // If there's a WM_INPUT message in the message queue then we'll process that first
+                            Win32.MSG msg;
+                            Win32.PeekMessage(out msg, _handle, (uint)Win32.WM.INPUT, (uint)Win32.WM.INPUT, Win32.PeekMessageRemoveFlag.PM_REMOVE);
+                            if (msg.msg != 0)
+                            {
+#if EXTENDED_LOGGING_FOR_WNDPROC
+                                Log.MainLog.WriteInfo("  PeekMessage found WM_INPUT message waiting : " + msg.ToString());
+#endif
+                                _inputDevice.ProcessMessage(msg);
+#if EXTENDED_LOGGING_FOR_WNDPROC
+                                Log.MainLog.WriteInfo("  EndPeekMessage found WM_INPUT message waiting : " + msg.ToString());
+#endif
+                            }
+
+                            result = ProcessExternalHookMessage(message);
+                            if (result != 0)
+                            {
+                                message.Result = new IntPtr(-1);
+                                return;
+                            }
+                        }
+
+                        // This has to be after
+                        if (_inputDevice.IsInputMessage(message))
+                        {
+                            _inputDevice.ProcessMessage(message);
+                        }
+
+                        if (message.Msg == (int)Win32.WM.DEVICECHANGE)
+                        {
+                            RefreshDevices();
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Log.LogException(e);
+                    }
+#if EXTENDED_LOGGING_FOR_WNDPROC
+                    finally
+                    {
+                        stopwatch.Stop();
+                        if (_inputDevice != null)
+                            if (_inputDevice.IsInputMessage(message) || KeyboardHookExternal.Current.IsHookMessage(message))
+                                Log.MainLog.WriteInfo("EXIT : " + logPrefix + "  " + stopwatch.ElapsedMilliseconds.ToString());
+                    }
+#endif
                 }
             }
 
+            base.WndProc(ref message);
+        }
+
+        private int ProcessExternalHookMessage(Message message)
+        {
+            int result = 0;
             if (KeyboardHookExternal.Current.IsHookMessage(message))
             {
-                // If there's a WM_INPUT message in the message queue then we'll process that first
-                Win32.MSG msg;
-                Win32.PeekMessage(out msg, this.Handle, (uint)Win32.WM.INPUT, (uint)Win32.WM.INPUT, Win32.PeekMessageRemoveFlag.PM_REMOVE);
-                if (msg.msg != 0)
+                Call.WithTimeout(HookTimeout, false, () =>
                 {
-                    //Log.MainLog.WriteInfo("PeekMessage found WM_INPUT message waiting : " + msg.ToString());
-                    //Win32.DispatchMessage(msg);
-                    _inputDevice.ProcessMessage(msg);
-                    //Log.MainLog.WriteInfo("Finished dispatching");
-                }
+                    result = KeyboardHookExternal.Current.ProcessMessage(message);
+                });
             }
-
-            int result = KeyboardHookExternal.Current.ProcessMessage(message);
-            if (result != 0)
-            {
-                message.Result = new IntPtr(-1);
-                return;
-            }
-
-            if (message.Msg == (int)Win32.WM.DEVICECHANGE)
-            {
-                RefreshDevices();
-            }
-            
-            base.WndProc(ref message);
+            return result;
         }
 
         void KeyboardHook_KeyEvent(object sender, KeyHookEventArgs e)
         {
-            bool block = false;
-            lock (_keysToHook)
+            while (true)
             {
-                //Log.MainLog.WriteDebug(" - KeyEvent");
-                //Log.MainLog.WriteDebug("   - KeyCombo to match: " + e.KeyCombination.ToString());
-                //Log.MainLog.WriteDebug("   - KeysToHook: " + _keysToHook.Count.ToString());
-                for (int i = 0; i < _keysToHook.Count; i++)
-                {
-                    if (_keysToHook[i].Key == e.KeyCombination.KeyWithExtended)
-                    {
-                        //Log.MainLog.WriteDebug("     - Equal: " + _keysToHook[i].KeyCombo.ToString() + i.ToString());
-                        block = true;
-                        _keysToHook.RemoveAt(i);
-                        break;
-                    }
-                    else
-                    {
-                        //Log.MainLog.WriteDebug("     - Unequal: " + _keysToHook[i].KeyCombo.UnequalReason(e.KeyCombination) + " : " + _keysToHook[i].KeyCombo.ToString());
-                    }
-                }
+                // See if the key has been added by the Raw Input API
+                if (_keysSeen.Remove(e.KeyCombination.KeyWithExtended, e.KeyCombination.KeyDown))
+                    break;
 
-                // Remove any old stale entries
-                while ((_keysToHook.Count > 0) && (DateTime.Now.Subtract(_keysToHook[0].SeenAt).TotalMilliseconds > 500))
-                {
-                    Log.MainLog.WriteDebug("KeyboardHook_KeyEvent - Removing Stale Key: " + _keysToHook[0].Key.ToString());
-                    _keysToHook.RemoveAt(0);
-                    _keysToHookRemovedWithoutBlocking++;
-                }
+                // If not, wait until there's a change.
+                Log.MainLog.WriteDebug("  Waiting for Raw Input to see key: " + e.KeyCombination.KeyWithExtended.ToString() + " " + (e.KeyCombination.KeyDown ? "down" : "up") + "  " + _keysSeen.Count.ToString() + " keys seen");
+                if (_keysSeen.Count > 0)
+                    Log.MainLog.WriteDebug("   Keys Seen: " + _keysSeen.GetKeysString());
+
+                if (_keysSeen.ChangedEvent.WaitOne(_keysSeen.Timeout) == false)
+                    break; // if we timeout then we'll just continue anyway.
             }
+
+            bool block = false;
+            block = _keysToHook.Remove(e.KeyCombination.KeyWithExtended, e.KeyCombination.KeyDown);
 
             //DEBUG: Disable blocking for testing purposes.
             //block = false;
@@ -318,13 +356,14 @@ namespace KeyboardRedirector
                 WriteHookEvent("Up   : " + blockText + e.KeyCombination.ToString() + Environment.NewLine);
         }
 
+
         KeyCombination _lastLowLevelKeyCombo = null;
         void KeyboardHook_KeyEventLowLevel(object sender, KeyHookEventArgs e)
         {
             if (_disableGlobalKeyboardHook == true)
                 return;
 
-            if ((richTextBoxKeyDetector.Focused) && (checkBoxCaptureLowLevel.Checked))
+            if (_keyDetectorFocused && _captureLowLevelChecked)
             {
                 e.Handled = true;
 
@@ -376,11 +415,32 @@ namespace KeyboardRedirector
                 WriteLowLevelEvent("Up   : " + blockText + e.KeyCombination.ToString() + Environment.NewLine);
         }
 
+#if EXTENDED_LOGGING_FOR_WNDPROC
+        private int _processInputDeviceMessageCounter = 0;
+#endif
         void InputDevice_DeviceEvent(object sender, InputDevice.DeviceInfo dInfo, InputDevice.RAWINPUT rawInput)
         {
-            if (_keysToHookAdded >= 5)
+#if EXTENDED_LOGGING_FOR_WNDPROC
+            int processInputDeviceMessageCounter = _processInputDeviceMessageCounter++;
+            Log.MainLog.WriteDebug("   Begin InputDevice_DeviceEvent" + processInputDeviceMessageCounter.ToString());
+#endif
+            Call.WithTimeout(HookTimeout, false, () =>
             {
-                if (_keysToHookRemovedWithoutBlocking >= 5)
+                InputDevice_DeviceEvent_Worker(sender, dInfo, rawInput);
+            });
+#if EXTENDED_LOGGING_FOR_WNDPROC
+            Log.MainLog.WriteDebug("   End  InputDevice_DeviceEvent" + processInputDeviceMessageCounter.ToString());
+#endif
+        }
+
+        void InputDevice_DeviceEvent_Worker(object sender, InputDevice.DeviceInfo dInfo, InputDevice.RAWINPUT rawInput)
+        {
+#if EXTENDED_LOGGING_FOR_WNDPROC
+            Log.MainLog.WriteDebug("    Begin  InputDevice_DeviceEvent_Worker");
+#endif
+            if (_keysToHook.KeysAdded >= 5)
+            {
+                if (_keysToHook.KeysRemovedDueToTimeout >= 5)
                 {
                     // found a problem
                     //MessageBox.Show(this, "KeyboardRedirector detected that it's keyboard hooks are not working correctly." + Environment.NewLine + "You may need to restart KeyboardRedirector", "KeyboardRedirector", MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -388,9 +448,6 @@ namespace KeyboardRedirector
                     KeyboardHookExternal.Current.RestartHooks();
                     _keysToHook.Clear();
                 }
-                // Reset counters
-                _keysToHookAdded = 0;
-                _keysToHookRemovedWithoutBlocking = 0;
             }
 
             if (rawInput.header.dwType == InputDevice.DeviceType.Keyboard)
@@ -424,13 +481,14 @@ namespace KeyboardRedirector
                 KeyCombination lastKeyCombo = new KeyCombination(keyCombo);
                 keyCombo.KeyPress(keyDown, key, extended);
 
-                if ((richTextBoxKeyDetector.Focused) && (checkBoxCaptureLowLevel.Checked == false))
+                if ((_keyDetectorFocused) && (_captureLowLevelChecked == false))
                 {
                     lock (_keysToHook)
                     {
-                        //Log.MainLog.WriteDebug("RawInput-AddingKeyForDetector: " + keyCombo.ToString());
-                        _keysToHook.Add(new KeyToHookInformation(keyCombo.KeyWithExtended));
-                        _keysToHookAdded++;
+#if EXTENDED_LOGGING_FOR_WNDPROC
+                        Log.MainLog.WriteDebug("RawInput-AddingKeyForDetector: " + keyCombo.ToString());
+#endif
+                        _keysToHook.Add(keyCombo.KeyWithExtended, keyCombo.KeyDown);
                     }
 
                     if (keyCombo.TransitionToKeyUp)
@@ -438,6 +496,8 @@ namespace KeyboardRedirector
                         AddAndSelectKey(dInfo.DeviceName, lastKeyCombo);
                     }
 
+                    //Add to the _keysSeen list so that the keyboard hook can continue
+                    _keysSeen.Add(new KeysWithExtended(key, extended), keyDown);
                     return;
                 }
 
@@ -456,12 +516,10 @@ namespace KeyboardRedirector
                                 // Intercept key if we need to
                                 if (keyboard.CaptureAllKeys || (keyCombo.KeyDown && settingsKey.Capture))
                                 {
-                                    lock (_keysToHook)
-                                    {
-                                        //Log.MainLog.WriteDebug("RawInput-AddingKeyForCapture: " + keyCombo.ToString());
-                                        _keysToHook.Add(new KeyToHookInformation(keyCombo.KeyWithExtended));
-                                        _keysToHookAdded++;
-                                    }
+#if EXTENDED_LOGGING_FOR_WNDPROC
+                                    Log.MainLog.WriteDebug("RawInput-AddingKeyForCapture: " + keyCombo.ToString());
+#endif
+                                    _keysToHook.Add(keyCombo.KeyWithExtended, keyCombo.KeyDown);
                                 }
 
                                 double currPressTime = Utils.Time.GetTime();
@@ -480,28 +538,43 @@ namespace KeyboardRedirector
                             {
                                 if (keyboard.CaptureAllKeys)
                                 {
-                                    lock (_keysToHook)
-                                    {
-                                        //Log.MainLog.WriteDebug("RawInput-AddingKeyForCaptureAll: " + keyCombo.ToString());
-                                        _keysToHook.Add(new KeyToHookInformation(keyCombo.KeyWithExtended));
-                                        _keysToHookAdded++;
-                                    }
+#if EXTENDED_LOGGING_FOR_WNDPROC
+                                    Log.MainLog.WriteDebug("RawInput-AddingKeyForCaptureAll: " + keyCombo.ToString());
+#endif
+                                    _keysToHook.Add(keyCombo.KeyWithExtended, keyCombo.KeyDown);
                                 }
                             }
 
                         }
                     }
                 }
+
+#if EXTENDED_LOGGING_FOR_WNDPROC
+                Log.MainLog.WriteDebug("    Ending InputDevice_DeviceEvent_Worker");
+#endif
+
+                //Add to the _keysSeen list so that the keyboard hook can continue
+                _keysSeen.Add(new KeysWithExtended(key, extended), keyDown);
+
             }
         }
 
+        delegate void _actionPerformer_StatusMessageDelegate(string text);
         void _actionPerformer_StatusMessage(string text)
         {
-            this.Invoke(new WriteDelegate(WriteEvent), new object[] { text + Environment.NewLine });
-            //WriteEvent(text + Environment.NewLine);
-        }
+            // Note: We can't use this.Invoke here because we can end up with a 
+            //       recursive call to WndProc.
+            //this.Invoke(new WriteDelegate(WriteEvent), new object[] { text + Environment.NewLine });
 
-        private int eventCount = 1;
+            if (this.InvokeRequired)
+            {
+                _actionPerformer_StatusMessageDelegate function = new _actionPerformer_StatusMessageDelegate(_actionPerformer_StatusMessage);
+                function.BeginInvoke(text, asyncResult => { function.EndInvoke(asyncResult); }, null);
+                return;
+            }
+
+            WriteEvent(text + Environment.NewLine);
+        }
 
         private delegate void WriteDelegate(string message);
         private void WriteEvent(string message)
@@ -737,6 +810,19 @@ namespace KeyboardRedirector
             }
             if (keyboard == null)
                 return;
+
+            AddAndSelectKeyInTreeDelegate function = new AddAndSelectKeyInTreeDelegate(AddAndSelectKeyInTree);
+            function.BeginInvoke(keyCombo, keyboard, asyncResult => { function.EndInvoke(asyncResult); }, null);
+        }
+
+        private delegate void AddAndSelectKeyInTreeDelegate(KeyCombination keyCombo, SettingsKeyboard keyboard);
+        private void AddAndSelectKeyInTree(KeyCombination keyCombo, SettingsKeyboard keyboard)
+        {
+            if (this.InvokeRequired)
+            {
+                this.Invoke(new AddAndSelectKeyInTreeDelegate(AddAndSelectKeyInTree), keyCombo, keyboard);
+                return;
+            }
 
             lock (treeViewKeys)
             {

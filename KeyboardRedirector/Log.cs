@@ -1,4 +1,4 @@
-#region Copyright (C) 2009 Nate
+#region Copyright (C) 2009,2010 Nate
 
 /* 
  *	Copyright (C) 2009 Nate
@@ -140,7 +140,7 @@ namespace KeyboardRedirector
             foreach (string line in lines)
             {
                 output.Append(level.PadRight(LEVEL_LENGTH) + ":");
-                output.Append(DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss") + ":");
+                output.Append(DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss.fff") + ":");
                 output.Append(prefix.PadRight(PREFIX_LENGTH) + ":");
                 //output.Append("".PadLeft(_indent, ' '));
                 output.Append(line);

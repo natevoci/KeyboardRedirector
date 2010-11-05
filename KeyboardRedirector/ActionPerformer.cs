@@ -1,7 +1,7 @@
-#region Copyright (C) 2009 Nate
+#region Copyright (C) 2009,2010 Nate
 
 /* 
- *	Copyright (C) 2009 Nate
+ *	Copyright (C) 2009,2010 Nate
  *	http://nate.dynalias.net
  *
  *  This Program is free software; you can redistribute it and/or modify
@@ -105,9 +105,9 @@ namespace KeyboardRedirector
                         {
                             info = _keyQueue[0];
                             _keyQueue.RemoveAt(0);
-                            ProcessKeyInfo(info);
                         }
                     }
+                    ProcessKeyInfo(info);
                 }
                 catch (Exception e)
                 {
@@ -229,17 +229,17 @@ namespace KeyboardRedirector
 
         private void Keyboard(SettingsKeyboardKeyTypedActionKeyboard keyboard)
         {
-            //int keysDown = KeyboardHookExternal.Current.KeysDownCount();
-            //WriteStatusMessage("Keys down: " + keysDown.ToString());
-            //if (keysDown > 0)
-            //{
-            //    //Log.MainLog.WriteInfo("Waiting for all keys to be up before sending new keystroke");
-            //    WriteStatusMessage("   Waiting for all keys to be up before sending new keystroke");
-            //    while (KeyboardHookExternal.Current.KeysDownCount() > 0)
-            //    {
-            //        Thread.Sleep(1);
-            //    }
-            //}
+            int keysDownCount = KeyboardHookExternal.Current.KeysDownCount();
+            WriteStatusMessage("Keys down: " + keysDownCount.ToString());
+            if (keysDownCount > 0)
+            {
+                //Log.MainLog.WriteInfo("Waiting for all keys to be up before sending new keystroke");
+                WriteStatusMessage("   Waiting for all keys to be up before sending new keystroke");
+                while (KeyboardHookExternal.Current.KeysDownCount() > 0)
+                {
+                    Thread.Sleep(1);
+                }
+            }
 
             WriteStatusMessage("Sending keystroke: " + keyboard.GetDetails());
 

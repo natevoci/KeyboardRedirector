@@ -1,7 +1,7 @@
-﻿#region Copyright (C) 2009 Nate
+﻿#region Copyright (C) 2009,2010 Nate
 
 /* 
- *	Copyright (C) 2009 Nate
+ *	Copyright (C) 2009,2010 Nate
  *	http://nate.dynalias.net
  *
  *  This Program is free software; you can redistribute it and/or modify

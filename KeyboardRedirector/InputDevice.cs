@@ -1,7 +1,7 @@
-#region Copyright (C) 2009 Nate
+#region Copyright (C) 2009,2010 Nate
 
 /* 
- *	Copyright (C) 2009 Nate
+ *	Copyright (C) 2009,2010 Nate
  *	http://nate.dynalias.net
  *
  *  This Program is free software; you can redistribute it and/or modify
@@ -533,14 +533,14 @@ namespace KeyboardRedirector
                              (uint)Marshal.SizeOf( typeof( RAWINPUTHEADER )));
 
             if (dwSize == 0)
-                return;
+                throw new Exception("GetRawInputData returned 0");
 
             IntPtr buffer = Marshal.AllocHGlobal( (int)dwSize );
             try
             {
                 // Check that buffer points to something
                 if (buffer == IntPtr.Zero)
-                    return;
+                    throw new OutOfMemoryException("Could not allocate buffer.");
 
                 // call GetRawInputData again to fill the allocated memory
                 // with information about the input
@@ -550,99 +550,99 @@ namespace KeyboardRedirector
                                                    ref dwSize,
                                                    (uint)Marshal.SizeOf(typeof(RAWINPUTHEADER)));
 
-                if (bytesCopied == dwSize)
+                if (bytesCopied != dwSize)
+                    throw new Exception("GetRawInputData returned a mismatching number of bytes.");
+
+                // Store the message information in "raw", then check
+                // that the input comes from a keyboard device before
+                // processing it to raise an appropriate KeyPressed event.
+
+                RAWINPUT raw = (RAWINPUT)Marshal.PtrToStructure(buffer, typeof(RAWINPUT));
+
+                //byte[] bytes = new byte[dwSize];
+                //for (int offset = 0; offset < dwSize; offset++)
+                //{
+                //    bytes[offset] = Marshal.ReadByte(buffer, offset);
+                //}
+                //Debug.WriteLine(Environment.NewLine + ByteArrayToHexString(bytes));
+
+                // Retrieve information about the device and the
+                // key that was pressed.
+                DeviceInfo dInfo = null;
+
+                if (deviceList.Contains(raw.header.hDevice))
                 {
-                    // Store the message information in "raw", then check
-                    // that the input comes from a keyboard device before
-                    // processing it to raise an appropriate KeyPressed event.
+                    dInfo = (DeviceInfo)deviceList[raw.header.hDevice];
+                }
+                if (dInfo == null)
+                {
+                    string errMessage = String.Format("Handle :{0} was not in hashtable. The device may support more than one handle or usage page, and is probably not a standard keyboard.", raw.header.hDevice);
+                    throw new ApplicationException(errMessage);
+                    //Debug.WriteLine(errMessage);
+                    //return;
+                }
 
-                    RAWINPUT raw = (RAWINPUT)Marshal.PtrToStructure(buffer, typeof(RAWINPUT));
 
-                    //byte[] bytes = new byte[dwSize];
-                    //for (int offset = 0; offset < dwSize; offset++)
-                    //{
-                    //    bytes[offset] = Marshal.ReadByte(buffer, offset);
-                    //}
-                    //Debug.WriteLine(Environment.NewLine + ByteArrayToHexString(bytes));
+                if (DeviceEvent != null)
+                {
+                    DeviceEvent(this, dInfo, raw);
+                }
 
-                    // Retrieve information about the device and the
-                    // key that was pressed.
-                    DeviceInfo dInfo = null;
 
-                    if (deviceList.Contains(raw.header.hDevice))
+                if (raw.header.dwType == DeviceType.Keyboard)
+                {
+                    //Debug.WriteLine("input: " + dInfo.Name);
+                    //Debug.WriteLine(string.Format("  {0,8} {1,8} {2,16} | {3,4} {4,4} {5,4} ({6,4}) {7} {8,8}",
+                    //    raw.header.hDevice,
+                    //    raw.header.dwType,
+                    //    raw.header.wParam,
+                    //    raw.data.keyboard.MakeCode,
+                    //    raw.data.keyboard.Flags,
+                    //    raw.data.keyboard.Reserved,
+                    //    raw.data.keyboard.VKey,
+                    //    raw.data.keyboard.Message.ToString(),
+                    //    raw.data.keyboard.ExtraInformation));
+
+                    // Filter for Key Down events and then retrieve information 
+                    // about the keystroke
+                    //if (raw.data.keyboard.Message == WM_KEYDOWN || raw.data.keyboard.Message == WM_SYSKEYDOWN)
+                    if (KeyPressed != null)
                     {
-                        dInfo = (DeviceInfo)deviceList[raw.header.hDevice];
-                    }
-                    if (dInfo == null)
-                    {
-                        string errMessage = String.Format("Handle :{0} was not in hashtable. The device may support more than one handle or usage page, and is probably not a standard keyboard.", raw.header.hDevice);
-                        //throw new ApplicationException(errMessage);
-                        Debug.WriteLine(errMessage);
-                        return;
-                    }
+
+                        ushort key = raw.data.keyboard.VKey;
 
 
-                    if (DeviceEvent != null)
-                    {
-                        DeviceEvent(this, dInfo, raw);
-                    }
-
-
-                    if (raw.header.dwType == DeviceType.Keyboard)
-                    {
-                        //Debug.WriteLine("input: " + dInfo.Name);
-                        //Debug.WriteLine(string.Format("  {0,8} {1,8} {2,16} | {3,4} {4,4} {5,4} ({6,4}) {7} {8,8}",
-                        //    raw.header.hDevice,
-                        //    raw.header.dwType,
-                        //    raw.header.wParam,
-                        //    raw.data.keyboard.MakeCode,
-                        //    raw.data.keyboard.Flags,
-                        //    raw.data.keyboard.Reserved,
-                        //    raw.data.keyboard.VKey,
-                        //    raw.data.keyboard.Message.ToString(),
-                        //    raw.data.keyboard.ExtraInformation));
-
-                        // Filter for Key Down events and then retrieve information 
-                        // about the keystroke
-                        //if (raw.data.keyboard.Message == WM_KEYDOWN || raw.data.keyboard.Message == WM_SYSKEYDOWN)
-                        if (KeyPressed != null)
+                        // On most keyboards, "extended" keys such as the arrow or 
+                        // page keys return two codes - the key's own code, and an
+                        // "extended key" flag, which translates to 255. This flag
+                        // isn't useful to us, so it can be disregarded.
+                        if (key > VK_LAST_KEY)
                         {
+                            return;
+                        }
 
-                            ushort key = raw.data.keyboard.VKey;
+                        Keys myKey;
+                        string name = Enum.GetName(typeof(Keys), key);
+                        if (name != null)
+                            myKey = (Keys)Enum.Parse(typeof(Keys), name);
+                        else
+                            myKey = (Keys)key;
+                        //dInfo.vKey = myKey.ToString();
+                        dInfo.keys = myKey;
 
+                        //Debug.WriteLine("key: " + myKey.ToString());
 
-                            // On most keyboards, "extended" keys such as the arrow or 
-                            // page keys return two codes - the key's own code, and an
-                            // "extended key" flag, which translates to 255. This flag
-                            // isn't useful to us, so it can be disregarded.
-                            if (key > VK_LAST_KEY)
-                            {
-                                return;
-                            }
-
-                            Keys myKey;
-                            string name = Enum.GetName(typeof(Keys), key);
-                            if (name != null)
-                                myKey = (Keys)Enum.Parse(typeof(Keys), name);
-                            else
-                                myKey = (Keys)key;
-                            //dInfo.vKey = myKey.ToString();
-                            dInfo.keys = myKey;
-
-                            //Debug.WriteLine("key: " + myKey.ToString());
-
-                            // If the key that was pressed is valid and there
-                            // was no problem retrieving information on the device,
-                            // raise the KeyPressed event.
-                            if (dInfo != null)
-                            {
-                                KeyPressed(this, new KeyControlEventArgs(dInfo, GetDevice(message_LParam.ToInt32())));
-                            }
-                            else
-                            {
-                                string errMessage = String.Format("Received Unknown Key: {0}. Possibly an unknown device", key);
-                                throw new ApplicationException(errMessage);
-                            }
+                        // If the key that was pressed is valid and there
+                        // was no problem retrieving information on the device,
+                        // raise the KeyPressed event.
+                        if (dInfo != null)
+                        {
+                            KeyPressed(this, new KeyControlEventArgs(dInfo, GetDevice(message_LParam.ToInt32())));
+                        }
+                        else
+                        {
+                            string errMessage = String.Format("Received Unknown Key: {0}. Possibly an unknown device", key);
+                            throw new ApplicationException(errMessage);
                         }
                     }
                 }

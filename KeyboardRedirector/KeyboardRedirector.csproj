@@ -2,7 +2,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>9.0.21022</ProductVersion>
+    <ProductVersion>9.0.30729</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{90F3D697-BCE4-46E1-BD22-78B10CE6AB8A}</ProjectGuid>
     <OutputType>WinExe</OutputType>
@@ -15,6 +15,7 @@
     <OldToolsVersion>2.0</OldToolsVersion>
     <UpgradeBackupLocation>
     </UpgradeBackupLocation>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -53,6 +54,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="System.Core">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
     <Reference Include="System.Data" />
     <Reference Include="System.Deployment" />
     <Reference Include="System.Drawing" />
@@ -71,6 +75,7 @@
     <Compile Include="BindingListView.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Call.cs" />
     <Compile Include="EditApplicationsDialog.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -85,6 +90,7 @@
     <Compile Include="KeyboardRedirectorForm.Designer.cs">
       <DependentUpon>KeyboardRedirectorForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="KeysToHookList.cs" />
     <Compile Include="Log.cs" />
     <Compile Include="MinimizeToTrayForm.cs">
       <SubType>Form</SubType>
@@ -126,6 +132,7 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Settings.cs" />
+    <Compile Include="StackTrace.cs" />
     <Compile Include="XMLFileStore.cs" />
   </ItemGroup>
   <ItemGroup>
