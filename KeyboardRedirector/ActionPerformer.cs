@@ -49,6 +49,8 @@ namespace KeyboardRedirector
         public delegate void StatusMessageHandler(string text);
         public event StatusMessageHandler StatusMessage;
 
+        public object KeyboardSendInputLock = new object();
+
         private void WriteStatusMessage(string text)
         {
             if (StatusMessage != null)
@@ -232,10 +234,14 @@ namespace KeyboardRedirector
             int keysDownCount = KeyboardHookExternal.Current.KeysDownCount();
             if (keysDownCount > 0)
             {
-                WriteStatusMessage("   Waiting for all keys to be up before sending new keystroke : keys down = " + keysDownCount.ToString());
-                while (KeyboardHookExternal.Current.KeysDownCount() > 0)
+                Log.MainLog.WriteDebug("   Waiting for all keys to be up before sending new keystroke : keys down = " + keysDownCount.ToString());
+                if (KeyboardHookExternal.Current.AllKeysUpEvent.WaitOne(1000))
                 {
-                    Thread.Sleep(1);
+                    Log.MainLog.WriteDebug("   All keys are up");
+                }
+                else
+                {
+                    WriteStatusMessage("   Timeout waiting for all keys to be up");
                 }
             }
 
@@ -243,94 +249,97 @@ namespace KeyboardRedirector
 
             for (int repeat = 0; repeat < keyboard.RepeatCount; repeat++)
             {
-                List<Win32.INPUT> inputList = new List<Win32.INPUT>();
-
-                if (repeat == 0)
+                //lock (KeyboardSendInputLock)
                 {
-                    List<KeysWithExtended> keysDown = new List<KeysWithExtended>();
-                    keysDown.AddRange(KeyboardHookExternal.Current.KeyStateLowLevel.Modifiers);
-                    if (KeyboardHookExternal.Current.KeyStateLowLevel.KeyDown)
-                        keysDown.Add(KeyboardHookExternal.Current.KeyStateLowLevel.KeyWithExtended);
-                    bool controlDown = false;
-                    bool shiftDown = false;
-                    bool altDown = false;
-                    bool lWinDown = false;
-                    bool rWinDown = false;
-                    foreach (KeysWithExtended key in keysDown)
+                    List<Win32.INPUT> inputList = new List<Win32.INPUT>();
+
+                    if (repeat == 0)
                     {
-                        controlDown |= key.IsControlKey;
-                        shiftDown |= key.IsShiftKey;
-                        altDown |= key.IsAltKey;
-                        lWinDown |= key.IsLWinKey;
-                        rWinDown |= key.IsRWinKey;
+                        List<KeysWithExtended> keysDown = new List<KeysWithExtended>();
+                        keysDown.AddRange(KeyboardHookExternal.Current.KeyStateLowLevel.Modifiers);
+                        if (KeyboardHookExternal.Current.KeyStateLowLevel.KeyDown)
+                            keysDown.Add(KeyboardHookExternal.Current.KeyStateLowLevel.KeyWithExtended);
+                        bool controlDown = false;
+                        bool shiftDown = false;
+                        bool altDown = false;
+                        bool lWinDown = false;
+                        bool rWinDown = false;
+                        foreach (KeysWithExtended key in keysDown)
+                        {
+                            controlDown |= key.IsControlKey;
+                            shiftDown |= key.IsShiftKey;
+                            altDown |= key.IsAltKey;
+                            lWinDown |= key.IsLWinKey;
+                            rWinDown |= key.IsRWinKey;
+                        }
+
+                        if (controlDown)
+                        {
+                            inputList.Add(CreateInputStruct((ushort)Keys.ControlKey, false));
+                        }
+
+                        if (shiftDown)
+                        {
+                            inputList.Add(CreateInputStruct((ushort)Keys.ShiftKey, false));
+                        }
+
+                        if (altDown)
+                        {
+                            inputList.Add(CreateInputStruct((ushort)Keys.Menu, false));
+                        }
+
+                        if (lWinDown)
+                        {
+                            inputList.Add(CreateInputStruct((ushort)Keys.LWin, false));
+                        }
+
+                        if (rWinDown)
+                        {
+                            inputList.Add(CreateInputStruct((ushort)Keys.RWin, false));
+                        }
                     }
 
-                    if (controlDown)
-                    {
-                        inputList.Add(CreateInputStruct((ushort)Keys.ControlKey, false));
-                    }
+                    if (keyboard.Control)
+                        inputList.Add(CreateInputStruct((ushort)Keys.ControlKey, true));
 
-                    if (shiftDown)
-                    {
-                        inputList.Add(CreateInputStruct((ushort)Keys.ShiftKey, false));
-                    }
+                    if (keyboard.Shift)
+                        inputList.Add(CreateInputStruct((ushort)Keys.ShiftKey, true));
 
-                    if (altDown)
-                    {
-                        inputList.Add(CreateInputStruct((ushort)Keys.Menu, false));
-                    }
+                    if (keyboard.Alt)
+                        inputList.Add(CreateInputStruct((ushort)Keys.Menu, true));
 
-                    if (lWinDown)
-                    {
-                        inputList.Add(CreateInputStruct((ushort)Keys.LWin, false));
-                    }
+                    if (keyboard.LWin)
+                        inputList.Add(CreateInputStruct((ushort)Keys.LWin, true));
 
-                    if (rWinDown)
-                    {
+                    if (keyboard.RWin)
+                        inputList.Add(CreateInputStruct((ushort)Keys.RWin, true));
+
+                    inputList.Add(CreateInputStruct((ushort)keyboard.VirtualKeyCode, true));
+
+                    inputList.Add(CreateInputStruct((ushort)keyboard.VirtualKeyCode, false));
+
+                    if (keyboard.RWin)
                         inputList.Add(CreateInputStruct((ushort)Keys.RWin, false));
-                    }
+
+                    if (keyboard.LWin)
+                        inputList.Add(CreateInputStruct((ushort)Keys.LWin, false));
+
+                    if (keyboard.Alt)
+                        inputList.Add(CreateInputStruct((ushort)Keys.Menu, false));
+
+                    if (keyboard.Shift)
+                        inputList.Add(CreateInputStruct((ushort)Keys.ShiftKey, false));
+
+                    if (keyboard.Control)
+                        inputList.Add(CreateInputStruct((ushort)Keys.ControlKey, false));
+
+                    KeyboardRedirectorForm.DisableGlobalKeyboardHook = true;
+
+                    Win32.INPUT[] input = inputList.ToArray();
+                    uint result = Win32.SendInput(input.Length, input, Marshal.SizeOf(input[0]));
+
+                    KeyboardRedirectorForm.DisableGlobalKeyboardHook = false;
                 }
-
-                if (keyboard.Control)
-                    inputList.Add(CreateInputStruct((ushort)Keys.ControlKey, true));
-
-                if (keyboard.Shift)
-                    inputList.Add(CreateInputStruct((ushort)Keys.ShiftKey, true));
-
-                if (keyboard.Alt)
-                    inputList.Add(CreateInputStruct((ushort)Keys.Menu, true));
-
-                if (keyboard.LWin)
-                    inputList.Add(CreateInputStruct((ushort)Keys.LWin, true));
-
-                if (keyboard.RWin)
-                    inputList.Add(CreateInputStruct((ushort)Keys.RWin, true));
-
-                inputList.Add(CreateInputStruct((ushort)keyboard.VirtualKeyCode, true));
-
-                inputList.Add(CreateInputStruct((ushort)keyboard.VirtualKeyCode, false));
-
-                if (keyboard.RWin)
-                    inputList.Add(CreateInputStruct((ushort)Keys.RWin, false));
-
-                if (keyboard.LWin)
-                    inputList.Add(CreateInputStruct((ushort)Keys.LWin, false));
-
-                if (keyboard.Alt)
-                    inputList.Add(CreateInputStruct((ushort)Keys.Menu, false));
-
-                if (keyboard.Shift)
-                    inputList.Add(CreateInputStruct((ushort)Keys.ShiftKey, false));
-
-                if (keyboard.Control)
-                    inputList.Add(CreateInputStruct((ushort)Keys.ControlKey, false));
-
-                KeyboardRedirectorForm.DisableGlobalKeyboardHook = true;
-
-                Win32.INPUT[] input = inputList.ToArray();
-                uint result = Win32.SendInput(input.Length, input, Marshal.SizeOf(input[0]));
-
-                KeyboardRedirectorForm.DisableGlobalKeyboardHook = false;
             }
         }
 

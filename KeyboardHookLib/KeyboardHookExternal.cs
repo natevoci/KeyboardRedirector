@@ -223,6 +223,11 @@ namespace KeyboardRedirector
                     }
                 }
 
+                if (KeysDownCount() == 0)
+                    _allKeysUpEvent.Set();
+                else
+                    _allKeysUpEvent.Reset();
+
                 if (handled)
                     return -1;
             }
@@ -236,6 +241,13 @@ namespace KeyboardRedirector
             int keys = _keyState.KeysDownCount();
             return (keysLL > keys) ? keysLL : keys;
         }
+
+        private System.Threading.ManualResetEvent _allKeysUpEvent = new System.Threading.ManualResetEvent(false);
+        public System.Threading.ManualResetEvent AllKeysUpEvent
+        {
+            get { return _allKeysUpEvent; }
+        }
+
 
     }
 

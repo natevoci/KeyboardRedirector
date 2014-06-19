@@ -23,7 +23,7 @@
 
 #endregion
 
-#define EXTENDED_LOGGING_FOR_WNDPROC
+//#define EXTENDED_LOGGING_FOR_WNDPROC
 
 using System;
 using System.Collections.Generic;
@@ -117,6 +117,10 @@ namespace KeyboardRedirector
             }
             listViewApplicationsInFocus.AddColumn("Application in focus", -1, "ApplicationName");
 
+        }
+
+        private void KeyboardRedirectorForm_Load(object sender, EventArgs e)
+        {
             _inputDevice = new InputDevice(Handle);
             _inputDevice.DeviceEvent += new InputDevice.DeviceEventHandler(InputDevice_DeviceEvent);
 
@@ -134,10 +138,7 @@ namespace KeyboardRedirector
             }
 
             timerMinimiseOnStart.Start();
-        }
 
-        private void KeyboardRedirectorForm_Load(object sender, EventArgs e)
-        {
             ToolTip toolTip = new ToolTip();
             toolTip.SetToolTip(this.checkBoxCaptureLowLevel, "Capture low level keystrokes (not keyboard specific)");
         }
@@ -562,6 +563,8 @@ namespace KeyboardRedirector
         delegate void _actionPerformer_StatusMessageDelegate(string text);
         void _actionPerformer_StatusMessage(string text)
         {
+            Log.MainLog.WriteInfo(text.TrimEnd('\r', '\n'));
+
             // Note: We can't use this.Invoke here because we can end up with a 
             //       recursive call to WndProc.
 
@@ -572,54 +575,58 @@ namespace KeyboardRedirector
             }
             else
             {
-                WriteEvent(text + Environment.NewLine);
+                WriteEvent(text + Environment.NewLine, false);
             }
         }
 
         void _actionPerformer_StatusMessage_Invoke(string text)
         {
             if (this.InvokeRequired)
-                this.Invoke(new WriteDelegate(WriteEvent), new object[] { text + Environment.NewLine });
+                this.Invoke(new WriteDelegate(WriteEvent), text + Environment.NewLine, false);
             else
-                WriteEvent(text + Environment.NewLine);
+                WriteEvent(text + Environment.NewLine, false);
         }
 
-        private delegate void WriteDelegate(string message);
+        private delegate void WriteDelegate(string message, bool toLogAsWell);
         private void WriteEvent(string message)
+        {
+            WriteEvent(message, true);
+        }
+        private void WriteEvent(string message, bool toLogAsWell)
         {
             string counter = (Utils.Time.GetTime() / 1000.0).ToString("0.000").PadLeft(8);
             message = counter + ":" + message;
             System.Diagnostics.Debug.Write(message);
+            Log.MainLog.WriteInfo(message.TrimEnd('\r', '\n'));
             if (checkBoxDisplayLogMessages.Checked)
                 richTextBoxEvents.AppendText(message);
-            Log.MainLog.WriteInfo(message.TrimEnd('\r', '\n'));
         }
         private void WriteLowLevelEvent(string message)
         {
             string counter = (Utils.Time.GetTime() / 1000.0).ToString("0.000").PadLeft(8);
             message = counter + ":" + " LL" + message;
             System.Diagnostics.Debug.Write(message);
+            Log.MainLog.WriteInfo(message.TrimEnd('\r', '\n'));
             if (checkBoxDisplayLogMessages.Checked)
                 richTextBoxEvents.AppendText(message);
-            Log.MainLog.WriteInfo(message.TrimEnd('\r', '\n'));
         }
         private void WriteHookEvent(string message)
         {
             string counter = (Utils.Time.GetTime() / 1000.0).ToString("0.000").PadLeft(8);
             message = counter + ":" + "   " + message;
             System.Diagnostics.Debug.Write(message);
+            Log.MainLog.WriteInfo(message.TrimEnd('\r', '\n'));
             if (checkBoxDisplayLogMessages.Checked)
                 richTextBoxEvents.AppendText(message);
-            Log.MainLog.WriteInfo(message.TrimEnd('\r', '\n'));
         }
         private void WriteWMInputEvent(string message)
         {
             string counter = (Utils.Time.GetTime() / 1000.0).ToString("0.000").PadLeft(8);
             message = counter + ":" + "  " + message;
             System.Diagnostics.Debug.Write(message);
+            Log.MainLog.WriteInfo(message.TrimEnd('\r', '\n'));
             if (checkBoxDisplayLogMessages.Checked)
                 richTextBoxEvents.AppendText(message);
-            Log.MainLog.WriteInfo(message.TrimEnd('\r', '\n'));
         }
 
         private DeviceInformation FindKeyboardDeviceInformation(string deviceName)

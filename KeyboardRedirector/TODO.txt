@@ -1,0 +1,31 @@
+﻿----------------------------
+KeyboardRedirector TODO list
+----------------------------
+
+- Complete HID key detection
+  - Add HIDEvent to InputDevice
+  - Add options to disable particular HID devices from being captured (Belkin UPS sends HID events every few seconds)
+
+- Fix cross threaded operation for updating form elements to invoke all actions.
+
+- Add configuation of RC6 MCE remote control keys (see MCERemoteMapper)
+    ReportMappingTable format details - http://wiki.xbmc.org/?title=Using_a_Microsoft_remote_control_in_Windows
+    
+- Add capturing of WM_APPCOMMAND events
+  - Not per keyboard, just low level like for low level keyboard events.
+  
+- Add customizing how windows deals with MW_APPCOMMAND actions
+  - Option for disabling the Human Interface Device Access (hidserv) service.
+      This service is the one that turns key events from usage page 0x0C into WM_APPCOMMAND events.
+  - Easy customization of registry entries in
+    HKLM/Software/Microsoft/Windows/CurrentVersion/Explorer/AppKey
+    or HKCU
+    specifications - http://msdn.microsoft.com/en-us/library/windows/hardware/gg463446.aspx
+
+- Build ApplicationLauncher into KeyboardRedirector so that it can load faster.
+  - Also fix errors if mapped drives are missing for shortcuts.
+
+- Add the ability to send WM_COMMAND messages directly to the application in focus.
+
+- Possibly add the ability to capture key sequences that occur withing X milliseconds. (for bar code readers)
+

@@ -32,6 +32,7 @@ using Microsoft.Win32;
 using System.Diagnostics;
 using System.Text;
 using MS;
+using System.Collections.Generic;
 
 namespace KeyboardRedirector
 {
@@ -44,7 +45,10 @@ namespace KeyboardRedirector
 
         // The following constants are defined in Windows.h
 
+        private const int RIDEV_APPKEYS     = 0x00000400;
         private const int RIDEV_INPUTSINK   = 0x00000100;
+        private const int RIDEV_NOLEGACY    = 0x00000030;
+        private const int RIDEV_PAGEONLY    = 0x00000020;
         private const int RID_INPUT         = 0x10000003;
 
         private const int FAPPCOMMAND_MASK  = 0xF000;
@@ -52,6 +56,7 @@ namespace KeyboardRedirector
         private const int FAPPCOMMAND_OEM   = 0x1000;
 
         private const int RIDI_DEVICENAME   = 0x20000007;
+        private const int RIDI_DEVICEINFO   = 0x2000000B;
         
         private const int VK_OEM_CLEAR      = 0xFE;
         private const int VK_LAST_KEY       = VK_OEM_CLEAR; // this is a made up value used as a sentinel
@@ -91,11 +96,13 @@ namespace KeyboardRedirector
             public IntPtr DeviceHandle;
             public DeviceType DeviceType;
             public string DeviceName;
+            public RID_DEVICE_INFO RawInputDeviceInfo;
             public string DeviceDesc;
             public string Name;
 
             public string source;
             public Keys keys;
+            public int hidKey;
         }
 
         #region Windows.h structure declarations
@@ -109,6 +116,19 @@ namespace KeyboardRedirector
             [MarshalAs(UnmanagedType.U4)]
             public int dwType;
         }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct RAWINPUTDEVICE
+        {
+            [MarshalAs(UnmanagedType.U2)]
+            public ushort usUsagePage;
+            [MarshalAs(UnmanagedType.U2)]
+            public ushort usUsage;
+            [MarshalAs(UnmanagedType.U4)]
+            public int dwFlags;
+            public IntPtr hwndTarget;
+        }
+
 
         [StructLayout(LayoutKind.Sequential)]
         public struct RAWINPUT
@@ -145,6 +165,7 @@ namespace KeyboardRedirector
             public int dwSizHid;
             [MarshalAs(UnmanagedType.U4)]
             public int dwCount;
+            public IntPtr pData;
         }
 
         [StructLayout(LayoutKind.Sequential)]
@@ -194,17 +215,69 @@ namespace KeyboardRedirector
             public uint ExtraInformation;
         }
 
-        [StructLayout(LayoutKind.Sequential)]
-        public struct RAWINPUTDEVICE
+
+        [StructLayout(LayoutKind.Explicit)]
+        public struct RID_DEVICE_INFO
         {
+            [FieldOffset(0), MarshalAs(UnmanagedType.U4)]
+            public int cbSize;
+            [FieldOffset(4), MarshalAs(UnmanagedType.U4)]
+            public DeviceType dwType;
+
+            [FieldOffset(8)]
+            public RID_DEVICE_INFO_MOUSE mouse;
+            [FieldOffset(8)]
+            public RID_DEVICE_INFO_KEYBOARD keyboard;
+            [FieldOffset(8)]
+            public RID_DEVICE_INFO_HID hid;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct RID_DEVICE_INFO_MOUSE
+        {
+            [MarshalAs(UnmanagedType.U4)]
+            public uint dwId;
+            [MarshalAs(UnmanagedType.U4)]
+            public uint dwNumberOfButtons;
+            [MarshalAs(UnmanagedType.U4)]
+            public uint dwSampleRate;
+            [MarshalAs(UnmanagedType.Bool)]
+            public bool fHasHorizontalWheel;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct RID_DEVICE_INFO_KEYBOARD
+        {
+            [MarshalAs(UnmanagedType.U4)]
+            public uint dwType;
+            [MarshalAs(UnmanagedType.U4)]
+            public uint dwSubType;
+            [MarshalAs(UnmanagedType.U4)]
+            public uint dwKeyboardMode;
+            [MarshalAs(UnmanagedType.U4)]
+            public uint dwNumberOfFunctionKeys;
+            [MarshalAs(UnmanagedType.U4)]
+            public uint dwNumberOfIndicators;
+            [MarshalAs(UnmanagedType.U4)]
+            public uint dwNumberOfKeysTotal;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct RID_DEVICE_INFO_HID
+        {
+            [MarshalAs(UnmanagedType.U4)]
+            public uint dwVendorId;
+            [MarshalAs(UnmanagedType.U4)]
+            public uint dwProductId;
+            [MarshalAs(UnmanagedType.U4)]
+            public uint dwVersionNumber;
             [MarshalAs(UnmanagedType.U2)]
             public ushort usUsagePage;
             [MarshalAs(UnmanagedType.U2)]
             public ushort usUsage;
-            [MarshalAs(UnmanagedType.U4)]
-            public int dwFlags;
-            public IntPtr hwndTarget;
         }
+
+
         #endregion Windows.h structure declarations
 
 
@@ -235,15 +308,15 @@ namespace KeyboardRedirector
         /// List of keyboard devices. Key: the device handle
         /// Value: the device info class
         /// </summary>
-        private Hashtable deviceList = new Hashtable();
+        private Dictionary<IntPtr, DeviceInfo> _deviceList = new Dictionary<IntPtr, DeviceInfo>();
 
-        public Hashtable DeviceList
+        public Dictionary<IntPtr, DeviceInfo> DeviceList
         {
             get
             {
-                if (deviceList.Count == 0)
+                if (_deviceList.Count == 0)
                     EnumerateDevices();
-                return deviceList;
+                return _deviceList;
             }
         }
 
@@ -311,15 +384,45 @@ namespace KeyboardRedirector
             //listen to. In this case, only keyboard devices.
             //RIDEV_INPUTSINK determines that the window will continue
             //to receive messages even when it doesn't have the focus.
-            RAWINPUTDEVICE[] rid = new RAWINPUTDEVICE[1];
-			
-            rid[0].usUsagePage  = 0x01;
-            rid[0].usUsage      = 0x06;
-            rid[0].dwFlags      = RIDEV_INPUTSINK; 
-            rid[0].hwndTarget   = hwnd;
-           
-            if( !RegisterRawInputDevices( rid, (uint)rid.Length, (uint)Marshal.SizeOf( rid[0] )))
+            var rids = new List<RAWINPUTDEVICE>();
+
+            var usagePairList = new List<int>();
+
+            foreach (var device in DeviceList.Values)
             {
+                if (device.RawInputDeviceInfo.dwType == DeviceType.Keyboard)
+                {
+                    int usagePair = 0x00010006;
+                    if (!usagePairList.Contains(usagePair))
+                        usagePairList.Add(usagePair);
+                }
+                else if (device.RawInputDeviceInfo.dwType == DeviceType.HID)
+                {
+                    int usagePair = (device.RawInputDeviceInfo.hid.usUsagePage << 16) + device.RawInputDeviceInfo.hid.usUsage;
+                    if (!usagePairList.Contains(usagePair))
+                        usagePairList.Add(usagePair);
+                }
+            }
+
+            foreach (int usagePair in usagePairList)
+            {
+                ushort usagePage = (ushort)(usagePair >> 16);
+                ushort usage = (ushort)(usagePair & 0xFFFF);
+
+                var rid = new RAWINPUTDEVICE();
+                rid.usUsagePage = usagePage;
+                rid.usUsage = usage;
+                rid.dwFlags = RIDEV_INPUTSINK;
+                rid.hwndTarget = hwnd;
+                if (usage == 0)
+                    rid.dwFlags |= RIDEV_PAGEONLY;
+                rids.Add(rid);
+            }
+
+            var ridArray = rids.ToArray();
+            if (!RegisterRawInputDevices(ridArray, (uint)rids.Count, (uint)Marshal.SizeOf(ridArray[0])))
+            {
+                string errorMessage = new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error()).Message;
                 throw new ApplicationException( "Failed to register raw input device(s)." );
             }
         }
@@ -410,7 +513,7 @@ namespace KeyboardRedirector
             int NumberOfDevices = 0;
             uint deviceCount = 0;
             int dwSize = ( Marshal.SizeOf( typeof( RAWINPUTDEVICELIST )));
-            deviceList.Clear();
+            _deviceList.Clear();
 
             // Get the number of raw input devices in the list,
             // then allocate sufficient memory and get the entire list
@@ -429,6 +532,7 @@ namespace KeyboardRedirector
 
                     IntPtr hDevice = IntPtr.Zero;
                     int deviceType = 0;
+                    RID_DEVICE_INFO deviceInfo = new RID_DEVICE_INFO();
 
                     if (i == -1)
                     {
@@ -440,7 +544,7 @@ namespace KeyboardRedirector
                         dInfo.Name = "SendInput (Keystrokes simulated by applications)";
 
                         NumberOfDevices++;
-                        deviceList.Add(IntPtr.Zero, dInfo);
+                        _deviceList.Add(IntPtr.Zero, dInfo);
                         continue;
                     }
 
@@ -457,6 +561,7 @@ namespace KeyboardRedirector
                         IntPtr pData = Marshal.AllocHGlobal((int)pcbSize);
                         GetRawInputDeviceInfo(hDevice, RIDI_DEVICENAME, pData, ref pcbSize);
                         deviceName = (string)Marshal.PtrToStringAnsi(pData);
+                        Marshal.FreeHGlobal(pData);
 
                         // Drop the "root" keyboard and mouse devices used for Terminal 
                         // Services and the Remote Desktop
@@ -464,6 +569,23 @@ namespace KeyboardRedirector
                             continue;
                         if (deviceName.ToUpper().StartsWith(@"\??\ROOT"))
                             continue;
+
+                        GetRawInputDeviceInfo(hDevice, RIDI_DEVICEINFO, IntPtr.Zero, ref pcbSize);
+                        
+                        string bits = "";
+
+                        if (pcbSize > 0)
+                        {
+                            pData = Marshal.AllocHGlobal((int)pcbSize);
+                            GetRawInputDeviceInfo(hDevice, RIDI_DEVICEINFO, pData, ref pcbSize);
+                            
+                            var data = new byte[pcbSize];
+                            Marshal.Copy(pData, data, 0, (int)pcbSize);
+                            bits = BitConverter.ToString(data);
+
+                            deviceInfo = (RID_DEVICE_INFO)Marshal.PtrToStructure(pData, typeof(RID_DEVICE_INFO));
+                            Marshal.FreeHGlobal(pData);
+                        }
 
                         // If the device is identified in the list as a keyboard or 
                         // HID device, create a DeviceInfo object to store information 
@@ -474,7 +596,8 @@ namespace KeyboardRedirector
 
                             dInfo.DeviceHandle = hDevice;
                             dInfo.DeviceType = GetDeviceType(deviceType);
-                            dInfo.DeviceName = (string)Marshal.PtrToStringAnsi(pData);
+                            dInfo.DeviceName = deviceName;
+                            dInfo.RawInputDeviceInfo = deviceInfo;
 
                             // Check the Registry to see whether this is actually a 
                             // keyboard, and to retrieve a more friendly description.
@@ -486,13 +609,12 @@ namespace KeyboardRedirector
                             // add it to the deviceList hashtable and increase the
                             // NumberOfDevices count
                             //if (!deviceList.Contains(hDevice) && IsKeyboardDevice)
-                            if (!deviceList.Contains(hDevice))
+                            if (!_deviceList.ContainsKey(hDevice))
                             {
                                 NumberOfDevices++;
-                                deviceList.Add(hDevice, dInfo);
+                                _deviceList.Add(hDevice, dInfo);
                             }
                         }
-                        Marshal.FreeHGlobal(pData);
                     }
                 }
 
@@ -559,20 +681,13 @@ namespace KeyboardRedirector
 
                 RAWINPUT raw = (RAWINPUT)Marshal.PtrToStructure(buffer, typeof(RAWINPUT));
 
-                //byte[] bytes = new byte[dwSize];
-                //for (int offset = 0; offset < dwSize; offset++)
-                //{
-                //    bytes[offset] = Marshal.ReadByte(buffer, offset);
-                //}
-                //Debug.WriteLine(Environment.NewLine + ByteArrayToHexString(bytes));
-
                 // Retrieve information about the device and the
                 // key that was pressed.
                 DeviceInfo dInfo = null;
 
-                if (deviceList.Contains(raw.header.hDevice))
+                if (_deviceList.ContainsKey(raw.header.hDevice))
                 {
-                    dInfo = (DeviceInfo)deviceList[raw.header.hDevice];
+                    dInfo = (DeviceInfo)_deviceList[raw.header.hDevice];
                 }
                 if (dInfo == null)
                 {
@@ -588,6 +703,48 @@ namespace KeyboardRedirector
                     DeviceEvent(this, dInfo, raw);
                 }
 
+                if (raw.header.dwType == DeviceType.HID)
+                {
+                    int length = raw.data.hid.dwCount * raw.data.hid.dwSizHid;
+                    byte[] data = new byte[length];
+
+                    int offset = Marshal.OffsetOf(typeof(RAWHID), "pData").ToInt32();
+                    offset += Marshal.OffsetOf(typeof(RAWINPUTDATA), "hid").ToInt32();
+                    offset += Marshal.OffsetOf(typeof(RAWINPUT), "data").ToInt32();
+
+                    Marshal.Copy(new IntPtr(buffer.ToInt32() + offset), data, 0, length);
+
+                    if (raw.data.hid.dwSizHid >= 3)
+                    {
+                        for (offset = 0; offset < length; offset += raw.data.hid.dwSizHid)
+                        {
+                            dInfo.hidKey = data[1] | data[2] << 8;
+
+                            Debug.WriteLine(string.Format("  HID:{0,8} wParam:{1} hidKey:0x{2:X} usagePage:{4} usage:{5} | {3}",
+                                raw.header.hDevice,
+                                raw.header.wParam,
+                                dInfo.hidKey,
+                                BitConverter.ToString(data),
+                                dInfo.RawInputDeviceInfo.hid.usUsagePage,
+                                dInfo.RawInputDeviceInfo.hid.usUsage));
+
+                            if (KeyPressed != null)
+                            {
+                                KeyPressed(this, new KeyControlEventArgs(dInfo, dInfo.DeviceType));
+                            }
+                        }
+                    }
+                    else
+                    {
+                        var bits = BitConverter.ToString(data);
+
+                        Debug.WriteLine("input: " + dInfo.Name);
+                        Debug.WriteLine(string.Format("  HID:{0,8} wParam:{1} | {2}",
+                            raw.header.hDevice,
+                            raw.header.wParam,
+                            bits));
+                    }
+                }
 
                 if (raw.header.dwType == DeviceType.Keyboard)
                 {

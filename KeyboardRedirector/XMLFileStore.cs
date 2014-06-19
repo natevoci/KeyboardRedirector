@@ -100,7 +100,7 @@ namespace KeyboardRedirector
                                 _data = x.Deserialize(inStream) as T;
                             }
                         }
-                        catch (Exception)
+                        catch (Exception e)
                         {
                             if (File.Exists(_xmlFilename + ".invalid"))
                                 File.Delete(_xmlFilename + ".invalid");
