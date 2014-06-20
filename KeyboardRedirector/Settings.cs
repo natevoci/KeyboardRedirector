@@ -359,6 +359,7 @@ namespace KeyboardRedirector
         public SettingsKeyboardKeyActionType ActionType = SettingsKeyboardKeyActionType.Keyboard;
         public SettingsKeyboardKeyTypedActionLaunchApplication LaunchApplication = new SettingsKeyboardKeyTypedActionLaunchApplication();
         public SettingsKeyboardKeyTypedActionKeyboard Keyboard = new SettingsKeyboardKeyTypedActionKeyboard();
+        public SettingsKeyboardKeyTypedActionWindowMessage WindowMessage = new SettingsKeyboardKeyTypedActionWindowMessage();
 
         public SettingsKeyboardKeyAction()
         {
@@ -377,6 +378,8 @@ namespace KeyboardRedirector
                 return LaunchApplication;
             if (ActionType == SettingsKeyboardKeyActionType.Keyboard)
                 return Keyboard;
+            if (ActionType == SettingsKeyboardKeyActionType.WindowMessage)
+                return WindowMessage;
             return null;
         }
 
@@ -384,7 +387,8 @@ namespace KeyboardRedirector
     public enum SettingsKeyboardKeyActionType
     {
         LaunchApplication,
-        Keyboard
+        Keyboard,
+        WindowMessage
     }
     public class SettingsKeyboardKeyTypedAction
     {
@@ -458,6 +462,25 @@ namespace KeyboardRedirector
             return sb.ToString();
         }
 
+    }
+    public class SettingsKeyboardKeyTypedActionWindowMessage : SettingsKeyboardKeyTypedAction
+    {
+        public string ProcessName = "";
+        public string WindowClass = "";
+        public string WindowName = "";
+        public SettingsKeyboardKeyActionType NotFoundAction = SettingsKeyboardKeyActionType.WindowMessage;
+        public uint Message = 0;
+        public uint WParam = 0;
+        public uint LParam = 0;
+
+        public override string GetName()
+        {
+            return "Window Message";
+        }
+        public override string GetDetails()
+        {
+            return WindowName + " msg=0x" + Message.ToString("x") + " wparam=0x" + WParam.ToString("x") + " lparam=0x" + LParam.ToString("x");
+        }
     }
 
 }

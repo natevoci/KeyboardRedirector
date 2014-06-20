@@ -1,6 +1,6 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 10.00
-# Visual Studio 2008
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KeyboardRedirector", "KeyboardRedirector\KeyboardRedirector.csproj", "{90F3D697-BCE4-46E1-BD22-78B10CE6AB8A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Win32", "Win32\Win32.csproj", "{AC1273B1-6E65-4EBC-A129-63AF299B1AFB}"

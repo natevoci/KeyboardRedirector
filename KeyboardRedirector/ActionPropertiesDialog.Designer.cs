@@ -61,6 +61,8 @@ namespace KeyboardRedirector
             this.numericUpDown1 = new System.Windows.Forms.NumericUpDown();
             this.richTextBoxKeyDetector = new System.Windows.Forms.RichTextBox();
             this.comboBoxKeyboardKey = new System.Windows.Forms.ComboBox();
+            this.checkBoxKeyboardRWin = new System.Windows.Forms.CheckBox();
+            this.checkBoxKeyboardLWin = new System.Windows.Forms.CheckBox();
             this.checkBoxKeyboardControl = new System.Windows.Forms.CheckBox();
             this.checkBoxKeyboardExtended = new System.Windows.Forms.CheckBox();
             this.checkBoxKeyboardAlt = new System.Windows.Forms.CheckBox();
@@ -78,16 +80,35 @@ namespace KeyboardRedirector
             this.label8 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
             this.label9 = new System.Windows.Forms.Label();
+            this.tabPageWindowMessage = new System.Windows.Forms.TabPage();
+            this.groupBox4 = new System.Windows.Forms.GroupBox();
+            this.label14 = new System.Windows.Forms.Label();
+            this.textBoxMessageID = new System.Windows.Forms.TextBox();
+            this.label13 = new System.Windows.Forms.Label();
+            this.textBoxWParam = new System.Windows.Forms.TextBox();
+            this.label12 = new System.Windows.Forms.Label();
+            this.textBoxLParam = new System.Windows.Forms.TextBox();
+            this.groupBox3 = new System.Windows.Forms.GroupBox();
+            this.label11 = new System.Windows.Forms.Label();
+            this.label5 = new System.Windows.Forms.Label();
+            this.label4 = new System.Windows.Forms.Label();
+            this.labelFindFromWindow = new System.Windows.Forms.Label();
+            this.textBoxWindowName = new System.Windows.Forms.TextBox();
+            this.textBoxWindowClass = new System.Windows.Forms.TextBox();
+            this.textBoxProcessName = new System.Windows.Forms.TextBox();
             this.buttonOK = new System.Windows.Forms.Button();
             this.buttonCancel = new System.Windows.Forms.Button();
-            this.checkBoxKeyboardLWin = new System.Windows.Forms.CheckBox();
-            this.checkBoxKeyboardRWin = new System.Windows.Forms.CheckBox();
+            this.label15 = new System.Windows.Forms.Label();
+            this.comboBoxNotFound = new System.Windows.Forms.ComboBox();
             this.tabControl1.SuspendLayout();
             this.tabPageKeyboard.SuspendLayout();
             this.groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).BeginInit();
             this.tabPageLaunchApplication.SuspendLayout();
             this.groupBox2.SuspendLayout();
+            this.tabPageWindowMessage.SuspendLayout();
+            this.groupBox4.SuspendLayout();
+            this.groupBox3.SuspendLayout();
             this.SuspendLayout();
             // 
             // tabControl1
@@ -98,6 +119,7 @@ namespace KeyboardRedirector
             this.tabControl1.Appearance = System.Windows.Forms.TabAppearance.FlatButtons;
             this.tabControl1.Controls.Add(this.tabPageKeyboard);
             this.tabControl1.Controls.Add(this.tabPageLaunchApplication);
+            this.tabControl1.Controls.Add(this.tabPageWindowMessage);
             this.tabControl1.Location = new System.Drawing.Point(12, 12);
             this.tabControl1.Multiline = true;
             this.tabControl1.Name = "tabControl1";
@@ -198,6 +220,26 @@ namespace KeyboardRedirector
             this.comboBoxKeyboardKey.Name = "comboBoxKeyboardKey";
             this.comboBoxKeyboardKey.Size = new System.Drawing.Size(207, 21);
             this.comboBoxKeyboardKey.TabIndex = 4;
+            // 
+            // checkBoxKeyboardRWin
+            // 
+            this.checkBoxKeyboardRWin.AutoSize = true;
+            this.checkBoxKeyboardRWin.Location = new System.Drawing.Point(71, 86);
+            this.checkBoxKeyboardRWin.Name = "checkBoxKeyboardRWin";
+            this.checkBoxKeyboardRWin.Size = new System.Drawing.Size(53, 17);
+            this.checkBoxKeyboardRWin.TabIndex = 1;
+            this.checkBoxKeyboardRWin.Text = "RWin";
+            this.checkBoxKeyboardRWin.UseVisualStyleBackColor = true;
+            // 
+            // checkBoxKeyboardLWin
+            // 
+            this.checkBoxKeyboardLWin.AutoSize = true;
+            this.checkBoxKeyboardLWin.Location = new System.Drawing.Point(6, 86);
+            this.checkBoxKeyboardLWin.Name = "checkBoxKeyboardLWin";
+            this.checkBoxKeyboardLWin.Size = new System.Drawing.Size(51, 17);
+            this.checkBoxKeyboardLWin.TabIndex = 1;
+            this.checkBoxKeyboardLWin.Text = "LWin";
+            this.checkBoxKeyboardLWin.UseVisualStyleBackColor = true;
             // 
             // checkBoxKeyboardControl
             // 
@@ -389,6 +431,178 @@ namespace KeyboardRedirector
             this.label9.TabIndex = 5;
             this.label9.Text = "notepad C:\\Users\\Nate\\Documents\\notes.txt";
             // 
+            // tabPageWindowMessage
+            // 
+            this.tabPageWindowMessage.Controls.Add(this.groupBox4);
+            this.tabPageWindowMessage.Controls.Add(this.groupBox3);
+            this.tabPageWindowMessage.Location = new System.Drawing.Point(4, 25);
+            this.tabPageWindowMessage.Name = "tabPageWindowMessage";
+            this.tabPageWindowMessage.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPageWindowMessage.Size = new System.Drawing.Size(470, 251);
+            this.tabPageWindowMessage.TabIndex = 2;
+            this.tabPageWindowMessage.Text = "Window Message";
+            this.tabPageWindowMessage.UseVisualStyleBackColor = true;
+            // 
+            // groupBox4
+            // 
+            this.groupBox4.Controls.Add(this.label14);
+            this.groupBox4.Controls.Add(this.textBoxMessageID);
+            this.groupBox4.Controls.Add(this.label13);
+            this.groupBox4.Controls.Add(this.textBoxWParam);
+            this.groupBox4.Controls.Add(this.label12);
+            this.groupBox4.Controls.Add(this.textBoxLParam);
+            this.groupBox4.Location = new System.Drawing.Point(6, 141);
+            this.groupBox4.Name = "groupBox4";
+            this.groupBox4.Size = new System.Drawing.Size(458, 104);
+            this.groupBox4.TabIndex = 2;
+            this.groupBox4.TabStop = false;
+            this.groupBox4.Text = "Windows Message";
+            // 
+            // label14
+            // 
+            this.label14.AutoSize = true;
+            this.label14.Location = new System.Drawing.Point(6, 74);
+            this.label14.Name = "label14";
+            this.label14.Size = new System.Drawing.Size(43, 13);
+            this.label14.TabIndex = 5;
+            this.label14.Text = "LParam";
+            // 
+            // textBoxMessageID
+            // 
+            this.textBoxMessageID.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.textBoxMessageID.Location = new System.Drawing.Point(88, 19);
+            this.textBoxMessageID.Name = "textBoxMessageID";
+            this.textBoxMessageID.Size = new System.Drawing.Size(364, 20);
+            this.textBoxMessageID.TabIndex = 0;
+            // 
+            // label13
+            // 
+            this.label13.AutoSize = true;
+            this.label13.Location = new System.Drawing.Point(6, 48);
+            this.label13.Name = "label13";
+            this.label13.Size = new System.Drawing.Size(48, 13);
+            this.label13.TabIndex = 5;
+            this.label13.Text = "WParam";
+            // 
+            // textBoxWParam
+            // 
+            this.textBoxWParam.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.textBoxWParam.Location = new System.Drawing.Point(88, 45);
+            this.textBoxWParam.Name = "textBoxWParam";
+            this.textBoxWParam.Size = new System.Drawing.Size(364, 20);
+            this.textBoxWParam.TabIndex = 0;
+            // 
+            // label12
+            // 
+            this.label12.AutoSize = true;
+            this.label12.Location = new System.Drawing.Point(6, 22);
+            this.label12.Name = "label12";
+            this.label12.Size = new System.Drawing.Size(64, 13);
+            this.label12.TabIndex = 5;
+            this.label12.Text = "Message ID";
+            // 
+            // textBoxLParam
+            // 
+            this.textBoxLParam.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.textBoxLParam.Location = new System.Drawing.Point(88, 71);
+            this.textBoxLParam.Name = "textBoxLParam";
+            this.textBoxLParam.Size = new System.Drawing.Size(364, 20);
+            this.textBoxLParam.TabIndex = 0;
+            // 
+            // groupBox3
+            // 
+            this.groupBox3.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+                        | System.Windows.Forms.AnchorStyles.Left)
+                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.groupBox3.Controls.Add(this.comboBoxNotFound);
+            this.groupBox3.Controls.Add(this.label15);
+            this.groupBox3.Controls.Add(this.label11);
+            this.groupBox3.Controls.Add(this.label5);
+            this.groupBox3.Controls.Add(this.label4);
+            this.groupBox3.Controls.Add(this.labelFindFromWindow);
+            this.groupBox3.Controls.Add(this.textBoxWindowName);
+            this.groupBox3.Controls.Add(this.textBoxWindowClass);
+            this.groupBox3.Controls.Add(this.textBoxProcessName);
+            this.groupBox3.Location = new System.Drawing.Point(6, 6);
+            this.groupBox3.Name = "groupBox3";
+            this.groupBox3.Size = new System.Drawing.Size(458, 129);
+            this.groupBox3.TabIndex = 1;
+            this.groupBox3.TabStop = false;
+            this.groupBox3.Text = "Find Window";
+            // 
+            // label11
+            // 
+            this.label11.AutoSize = true;
+            this.label11.Location = new System.Drawing.Point(6, 74);
+            this.label11.Name = "label11";
+            this.label11.Size = new System.Drawing.Size(77, 13);
+            this.label11.TabIndex = 5;
+            this.label11.Text = "Window Name";
+            // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(6, 48);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(74, 13);
+            this.label5.TabIndex = 5;
+            this.label5.Text = "Window Class";
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(6, 22);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(76, 13);
+            this.label4.TabIndex = 5;
+            this.label4.Text = "Process Name";
+            // 
+            // labelFindFromWindow
+            // 
+            this.labelFindFromWindow.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.labelFindFromWindow.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.labelFindFromWindow.Cursor = System.Windows.Forms.Cursors.NoMove2D;
+            this.labelFindFromWindow.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.labelFindFromWindow.Location = new System.Drawing.Point(265, 19);
+            this.labelFindFromWindow.Name = "labelFindFromWindow";
+            this.labelFindFromWindow.Size = new System.Drawing.Size(187, 72);
+            this.labelFindFromWindow.TabIndex = 4;
+            this.labelFindFromWindow.Text = "Click here and drag to find an application from it\'s window";
+            this.labelFindFromWindow.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.labelFindFromWindow.MouseMove += new System.Windows.Forms.MouseEventHandler(this.labelFindFromWindow_MouseMove);
+            this.labelFindFromWindow.MouseDown += new System.Windows.Forms.MouseEventHandler(this.labelFindFromWindow_MouseDown);
+            this.labelFindFromWindow.MouseUp += new System.Windows.Forms.MouseEventHandler(this.labelFindFromWindow_MouseUp);
+            // 
+            // textBoxWindowName
+            // 
+            this.textBoxWindowName.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.textBoxWindowName.Location = new System.Drawing.Point(88, 71);
+            this.textBoxWindowName.Name = "textBoxWindowName";
+            this.textBoxWindowName.Size = new System.Drawing.Size(165, 20);
+            this.textBoxWindowName.TabIndex = 0;
+            // 
+            // textBoxWindowClass
+            // 
+            this.textBoxWindowClass.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.textBoxWindowClass.Location = new System.Drawing.Point(88, 45);
+            this.textBoxWindowClass.Name = "textBoxWindowClass";
+            this.textBoxWindowClass.Size = new System.Drawing.Size(165, 20);
+            this.textBoxWindowClass.TabIndex = 0;
+            // 
+            // textBoxProcessName
+            // 
+            this.textBoxProcessName.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.textBoxProcessName.Location = new System.Drawing.Point(88, 19);
+            this.textBoxProcessName.Name = "textBoxProcessName";
+            this.textBoxProcessName.Size = new System.Drawing.Size(165, 20);
+            this.textBoxProcessName.TabIndex = 0;
+            // 
             // buttonOK
             // 
             this.buttonOK.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
@@ -412,25 +626,22 @@ namespace KeyboardRedirector
             this.buttonCancel.Text = "Cancel";
             this.buttonCancel.UseVisualStyleBackColor = true;
             // 
-            // checkBoxKeyboardLWin
+            // label15
             // 
-            this.checkBoxKeyboardLWin.AutoSize = true;
-            this.checkBoxKeyboardLWin.Location = new System.Drawing.Point(6, 86);
-            this.checkBoxKeyboardLWin.Name = "checkBoxKeyboardLWin";
-            this.checkBoxKeyboardLWin.Size = new System.Drawing.Size(51, 17);
-            this.checkBoxKeyboardLWin.TabIndex = 1;
-            this.checkBoxKeyboardLWin.Text = "LWin";
-            this.checkBoxKeyboardLWin.UseVisualStyleBackColor = true;
+            this.label15.AutoSize = true;
+            this.label15.Location = new System.Drawing.Point(6, 103);
+            this.label15.Name = "label15";
+            this.label15.Size = new System.Drawing.Size(100, 13);
+            this.label15.TabIndex = 5;
+            this.label15.Text = "If window not found";
             // 
-            // checkBoxKeyboardRWin
+            // comboBoxNotFound
             // 
-            this.checkBoxKeyboardRWin.AutoSize = true;
-            this.checkBoxKeyboardRWin.Location = new System.Drawing.Point(71, 86);
-            this.checkBoxKeyboardRWin.Name = "checkBoxKeyboardRWin";
-            this.checkBoxKeyboardRWin.Size = new System.Drawing.Size(53, 17);
-            this.checkBoxKeyboardRWin.TabIndex = 1;
-            this.checkBoxKeyboardRWin.Text = "RWin";
-            this.checkBoxKeyboardRWin.UseVisualStyleBackColor = true;
+            this.comboBoxNotFound.FormattingEnabled = true;
+            this.comboBoxNotFound.Location = new System.Drawing.Point(112, 100);
+            this.comboBoxNotFound.Name = "comboBoxNotFound";
+            this.comboBoxNotFound.Size = new System.Drawing.Size(141, 21);
+            this.comboBoxNotFound.TabIndex = 6;
             // 
             // ActionPropertiesDialog
             // 
@@ -455,6 +666,11 @@ namespace KeyboardRedirector
             this.tabPageLaunchApplication.ResumeLayout(false);
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();
+            this.tabPageWindowMessage.ResumeLayout(false);
+            this.groupBox4.ResumeLayout(false);
+            this.groupBox4.PerformLayout();
+            this.groupBox3.ResumeLayout(false);
+            this.groupBox3.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -490,5 +706,23 @@ namespace KeyboardRedirector
         private System.Windows.Forms.CheckBox checkBoxKeyboardExtended;
         private System.Windows.Forms.CheckBox checkBoxKeyboardRWin;
         private System.Windows.Forms.CheckBox checkBoxKeyboardLWin;
+        private System.Windows.Forms.TabPage tabPageWindowMessage;
+        private System.Windows.Forms.GroupBox groupBox3;
+        private System.Windows.Forms.TextBox textBoxProcessName;
+        private System.Windows.Forms.Label labelFindFromWindow;
+        private System.Windows.Forms.GroupBox groupBox4;
+        private System.Windows.Forms.Label label14;
+        private System.Windows.Forms.Label label13;
+        private System.Windows.Forms.Label label12;
+        private System.Windows.Forms.Label label11;
+        private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.TextBox textBoxLParam;
+        private System.Windows.Forms.TextBox textBoxWParam;
+        private System.Windows.Forms.TextBox textBoxMessageID;
+        private System.Windows.Forms.TextBox textBoxWindowName;
+        private System.Windows.Forms.TextBox textBoxWindowClass;
+        private System.Windows.Forms.Label label15;
+        private System.Windows.Forms.ComboBox comboBoxNotFound;
     }
 }

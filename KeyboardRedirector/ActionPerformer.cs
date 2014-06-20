@@ -142,22 +142,35 @@ namespace KeyboardRedirector
                 {
                     try
                     {
-                        switch (action.ActionType)
-                        {
-                            case SettingsKeyboardKeyActionType.LaunchApplication:
-                                LaunchApplication(action.LaunchApplication);
-                                break;
-
-                            case SettingsKeyboardKeyActionType.Keyboard:
-                                Keyboard(action.Keyboard);
-                                break;
-                        }
+                        ProcessAction(action);
                     }
                     catch (Exception e)
                     {
                         WriteStatusMessage("Unexpected error: " + action.ToString() + " : " + e.Message);
                     }
                 }
+            }
+        }
+
+        private void ProcessAction(SettingsKeyboardKeyAction action)
+        {
+            ProcessAction(action, action.ActionType);
+        }
+        private void ProcessAction(SettingsKeyboardKeyAction action, SettingsKeyboardKeyActionType actionType)
+        {
+            switch (actionType)
+            {
+                case SettingsKeyboardKeyActionType.LaunchApplication:
+                    ExecuteLaunchApplication(action);
+                    break;
+
+                case SettingsKeyboardKeyActionType.Keyboard:
+                    ExecuteKeyboard(action);
+                    break;
+
+                case SettingsKeyboardKeyActionType.WindowMessage:
+                    ExecuteWindowMessage(action);
+                    break;
             }
         }
 
@@ -194,8 +207,10 @@ namespace KeyboardRedirector
         }
 
 
-        private void LaunchApplication(SettingsKeyboardKeyTypedActionLaunchApplication launchApplication)
+        private void ExecuteLaunchApplication(SettingsKeyboardKeyAction action)
         {
+            SettingsKeyboardKeyTypedActionLaunchApplication launchApplication = action.LaunchApplication;
+
             WriteStatusMessage("Launching application: " + launchApplication.Command);
 
             string exe = launchApplication.Command.Trim();
@@ -229,8 +244,10 @@ namespace KeyboardRedirector
                 process.WaitForExit(10000);
         }
 
-        private void Keyboard(SettingsKeyboardKeyTypedActionKeyboard keyboard)
+        private void ExecuteKeyboard(SettingsKeyboardKeyAction action)
         {
+            SettingsKeyboardKeyTypedActionKeyboard keyboard = action.Keyboard;
+
             int keysDownCount = KeyboardHookExternal.Current.KeysDownCount();
             if (keysDownCount > 0)
             {
@@ -342,6 +359,79 @@ namespace KeyboardRedirector
                 }
             }
         }
+
+        private void ExecuteWindowMessage(SettingsKeyboardKeyAction action)
+        {
+            SettingsKeyboardKeyTypedActionWindowMessage windowMessage = action.WindowMessage;
+
+            WriteStatusMessage("Sending window message: " + windowMessage.GetDetails());
+
+
+            var processIds = new HashSet<uint>();
+
+            if (!string.IsNullOrEmpty(windowMessage.ProcessName))
+            {
+                var processes = Process.GetProcessesByName(windowMessage.ProcessName);
+                foreach (var p in processes)
+                {
+                    processIds.Add((uint)p.Id);
+                }
+            }
+
+            var windowHandles = new List<IntPtr>();
+
+            Win32.EnumWindowsProc proc = new Win32.EnumWindowsProc((IntPtr hwnd, int lParam) =>
+            {
+                if (processIds.Count > 0)
+                {
+                    uint pid;
+                    Win32.GetWindowThreadProcessId(hwnd, out pid);
+                    if (!processIds.Contains(pid))
+                        return true;
+                }
+
+                if (!string.IsNullOrEmpty(windowMessage.WindowClass))
+                {
+                    StringBuilder windowClass = new StringBuilder(Win32.GETWINDOWTEXT_MAXLENGTH);
+                    Win32.GetClassName(hwnd, windowClass, windowClass.Capacity);
+                    if (!windowMessage.WindowClass.Equals(windowClass.ToString(), StringComparison.OrdinalIgnoreCase))
+                        return true;
+                }
+
+                if (!string.IsNullOrEmpty(windowMessage.WindowName))
+                {
+                    StringBuilder windowTitle = new StringBuilder(Win32.GETWINDOWTEXT_MAXLENGTH);
+                    Win32.GetWindowText(hwnd, windowTitle, windowTitle.Capacity);
+                    if (!windowMessage.WindowName.Equals(windowTitle.ToString(), StringComparison.OrdinalIgnoreCase))
+                        return true;
+                }
+
+                windowHandles.Add(hwnd);
+                return true;
+            });
+            Win32.EnumWindows(proc, 0);
+
+            if (windowHandles.Count == 0)
+            {
+                if (windowMessage.NotFoundAction != SettingsKeyboardKeyActionType.WindowMessage)
+                {
+                    ProcessAction(action, windowMessage.NotFoundAction);
+                }
+                return;
+            }
+
+            foreach (var hwnd in windowHandles)
+            {
+                System.Diagnostics.Debug.WriteLine("SendMessage(" +
+                    "0x" + ((uint)hwnd.ToInt32()).ToString("x") +
+                    ", 0x" + windowMessage.Message.ToString("x") +
+                    ", 0x" + windowMessage.WParam.ToString("x") +
+                    ", 0x" + windowMessage.LParam.ToString("x") + ")");
+                var result = Win32.SendMessage(hwnd, windowMessage.Message, new IntPtr(windowMessage.WParam), new IntPtr(windowMessage.LParam));
+                WriteStatusMessage("SendMessage result: 0x" + ((uint)result.ToInt32()).ToString("x"));
+            }
+        }
+
 
         private Win32.INPUT CreateInputStruct(ushort virtualKeyCode, bool keyDown)
         {
