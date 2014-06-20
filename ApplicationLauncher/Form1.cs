@@ -8,6 +8,7 @@ using System.Windows.Forms;
 using System.Diagnostics;
 using System.Drawing.Drawing2D;
 using System.Collections;
+using System.Text.RegularExpressions;
 
 namespace ApplicationLauncher
 {
@@ -16,6 +17,8 @@ namespace ApplicationLauncher
         private DesktopWindows _windows;
         private IconExtractor.ExecutableImageList _imageList;
         private Rectangle _normalBounds;
+
+        private FormWindowState _previousWindowState = FormWindowState.Normal;
 
         public ApplicationLauncherForm()
         {
@@ -38,20 +41,35 @@ namespace ApplicationLauncher
                 this.Location = Settings.Current.WindowLocation;
             }
 
+            _previousWindowState = FormWindowState.Normal;
+            if (Regex.IsMatch(Environment.CommandLine, @"(?<!\S)(?:/|--|-)minimi[sz]e\b", RegexOptions.IgnoreCase))
+            {
+                SendToTray();
+                this.ShowInTaskbar = false;
+            }
+            if (Regex.IsMatch(Environment.CommandLine, @"(?<!\S)(?:/|--|-)help\b", RegexOptions.IgnoreCase))
+            {
+                var msg = @"
+/minimize - cause the application to load in the notification tray
+";
+                MessageBox.Show(this, msg.TrimStart(), "Application Launcher command line options", MessageBoxButtons.OK);
+            }
 
+            if (Settings.Current.Minimize)
+            {
+                buttonExit.ButtonText = "Close";
+                this.notifyIcon1.Visible = true;
+            }
         }
 
-        private IntPtr GetLastForegroundWindow()
+        protected override void WndProc(ref Message m)
         {
-            IntPtr hwnd;
-            hwnd = MS.Win32.GetForegroundWindow();
-            hwnd = MS.Win32.GetAncestor(hwnd, MS.Win32.GA.ROOTOWNER);
+            if (m.Msg == 10000)
+            {
+                RestoreFromTray();
+            }
 
-            hwnd = MS.Win32.GetWindow(hwnd, MS.Win32.GW.HWNDNEXT);
-            hwnd = MS.Win32.GetAncestor(hwnd, MS.Win32.GA.ROOTOWNER);
-
-            //string title = MS.Win32.GetWindowText(hwnd);
-            return hwnd;
+            base.WndProc(ref m);
         }
 
         private void ApplicationLauncherForm_Load(object sender, EventArgs e)
@@ -59,7 +77,6 @@ namespace ApplicationLauncher
             if (_windows == null)
             {
                 _windows = new DesktopWindows();
-                _windows.Windows.Sort(new WindowSorter(SortOrder.Ascending));
             }
 
             _imageList = new IconExtractor.ExecutableImageList(imageListRunningLarge, true);
@@ -69,12 +86,7 @@ namespace ApplicationLauncher
             // Setup ObjectListViewRunning
             RebuildListRunning();
 
-            IntPtr lastForegroundHwnd = GetLastForegroundWindow();
-            foreach (DesktopWindows.Window window in _windows.Windows)
-            {
-                if (window.Hwnd == lastForegroundHwnd)
-                    buttonListControlRunning.SelectObject(window);
-            }
+            buttonListControlRunning_SelectPreviousForegroundWindow();
             
             // Setup ObjectListViewShortcuts
             RebuildListShortcuts();
@@ -93,7 +105,13 @@ namespace ApplicationLauncher
             buttonListControlRunning.Clear();
             foreach (DesktopWindows.Window window in _windows.Windows)
             {
-                buttonListControlRunning.AddButton(window.Title, window.IconLarge.ToBitmap(), "", window);
+                if (!string.IsNullOrEmpty(window.Title) || (window.IconLarge != null))
+                {
+                    Image img = null;
+                    if (window.IconLarge != null)
+                        img = window.IconLarge.ToBitmap();
+                    buttonListControlRunning.AddButton(window.Title, img, "", window);
+                }
             }
         }
 
@@ -123,22 +141,6 @@ namespace ApplicationLauncher
             }
         }
 
-        internal class WindowSorter : Comparer<DesktopWindows.Window>
-        {
-            private SortOrder _sortOrder;
-            public WindowSorter(SortOrder sortOrder)
-            {
-                _sortOrder = sortOrder;
-            }
-
-            public override int Compare(DesktopWindows.Window x, DesktopWindows.Window y)
-            {
-                string exeX = System.IO.Path.GetFileNameWithoutExtension(x.Executable);
-                string exeY = System.IO.Path.GetFileNameWithoutExtension(y.Executable);
-                return exeX.CompareTo(exeY) * ((_sortOrder == SortOrder.Descending) ? -1 : 1);
-            }
-        }
-
         void buttonListControlRunning_ItemActivate(object sender, ButtonListControl.ButtonListControlItem item)
         {
             DesktopWindows.Window window = item.Tag as DesktopWindows.Window;
@@ -152,7 +154,10 @@ namespace ApplicationLauncher
                 MS.Win32.ShowWindow(window.Hwnd, MS.Win32.SW.RESTORE);
             }
 
-            Close();
+            if (Settings.Current.Minimize)
+                SendToTray();
+            else
+                Close();
         }
         void buttonListControlShortcuts_ItemActivate(object sender, ButtonListControl.ButtonListControlItem item)
         {
@@ -189,7 +194,12 @@ namespace ApplicationLauncher
                         {
                             MS.Win32.ShowWindow(window.Hwnd, MS.Win32.SW.RESTORE);
                         }
-                        Close();
+
+                        if (Settings.Current.Minimize)
+                            SendToTray();
+                        else
+                            Close();
+                        
                         return;
                     }
                 }
@@ -210,31 +220,37 @@ namespace ApplicationLauncher
                 Environment.CurrentDirectory = originalWorkingDirectory;
             }
 
-            Close();
+            if (Settings.Current.Minimize)
+                SendToTray();
+            else
+                Close();
         }
 
         public static void ParseCommandLine(string commandLine, out string exe, out string args)
         {
-            exe = commandLine.Trim();
+            exe = (string.IsNullOrEmpty(commandLine) ? "" : commandLine.Trim());
             args = "";
 
-            if (exe[0] == '"')
+            if (exe.Length > 0)
             {
-                int endOfExeIndex = exe.IndexOf("\"", 1);
-                if (endOfExeIndex != -1)
+                if (exe[0] == '"')
                 {
-                    //endOfExeIndex++;
-                    args = exe.Substring(endOfExeIndex + 1).TrimStart();
-                    exe = exe.Substring(1, endOfExeIndex - 1);
+                    int endOfExeIndex = exe.IndexOf("\"", 1);
+                    if (endOfExeIndex != -1)
+                    {
+                        //endOfExeIndex++;
+                        args = exe.Substring(endOfExeIndex + 1).TrimStart();
+                        exe = exe.Substring(1, endOfExeIndex - 1);
+                    }
                 }
-            }
-            else
-            {
-                int endOfExeIndex = exe.IndexOf(" ");
-                if (endOfExeIndex != -1)
+                else
                 {
-                    args = exe.Substring(endOfExeIndex + 1).TrimStart();
-                    exe = exe.Substring(0, endOfExeIndex);
+                    int endOfExeIndex = exe.IndexOf(" ");
+                    if (endOfExeIndex != -1)
+                    {
+                        args = exe.Substring(endOfExeIndex + 1).TrimStart();
+                        exe = exe.Substring(0, endOfExeIndex);
+                    }
                 }
             }
         }
@@ -253,7 +269,10 @@ namespace ApplicationLauncher
             //Debug.WriteLine("key: " + e.KeyData.ToString());
             if (e.KeyData == Keys.Escape)
             {
-                this.Close();
+                if (Settings.Current.Minimize)
+                    SendToTray();
+                else
+                    this.Close();
                 e.Handled = true;
             }
             if (e.KeyData == Keys.Right)
@@ -319,7 +338,10 @@ namespace ApplicationLauncher
 
         private void buttonExit_Click(object sender, EventArgs e)
         {
-            Close();
+            if (Settings.Current.Minimize)
+                SendToTray();
+            else
+                Close();
         }
 
         private void ApplicationLauncherForm_MouseDown(object sender, MouseEventArgs e)
@@ -340,11 +362,13 @@ namespace ApplicationLauncher
 
         private void ApplicationLauncherForm_SizeChanged(object sender, EventArgs e)
         {
-            _normalBounds = this.Bounds;
+            if (this.WindowState == FormWindowState.Normal)
+                _normalBounds = this.Bounds;
         }
         private void ApplicationLauncherForm_Move(object sender, EventArgs e)
         {
-            _normalBounds = this.Bounds;
+            if (this.WindowState == FormWindowState.Normal)
+                _normalBounds = this.Bounds;
         }
 
         protected override bool ProcessDialogKey(Keys keyData)
@@ -358,21 +382,61 @@ namespace ApplicationLauncher
 
         private void ApplicationLauncherForm_Activated(object sender, EventArgs e)
         {
+            buttonListControlRunning_Refresh();
+        }
+
+        private void buttonListControlRunning_Refresh()
+        {
             if (_windows != null)
             {
                 _windows.Refresh();
-                _windows.Windows.Sort(new WindowSorter(SortOrder.Ascending));
 
                 RebuildListRunning();
 
-                IntPtr lastForegroundHwnd = GetLastForegroundWindow();
-                foreach (DesktopWindows.Window window in _windows.Windows)
-                {
-                    if (window.Hwnd == lastForegroundHwnd)
-                        buttonListControlRunning.SelectObject(window);
-                }
+                buttonListControlRunning_SelectPreviousForegroundWindow();
             }
+        }
 
+        private void buttonListControlRunning_SelectPreviousForegroundWindow()
+        {
+            if (_windows.Windows.Count > 1)
+            {
+                buttonListControlRunning.SelectObject(_windows.Windows[1]);
+            }
+            else if (_windows.Windows.Count > 0)
+            {
+                buttonListControlRunning.SelectObject(_windows.Windows[0]);
+            }
+        }
+
+        private void SendToTray()
+        {
+            if (this.WindowState != FormWindowState.Minimized)
+                this.WindowState = FormWindowState.Minimized;
+            this.Hide();
+        }
+
+        private void RestoreFromTray()
+        {
+            this.Show();
+            this.WindowState = _previousWindowState;
+
+            buttonListControlRunning_Refresh();
+        }
+
+        private void notifyIcon1_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            RestoreFromTray();
+        }
+
+        private void openToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            RestoreFromTray();
+        }
+
+        private void exitToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Close();
         }
 
     }

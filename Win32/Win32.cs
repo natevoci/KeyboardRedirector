@@ -1016,6 +1016,8 @@ namespace MS
             FORCEMINIMIZE = 11
         }
 
+        public delegate bool EnumWindowsProc(IntPtr hWnd, int lParam);
+
         [DllImport("user32.dll")]
         public static extern int EnumWindows(EnumWindowsProc ewp, int lParam);
 
@@ -1024,7 +1026,6 @@ namespace MS
 
         [DllImport("user32.dll", SetLastError = true)]
         public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
-        public delegate bool EnumWindowsProc(IntPtr hWnd, int lParam);
 
         [DllImport("kernel32.dll")]
         public static extern uint GetCurrentThreadId();
@@ -1446,7 +1447,9 @@ namespace MS
             ManagementObjectCollection resultCollection = searcher.Get();
             foreach (ManagementObject result in resultCollection)
             {
-                return result["ExecutablePath"].ToString();
+                var exepath = result["ExecutablePath"];
+                if (exepath != null)
+                    return result["ExecutablePath"].ToString();
             }
             return "";
         }
@@ -1462,7 +1465,9 @@ namespace MS
                 {
                     System.Diagnostics.Debug.WriteLine(data.Name + ": " + data.Value);
                 }
-                return result["CommandLine"].ToString();
+                var cmdline = result["CommandLine"];
+                if (cmdline != null)
+                    return cmdline.ToString();
             }
             return "";
         }

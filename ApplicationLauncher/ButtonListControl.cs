@@ -78,7 +78,14 @@ namespace ApplicationLauncher
             foreach (Control c in this.Controls)
             {
                 CSharpControls.VistaButton button = c as CSharpControls.VistaButton;
-                if ((button != null) && (button.Tag == obj))
+                if (button == null)
+                    continue;
+
+                var item = button.Tag as ButtonListControlItem;
+                if (item == null)
+                    continue;
+
+                if (item.Tag == obj)
                     c.Focus();
             }
         }

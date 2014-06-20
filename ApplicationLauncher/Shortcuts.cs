@@ -44,6 +44,7 @@ namespace ApplicationLauncher
         public ShortcutList Shortcuts = new ShortcutList();
         public Point WindowLocation = new Point(-1, -1);
         public Size WindowSize = new Size(-1, -1);
+        public bool Minimize = false;
     }
 
     public class ShortcutList : List<Shortcut>

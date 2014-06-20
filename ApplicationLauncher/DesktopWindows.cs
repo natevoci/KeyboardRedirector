@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Runtime.InteropServices;
 using System.Drawing;
+using System.Linq;
 using MS;
 
 namespace ApplicationLauncher
@@ -11,8 +12,14 @@ namespace ApplicationLauncher
     {
         List<Window> _windows = new List<Window>();
 
+        HashSet<IntPtr> _oldWindows = new HashSet<IntPtr>();
+        int _position;
+        uint _currentPID;
+
         public DesktopWindows()
         {
+            _currentPID = (uint)System.Diagnostics.Process.GetCurrentProcess().Id;
+
             Refresh();
         }
 
@@ -23,7 +30,9 @@ namespace ApplicationLauncher
 
         public void Refresh()
         {
-            _windows.Clear();
+            _oldWindows = new HashSet<IntPtr>();
+            _oldWindows.UnionWith((from w in _windows select w.Hwnd).ToArray());
+            _position = 0;
 
             Win32.EnumWindowsProc proc = new Win32.EnumWindowsProc(EnumWindowsCallback);
             IntPtr hDesktop = IntPtr.Zero; // Current Desktop
@@ -33,6 +42,12 @@ namespace ApplicationLauncher
             {
                 throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error());
             }
+
+            foreach (var hwnd in _oldWindows)
+            {
+                _windows.RemoveAll(w => (w.Hwnd == hwnd));
+            }
+
         }
 
         private bool EnumWindowsCallback(IntPtr hwnd, int lParam)
@@ -68,11 +83,39 @@ namespace ApplicationLauncher
                     //return true;
                 }
             }
+            
+            uint pid;
+            Win32.GetWindowThreadProcessId(hwnd, out pid);
+            if (pid == _currentPID)
+                return true;
 
-            _windows.Add(new Window(hwnd));
+            if (_oldWindows.Contains(hwnd))
+            {
+                _oldWindows.Remove(hwnd);
+
+                var window = _windows.Find(w => w.Hwnd == hwnd);
+                if (window != null)
+                {
+                    int index = _windows.IndexOf(window);
+                    if (index == _position)
+                    {
+                        _position++;
+                    }
+                    else if (index > _position)
+                    {
+                        _windows.RemoveAt(index);
+                        _windows.Insert(_position, window);
+                        _position++;
+                    }
+                }
+
+            }
+            else
+            {
+                _windows.Add(new Window(hwnd));
+            }
             return true;
         }
-
 
         public class Window : IDisposable
         {

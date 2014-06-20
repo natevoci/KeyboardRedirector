@@ -36,6 +36,11 @@
             this.label2 = new System.Windows.Forms.Label();
             this.imageListRunningLarge = new System.Windows.Forms.ImageList(this.components);
             this.imageListRunningSmall = new System.Windows.Forms.ImageList(this.components);
+            this.notifyIcon1 = new System.Windows.Forms.NotifyIcon(this.components);
+            this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.openToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripSeparator();
+            this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.buttonExit = new CSharpControls.VistaButton();
             this.buttonEditShortcuts = new CSharpControls.VistaButton();
             this.buttonListControlRunning = new ApplicationLauncher.ButtonListControl();
@@ -43,13 +48,14 @@
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
             this.splitContainer1.SuspendLayout();
+            this.contextMenuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
             // splitContainer1
             // 
-            this.splitContainer1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-                        | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.splitContainer1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.splitContainer1.Location = new System.Drawing.Point(0, 0);
             this.splitContainer1.Margin = new System.Windows.Forms.Padding(0);
             this.splitContainer1.Name = "splitContainer1";
@@ -116,6 +122,44 @@
             this.imageListRunningSmall.TransparentColor = System.Drawing.Color.Transparent;
             this.imageListRunningSmall.Images.SetKeyName(0, "Blank.ico");
             // 
+            // notifyIcon1
+            // 
+            this.notifyIcon1.BalloonTipText = "Application Launcher";
+            this.notifyIcon1.BalloonTipTitle = "Application Launcher";
+            this.notifyIcon1.ContextMenuStrip = this.contextMenuStrip1;
+            this.notifyIcon1.Icon = ((System.Drawing.Icon)(resources.GetObject("notifyIcon1.Icon")));
+            this.notifyIcon1.Text = "notifyIcon1";
+            this.notifyIcon1.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.notifyIcon1_MouseDoubleClick);
+            // 
+            // contextMenuStrip1
+            // 
+            this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.openToolStripMenuItem,
+            this.toolStripMenuItem1,
+            this.exitToolStripMenuItem});
+            this.contextMenuStrip1.Name = "contextMenuStrip1";
+            this.contextMenuStrip1.Size = new System.Drawing.Size(105, 54);
+            // 
+            // openToolStripMenuItem
+            // 
+            this.openToolStripMenuItem.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.openToolStripMenuItem.Name = "openToolStripMenuItem";
+            this.openToolStripMenuItem.Size = new System.Drawing.Size(104, 22);
+            this.openToolStripMenuItem.Text = "&Open";
+            this.openToolStripMenuItem.Click += new System.EventHandler(this.openToolStripMenuItem_Click);
+            // 
+            // toolStripMenuItem1
+            // 
+            this.toolStripMenuItem1.Name = "toolStripMenuItem1";
+            this.toolStripMenuItem1.Size = new System.Drawing.Size(101, 6);
+            // 
+            // exitToolStripMenuItem
+            // 
+            this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(104, 22);
+            this.exitToolStripMenuItem.Text = "E&xit";
+            this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
+            // 
             // buttonExit
             // 
             this.buttonExit.AllowDefaultButtonBorder = true;
@@ -152,9 +196,9 @@
             // 
             // buttonListControlRunning
             // 
-            this.buttonListControlRunning.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-                        | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.buttonListControlRunning.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.buttonListControlRunning.AutoScroll = true;
             this.buttonListControlRunning.Font = new System.Drawing.Font("Verdana", 14.25F);
             this.buttonListControlRunning.Location = new System.Drawing.Point(3, 42);
@@ -165,9 +209,9 @@
             // 
             // buttonListControlShortcuts
             // 
-            this.buttonListControlShortcuts.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-                        | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.buttonListControlShortcuts.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.buttonListControlShortcuts.AutoScroll = true;
             this.buttonListControlShortcuts.Font = new System.Drawing.Font("Verdana", 14.25F);
             this.buttonListControlShortcuts.Location = new System.Drawing.Point(2, 42);
@@ -192,18 +236,19 @@
             this.Name = "ApplicationLauncherForm";
             this.ShowInTaskbar = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
+            this.Activated += new System.EventHandler(this.ApplicationLauncherForm_Activated);
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.ApplicationLauncherForm_FormClosing);
             this.Load += new System.EventHandler(this.ApplicationLauncherForm_Load);
             this.SizeChanged += new System.EventHandler(this.ApplicationLauncherForm_SizeChanged);
-            this.Activated += new System.EventHandler(this.ApplicationLauncherForm_Activated);
+            this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.ApplicationLauncherForm_KeyDown);
             this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.ApplicationLauncherForm_MouseDown);
             this.Move += new System.EventHandler(this.ApplicationLauncherForm_Move);
-            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.ApplicationLauncherForm_FormClosing);
-            this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.ApplicationLauncherForm_KeyDown);
             this.splitContainer1.Panel1.ResumeLayout(false);
             this.splitContainer1.Panel1.PerformLayout();
             this.splitContainer1.Panel2.ResumeLayout(false);
             this.splitContainer1.Panel2.PerformLayout();
             this.splitContainer1.ResumeLayout(false);
+            this.contextMenuStrip1.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -220,6 +265,11 @@
         private ButtonListControl buttonListControlRunning;
         private ButtonListControl buttonListControlShortcuts;
         private CSharpControls.VistaButton buttonExit;
+        private System.Windows.Forms.NotifyIcon notifyIcon1;
+        private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
+        private System.Windows.Forms.ToolStripMenuItem openToolStripMenuItem;
+        private System.Windows.Forms.ToolStripSeparator toolStripMenuItem1;
+        private System.Windows.Forms.ToolStripMenuItem exitToolStripMenuItem;
     }
 }
 
