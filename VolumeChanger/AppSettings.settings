@@ -1,0 +1,15 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="VolumeChanger" GeneratedClassName="AppSettings">
+  <Profiles />
+  <Settings>
+    <Setting Name="Shape" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">Power</Value>
+    </Setting>
+    <Setting Name="Minimize" Type="System.Boolean" Scope="Application">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="ShapeValue" Type="System.Double" Scope="Application">
+      <Value Profile="(Default)">2</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>
