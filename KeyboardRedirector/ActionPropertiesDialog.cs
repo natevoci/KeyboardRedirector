@@ -285,6 +285,7 @@ namespace KeyboardRedirector
                 textBoxProcessName.Text = _findFromWindowOriginalProcessName;
                 textBoxWindowClass.Text = _findFromWindowOriginalWindowClass;
                 textBoxWindowName.Text = _findFromWindowOriginalWindowName;
+                textBoxWindowHandle.Text = "";
                 _findFromWindowValid = false;
             }
             else
@@ -302,6 +303,8 @@ namespace KeyboardRedirector
                     StringBuilder windowTitle = new StringBuilder(Win32.GETWINDOWTEXT_MAXLENGTH);
                     Win32.GetWindowText(hwnd, windowTitle, windowTitle.Capacity);
                     textBoxWindowName.Text = windowTitle.ToString();
+
+                    textBoxWindowHandle.Text = "0x" + ((uint)hwnd.ToInt32()).ToString("x");
 
                     _findFromWindowValid = true;
                 }

@@ -64,6 +64,7 @@ namespace KeyboardRedirector
             _loaded = true;
             NotifyIcon.BalloonTipTitle = this.Text;
             NotifyIcon.BalloonTipText = this.Text;
+            NotifyIcon.Text = this.Text;
             base.OnLoad(e);
         }
 

@@ -31,7 +31,9 @@
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(ApplicationLauncherForm));
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
+            this.buttonListControlRunning = new ApplicationLauncher.ButtonListControl();
             this.label1 = new System.Windows.Forms.Label();
+            this.buttonListControlShortcuts = new ApplicationLauncher.ButtonListControl();
             this.label3 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.imageListRunningLarge = new System.Windows.Forms.ImageList(this.components);
@@ -43,8 +45,6 @@
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.buttonExit = new CSharpControls.VistaButton();
             this.buttonEditShortcuts = new CSharpControls.VistaButton();
-            this.buttonListControlRunning = new ApplicationLauncher.ButtonListControl();
-            this.buttonListControlShortcuts = new ApplicationLauncher.ButtonListControl();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
             this.splitContainer1.SuspendLayout();
@@ -76,6 +76,19 @@
             this.splitContainer1.SplitterDistance = 417;
             this.splitContainer1.TabIndex = 0;
             // 
+            // buttonListControlRunning
+            // 
+            this.buttonListControlRunning.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.buttonListControlRunning.AutoScroll = true;
+            this.buttonListControlRunning.Font = new System.Drawing.Font("Verdana", 14.25F);
+            this.buttonListControlRunning.Location = new System.Drawing.Point(3, 42);
+            this.buttonListControlRunning.Margin = new System.Windows.Forms.Padding(3, 5, 3, 5);
+            this.buttonListControlRunning.Name = "buttonListControlRunning";
+            this.buttonListControlRunning.Size = new System.Drawing.Size(411, 524);
+            this.buttonListControlRunning.TabIndex = 1;
+            // 
             // label1
             // 
             this.label1.AutoSize = true;
@@ -87,6 +100,19 @@
             this.label1.TabIndex = 0;
             this.label1.Text = "Running Applications";
             this.label1.MouseDown += new System.Windows.Forms.MouseEventHandler(this.ApplicationLauncherForm_MouseDown);
+            // 
+            // buttonListControlShortcuts
+            // 
+            this.buttonListControlShortcuts.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.buttonListControlShortcuts.AutoScroll = true;
+            this.buttonListControlShortcuts.Font = new System.Drawing.Font("Verdana", 14.25F);
+            this.buttonListControlShortcuts.Location = new System.Drawing.Point(2, 42);
+            this.buttonListControlShortcuts.Margin = new System.Windows.Forms.Padding(6, 5, 6, 5);
+            this.buttonListControlShortcuts.Name = "buttonListControlShortcuts";
+            this.buttonListControlShortcuts.Size = new System.Drawing.Size(411, 524);
+            this.buttonListControlShortcuts.TabIndex = 1;
             // 
             // label3
             // 
@@ -128,7 +154,7 @@
             this.notifyIcon1.BalloonTipTitle = "Application Launcher";
             this.notifyIcon1.ContextMenuStrip = this.contextMenuStrip1;
             this.notifyIcon1.Icon = ((System.Drawing.Icon)(resources.GetObject("notifyIcon1.Icon")));
-            this.notifyIcon1.Text = "notifyIcon1";
+            this.notifyIcon1.Text = "Application Launcher";
             this.notifyIcon1.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.notifyIcon1_MouseDoubleClick);
             // 
             // contextMenuStrip1
@@ -193,32 +219,6 @@
             this.buttonEditShortcuts.Size = new System.Drawing.Size(100, 23);
             this.buttonEditShortcuts.TabIndex = 2;
             this.buttonEditShortcuts.Click += new System.EventHandler(this.buttonEditShortcuts_Click);
-            // 
-            // buttonListControlRunning
-            // 
-            this.buttonListControlRunning.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonListControlRunning.AutoScroll = true;
-            this.buttonListControlRunning.Font = new System.Drawing.Font("Verdana", 14.25F);
-            this.buttonListControlRunning.Location = new System.Drawing.Point(3, 42);
-            this.buttonListControlRunning.Margin = new System.Windows.Forms.Padding(3, 5, 3, 5);
-            this.buttonListControlRunning.Name = "buttonListControlRunning";
-            this.buttonListControlRunning.Size = new System.Drawing.Size(411, 524);
-            this.buttonListControlRunning.TabIndex = 1;
-            // 
-            // buttonListControlShortcuts
-            // 
-            this.buttonListControlShortcuts.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonListControlShortcuts.AutoScroll = true;
-            this.buttonListControlShortcuts.Font = new System.Drawing.Font("Verdana", 14.25F);
-            this.buttonListControlShortcuts.Location = new System.Drawing.Point(2, 42);
-            this.buttonListControlShortcuts.Margin = new System.Windows.Forms.Padding(6, 5, 6, 5);
-            this.buttonListControlShortcuts.Name = "buttonListControlShortcuts";
-            this.buttonListControlShortcuts.Size = new System.Drawing.Size(411, 524);
-            this.buttonListControlShortcuts.TabIndex = 1;
             // 
             // ApplicationLauncherForm
             // 
