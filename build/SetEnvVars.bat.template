@@ -1,6 +1,6 @@
 @echo off
 
 set TSVNPATH=
-set VS9PATH=
+set VS10PATH=
 
 exit /B 0

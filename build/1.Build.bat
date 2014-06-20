@@ -9,7 +9,7 @@ time /T
 if not exist "SetEnvVars.bat" (
 	copy "SetEnvVars.bat.template" "SetEnvVars.bat"
 	
-	call exec ".\bin\fregex.exe" "r|VS9PATH=.*$|VS9PATH=$r|HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\VisualStudio\9.0\InstallDir|" -i "SetEnvVars.bat" -o "SetEnvVars.bat"
+	call exec ".\bin\fregex.exe" "r|VS10PATH=.*$|VS10PATH=$r|HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\VisualStudio\10.0\InstallDir|" -i "SetEnvVars.bat" -o "SetEnvVars.bat"
 	if not %ERRORLEVEL%==0 exit /B %ERRORLEVEL%
 
 	call exec ".\bin\fregex.exe" "r|TSVNPATH=.*$|TSVNPATH=$r|HKEY_LOCAL_MACHINE\SOFTWARE\TortoiseSVN\Directory|" -i "SetEnvVars.bat" -o "SetEnvVars.bat"
@@ -24,8 +24,8 @@ if not exist "%TSVNPATH%" (
 	goto ConfigIsWrong
 )
 
-if not exist "%VS9PATH%" (
-	echo Error: VS9PATH does not exist: "%VS9PATH%"
+if not exist "%VS10PATH%" (
+	echo Error: VS10PATH does not exist: "%VS10PATH%"
 	echo Please edit your SetEnvVars.bat file to enter the correct location for your Visual Studio 2008 installation
 	goto ConfigIsWrong
 )
@@ -77,9 +77,9 @@ echo ######################## Update-VersionNumbers ########################
 :Build-Hooks
 echo ######################## Build-Hooks ########################
 
-	call exec "%VS9PATH%\devenv.exe" "..\Hooks.sln" /rebuild "Release|Win32" /out devenv.log
+	call exec "%VS10PATH%\devenv.exe" "..\Hooks.sln" /rebuild "Release|Win32" /out devenv.log
 	if not %ERRORLEVEL%==0 exit /B %ERRORLEVEL%
-	call exec "%VS9PATH%\devenv.exe" "..\Hooks.sln" /rebuild "Release|x64" /out devenv.log
+	call exec "%VS10PATH%\devenv.exe" "..\Hooks.sln" /rebuild "Release|x64" /out devenv.log
 	if not %ERRORLEVEL%==0 exit /B %ERRORLEVEL%
 
     REM restore resource files to original (unaltered version number)
@@ -91,7 +91,7 @@ echo ######################## Build-Hooks ########################
 :Build-Redirector
 echo ################## Build-KeyboardRedirector ##################
 
-	call exec "%VS9PATH%\devenv.exe" "..\KeyboardRedirector.sln" /rebuild "Release" /out devenv.log
+	call exec "%VS10PATH%\devenv.exe" "..\KeyboardRedirector.sln" /rebuild "Release" /out devenv.log
 	if not %ERRORLEVEL%==0 exit /B %ERRORLEVEL%
 
     REM restore AssemblyInfo.cs to original (unaltered version number)
@@ -102,7 +102,7 @@ echo ################## Build-KeyboardRedirector ##################
 :Build-ApplicationLauncher
 echo ################## Build-ApplicationLauncher ##################
 
-	call exec "%VS9PATH%\devenv.exe" "..\ApplicationLauncher.sln" /rebuild "Release" /out devenv.log
+	call exec "%VS10PATH%\devenv.exe" "..\ApplicationLauncher.sln" /rebuild "Release" /out devenv.log
 	if not %ERRORLEVEL%==0 exit /B %ERRORLEVEL%
 
     REM restore AssemblyInfo.cs to original (unaltered version number)
