@@ -598,8 +598,7 @@ namespace KeyboardRedirector
             message = counter + ":" + message;
             System.Diagnostics.Debug.Write(message);
             Log.MainLog.WriteInfo(message.TrimEnd('\r', '\n'));
-            if (checkBoxDisplayLogMessages.Checked)
-                richTextBoxEvents.AppendText(message);
+            AppendToEventsTextBox(message);
         }
         private void WriteLowLevelEvent(string message)
         {
@@ -607,8 +606,7 @@ namespace KeyboardRedirector
             message = counter + ":" + " LL" + message;
             System.Diagnostics.Debug.Write(message);
             Log.MainLog.WriteInfo(message.TrimEnd('\r', '\n'));
-            if (checkBoxDisplayLogMessages.Checked)
-                richTextBoxEvents.AppendText(message);
+            AppendToEventsTextBox(message);
         }
         private void WriteHookEvent(string message)
         {
@@ -616,8 +614,7 @@ namespace KeyboardRedirector
             message = counter + ":" + "   " + message;
             System.Diagnostics.Debug.Write(message);
             Log.MainLog.WriteInfo(message.TrimEnd('\r', '\n'));
-            if (checkBoxDisplayLogMessages.Checked)
-                richTextBoxEvents.AppendText(message);
+            AppendToEventsTextBox(message);
         }
         private void WriteWMInputEvent(string message)
         {
@@ -625,8 +622,7 @@ namespace KeyboardRedirector
             message = counter + ":" + "  " + message;
             System.Diagnostics.Debug.Write(message);
             Log.MainLog.WriteInfo(message.TrimEnd('\r', '\n'));
-            if (checkBoxDisplayLogMessages.Checked)
-                richTextBoxEvents.AppendText(message);
+            AppendToEventsTextBox(message);
         }
 
         private DeviceInformation FindKeyboardDeviceInformation(string deviceName)
@@ -639,7 +635,19 @@ namespace KeyboardRedirector
             return null;
         }
 
-
+        private void AppendToEventsTextBox(string message)
+        {
+            if (this.InvokeRequired)
+            {
+                this.Invoke(new Action(() =>
+                {
+                    if (checkBoxDisplayLogMessages.Checked)
+                        richTextBoxEvents.AppendText(message);
+                }));
+            }
+            if (checkBoxDisplayLogMessages.Checked)
+                richTextBoxEvents.AppendText(message);
+        }
 
 
         private void restoreToolStripMenuItem_Click(object sender, EventArgs e)
@@ -1619,6 +1627,11 @@ namespace KeyboardRedirector
             DialogResult result = dialog.ShowDialog(this);
             if (result != DialogResult.OK)
                 return;
+        }
+
+        private void openSettingsFolderToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            System.Diagnostics.Process.Start(Settings.SettingsPath);
         }
 
 

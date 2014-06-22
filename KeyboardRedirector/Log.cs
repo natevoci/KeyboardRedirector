@@ -44,9 +44,10 @@ namespace KeyboardRedirector
                     string path = Settings.SettingsPath;
                     using (System.IO.StreamWriter writer = new System.IO.StreamWriter(path + @"exception.log", true))
                     {
-                        writer.WriteLine("Unhandled Exception: " + ex.Message + Environment.NewLine);
+                        writer.WriteLine(DateTime.Now.ToString(@"yyyy/MM/dd HH\:mm\:ss.fff") + ": Unhandled Exception: " + ex.Message + Environment.NewLine);
                         writer.WriteLine(ex.ToString());
                         writer.WriteLine("--------" + Environment.NewLine + Environment.NewLine);
+                        MainLog.WriteError(ex.Message);
                     }
                 }
             }
@@ -54,7 +55,7 @@ namespace KeyboardRedirector
         #endregion
 
 
-        #region "static memebers"
+        #region "static members"
         private static Log _mainLog = new Log();
 
         internal static Log MainLog
@@ -140,7 +141,7 @@ namespace KeyboardRedirector
             foreach (string line in lines)
             {
                 output.Append(level.PadRight(LEVEL_LENGTH) + ":");
-                output.Append(DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss.fff") + ":");
+                output.Append(DateTime.Now.ToString(@"yyyy/MM/dd HH\:mm\:ss.fff") + ":");
                 output.Append(prefix.PadRight(PREFIX_LENGTH) + ":");
                 //output.Append("".PadLeft(_indent, ' '));
                 output.Append(line);

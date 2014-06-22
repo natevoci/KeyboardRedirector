@@ -509,126 +509,127 @@ namespace KeyboardRedirector
         /// <returns>The number of keyboard devices found.</returns>
         public int EnumerateDevices()
         {
-            
-            int NumberOfDevices = 0;
-            uint deviceCount = 0;
-            int dwSize = ( Marshal.SizeOf( typeof( RAWINPUTDEVICELIST )));
-            _deviceList.Clear();
-
-            // Get the number of raw input devices in the list,
-            // then allocate sufficient memory and get the entire list
-            if( GetRawInputDeviceList( IntPtr.Zero, ref deviceCount, (uint)dwSize ) == 0 )
+            lock (_deviceList)
             {
-                IntPtr pRawInputDeviceList = Marshal.AllocHGlobal((int)(dwSize * deviceCount));
-                GetRawInputDeviceList(pRawInputDeviceList, ref deviceCount, (uint)dwSize);
+                int NumberOfDevices = 0;
+                uint deviceCount = 0;
+                int dwSize = (Marshal.SizeOf(typeof(RAWINPUTDEVICELIST)));
+                _deviceList.Clear();
 
-                // Iterate through the list, discarding undesired items
-                // and retrieving further information on keyboard devices
-                for (int i = -1; i < deviceCount; i++)
+                // Get the number of raw input devices in the list,
+                // then allocate sufficient memory and get the entire list
+                if (GetRawInputDeviceList(IntPtr.Zero, ref deviceCount, (uint)dwSize) == 0)
                 {
-                    DeviceInfo dInfo;
-                    string deviceName;
-                    uint pcbSize = 0;
+                    IntPtr pRawInputDeviceList = Marshal.AllocHGlobal((int)(dwSize * deviceCount));
+                    GetRawInputDeviceList(pRawInputDeviceList, ref deviceCount, (uint)dwSize);
 
-                    IntPtr hDevice = IntPtr.Zero;
-                    int deviceType = 0;
-                    RID_DEVICE_INFO deviceInfo = new RID_DEVICE_INFO();
-
-                    if (i == -1)
+                    // Iterate through the list, discarding undesired items
+                    // and retrieving further information on keyboard devices
+                    for (int i = -1; i < deviceCount; i++)
                     {
-                        dInfo = new DeviceInfo();
+                        DeviceInfo dInfo;
+                        string deviceName;
+                        uint pcbSize = 0;
 
-                        dInfo.DeviceName = "SendInput";
-                        dInfo.DeviceHandle = IntPtr.Zero;
-                        dInfo.DeviceType = DeviceType.Keyboard;
-                        dInfo.Name = "SendInput (Keystrokes simulated by applications)";
+                        IntPtr hDevice = IntPtr.Zero;
+                        int deviceType = 0;
+                        RID_DEVICE_INFO deviceInfo = new RID_DEVICE_INFO();
 
-                        NumberOfDevices++;
-                        _deviceList.Add(IntPtr.Zero, dInfo);
-                        continue;
-                    }
-
-                    RAWINPUTDEVICELIST rid = (RAWINPUTDEVICELIST)Marshal.PtrToStructure(
-                                               new IntPtr((pRawInputDeviceList.ToInt32() + (dwSize * i))),
-                                               typeof(RAWINPUTDEVICELIST));
-                    hDevice = rid.hDevice;
-                    deviceType = rid.dwType;
-
-                    GetRawInputDeviceInfo(hDevice, RIDI_DEVICENAME, IntPtr.Zero, ref pcbSize);
-
-                    if (pcbSize > 0)
-                    {
-                        IntPtr pData = Marshal.AllocHGlobal((int)pcbSize);
-                        GetRawInputDeviceInfo(hDevice, RIDI_DEVICENAME, pData, ref pcbSize);
-                        deviceName = (string)Marshal.PtrToStringAnsi(pData);
-                        Marshal.FreeHGlobal(pData);
-
-                        // Drop the "root" keyboard and mouse devices used for Terminal 
-                        // Services and the Remote Desktop
-                        if (deviceName.ToUpper().StartsWith(@"\\?\ROOT"))
-                            continue;
-                        if (deviceName.ToUpper().StartsWith(@"\??\ROOT"))
-                            continue;
-
-                        GetRawInputDeviceInfo(hDevice, RIDI_DEVICEINFO, IntPtr.Zero, ref pcbSize);
-                        
-                        string bits = "";
-
-                        if (pcbSize > 0)
-                        {
-                            pData = Marshal.AllocHGlobal((int)pcbSize);
-                            GetRawInputDeviceInfo(hDevice, RIDI_DEVICEINFO, pData, ref pcbSize);
-                            
-                            var data = new byte[pcbSize];
-                            Marshal.Copy(pData, data, 0, (int)pcbSize);
-                            bits = BitConverter.ToString(data);
-
-                            deviceInfo = (RID_DEVICE_INFO)Marshal.PtrToStructure(pData, typeof(RID_DEVICE_INFO));
-                            Marshal.FreeHGlobal(pData);
-                        }
-
-                        // If the device is identified in the list as a keyboard or 
-                        // HID device, create a DeviceInfo object to store information 
-                        // about it
-                        //if (rid.dwType == RIM_TYPEKEYBOARD || rid.dwType == RIM_TYPEHID)
+                        if (i == -1)
                         {
                             dInfo = new DeviceInfo();
 
-                            dInfo.DeviceHandle = hDevice;
-                            dInfo.DeviceType = GetDeviceType(deviceType);
-                            dInfo.DeviceName = deviceName;
-                            dInfo.RawInputDeviceInfo = deviceInfo;
+                            dInfo.DeviceName = "SendInput";
+                            dInfo.DeviceHandle = IntPtr.Zero;
+                            dInfo.DeviceType = DeviceType.Keyboard;
+                            dInfo.Name = "SendInput (Keystrokes simulated by applications)";
 
-                            // Check the Registry to see whether this is actually a 
-                            // keyboard, and to retrieve a more friendly description.
-                            bool IsKeyboardDevice = false;
-                            dInfo.DeviceDesc = ReadReg(deviceName, ref IsKeyboardDevice);
-                            dInfo.Name = dInfo.DeviceDesc.Substring(dInfo.DeviceDesc.LastIndexOf(";") + 1);
+                            NumberOfDevices++;
+                            _deviceList.Add(IntPtr.Zero, dInfo);
+                            continue;
+                        }
 
-                            // If it is a keyboard and it isn't already in the list,
-                            // add it to the deviceList hashtable and increase the
-                            // NumberOfDevices count
-                            //if (!deviceList.Contains(hDevice) && IsKeyboardDevice)
-                            if (!_deviceList.ContainsKey(hDevice))
+                        RAWINPUTDEVICELIST rid = (RAWINPUTDEVICELIST)Marshal.PtrToStructure(
+                                                   new IntPtr((pRawInputDeviceList.ToInt32() + (dwSize * i))),
+                                                   typeof(RAWINPUTDEVICELIST));
+                        hDevice = rid.hDevice;
+                        deviceType = rid.dwType;
+
+                        GetRawInputDeviceInfo(hDevice, RIDI_DEVICENAME, IntPtr.Zero, ref pcbSize);
+
+                        if (pcbSize > 0)
+                        {
+                            IntPtr pData = Marshal.AllocHGlobal((int)pcbSize);
+                            GetRawInputDeviceInfo(hDevice, RIDI_DEVICENAME, pData, ref pcbSize);
+                            deviceName = (string)Marshal.PtrToStringAnsi(pData);
+                            Marshal.FreeHGlobal(pData);
+
+                            // Drop the "root" keyboard and mouse devices used for Terminal 
+                            // Services and the Remote Desktop
+                            if (deviceName.ToUpper().StartsWith(@"\\?\ROOT"))
+                                continue;
+                            if (deviceName.ToUpper().StartsWith(@"\??\ROOT"))
+                                continue;
+
+                            GetRawInputDeviceInfo(hDevice, RIDI_DEVICEINFO, IntPtr.Zero, ref pcbSize);
+
+                            string bits = "";
+
+                            if (pcbSize > 0)
                             {
-                                NumberOfDevices++;
-                                _deviceList.Add(hDevice, dInfo);
+                                pData = Marshal.AllocHGlobal((int)pcbSize);
+                                GetRawInputDeviceInfo(hDevice, RIDI_DEVICEINFO, pData, ref pcbSize);
+
+                                var data = new byte[pcbSize];
+                                Marshal.Copy(pData, data, 0, (int)pcbSize);
+                                bits = BitConverter.ToString(data);
+
+                                deviceInfo = (RID_DEVICE_INFO)Marshal.PtrToStructure(pData, typeof(RID_DEVICE_INFO));
+                                Marshal.FreeHGlobal(pData);
+                            }
+
+                            // If the device is identified in the list as a keyboard or 
+                            // HID device, create a DeviceInfo object to store information 
+                            // about it
+                            //if (rid.dwType == RIM_TYPEKEYBOARD || rid.dwType == RIM_TYPEHID)
+                            {
+                                dInfo = new DeviceInfo();
+
+                                dInfo.DeviceHandle = hDevice;
+                                dInfo.DeviceType = GetDeviceType(deviceType);
+                                dInfo.DeviceName = deviceName;
+                                dInfo.RawInputDeviceInfo = deviceInfo;
+
+                                // Check the Registry to see whether this is actually a 
+                                // keyboard, and to retrieve a more friendly description.
+                                bool IsKeyboardDevice = false;
+                                dInfo.DeviceDesc = ReadReg(deviceName, ref IsKeyboardDevice);
+                                dInfo.Name = dInfo.DeviceDesc.Substring(dInfo.DeviceDesc.LastIndexOf(";") + 1);
+
+                                // If it is a keyboard and it isn't already in the list,
+                                // add it to the deviceList hashtable and increase the
+                                // NumberOfDevices count
+                                //if (!deviceList.Contains(hDevice) && IsKeyboardDevice)
+                                if (!_deviceList.ContainsKey(hDevice))
+                                {
+                                    NumberOfDevices++;
+                                    _deviceList.Add(hDevice, dInfo);
+                                }
                             }
                         }
                     }
+
+
+                    Marshal.FreeHGlobal(pRawInputDeviceList);
+
+                    return NumberOfDevices;
+
                 }
-
-
-                Marshal.FreeHGlobal(pRawInputDeviceList);
-
-                return NumberOfDevices;
-
+                else
+                {
+                    throw new ApplicationException("An error occurred while retrieving the list of devices.");
+                }
             }
-            else
-            {
-                throw new ApplicationException( "An error occurred while retrieving the list of devices." );
-            }
-
         }
 
         #endregion EnumerateDevices()
@@ -685,18 +686,23 @@ namespace KeyboardRedirector
                 // key that was pressed.
                 DeviceInfo dInfo = null;
 
-                if (_deviceList.ContainsKey(raw.header.hDevice))
+                lock (_deviceList)
                 {
-                    dInfo = (DeviceInfo)_deviceList[raw.header.hDevice];
-                }
-                if (dInfo == null)
-                {
-                    string errMessage = String.Format("Handle :{0} was not in hashtable. The device may support more than one handle or usage page, and is probably not a standard keyboard.", raw.header.hDevice);
-                    throw new ApplicationException(errMessage);
-                    //Debug.WriteLine(errMessage);
-                    //return;
-                }
+                    _deviceList.TryGetValue(raw.header.hDevice, out dInfo);
+                    if (dInfo == null)
+                    {
+                        EnumerateDevices();
 
+                        _deviceList.TryGetValue(raw.header.hDevice, out dInfo);
+                        if (dInfo == null)
+                        {
+                            string errMessage = String.Format("Handle :0x{0:x} was not in hashtable. The device may support more than one handle or usage page, and is probably not a standard keyboard.", raw.header.hDevice);
+                            throw new ApplicationException(errMessage);
+                            //Debug.WriteLine(errMessage);
+                            //return;
+                        }
+                    }
+                }
 
                 if (DeviceEvent != null)
                 {
