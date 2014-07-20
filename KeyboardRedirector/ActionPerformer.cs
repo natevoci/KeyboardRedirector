@@ -54,7 +54,7 @@ namespace KeyboardRedirector
         private void WriteStatusMessage(string text)
         {
             if (StatusMessage != null)
-                StatusMessage(text);
+                StatusMessage("ActionPerformer: " + text);
         }
 
         public void EnqueueKey(SettingsKeyboardKey key, bool keyDown)
@@ -68,7 +68,7 @@ namespace KeyboardRedirector
                 _keyQueue.Add(info);
                 if (info.KeyDown)
                 {
-                    WriteStatusMessage("   Queueing keystroke: " + key.ToString());
+                    WriteStatusMessage("Queueing keystroke: " + key.ToString());
                 }
             }
             //ProcessKeyInfo(info);
@@ -125,6 +125,8 @@ namespace KeyboardRedirector
 
             if (info.KeyDown)
             {
+                WriteStatusMessage("Processing keystroke: " + info.Key.ToString());
+
                 string focussedWindowTitle;
                 string focussedExecutable;
                 GetFocussedExecutable(out focussedWindowTitle, out focussedExecutable);
@@ -251,10 +253,10 @@ namespace KeyboardRedirector
             int keysDownCount = KeyboardHookExternal.Current.KeysDownCount();
             if (keysDownCount > 0)
             {
-                Log.MainLog.WriteDebug("   Waiting for all keys to be up before sending new keystroke : keys down = " + keysDownCount.ToString());
-                if (KeyboardHookExternal.Current.AllKeysUpEvent.WaitOne(1000))
+                WriteStatusMessage("   Waiting for all keys to be up before sending new keystroke : keys down = " + keysDownCount.ToString());
+                if (KeyboardHookExternal.Current.AllKeysUpEvent.WaitOne(100))
                 {
-                    Log.MainLog.WriteDebug("   All keys are up");
+                    WriteStatusMessage("   All keys are up");
                 }
                 else
                 {

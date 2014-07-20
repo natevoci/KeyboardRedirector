@@ -233,7 +233,6 @@ namespace KeyboardRedirector
         }
 
         private bool _findFromWindowActive = false;
-        private bool _findFromWindowValid = false;
         private string _findFromWindowOriginalProcessName = "";
         private string _findFromWindowOriginalWindowClass = "";
         private string _findFromWindowOriginalWindowName = "";
@@ -286,7 +285,6 @@ namespace KeyboardRedirector
                 textBoxWindowClass.Text = _findFromWindowOriginalWindowClass;
                 textBoxWindowName.Text = _findFromWindowOriginalWindowName;
                 textBoxWindowHandle.Text = "";
-                _findFromWindowValid = false;
             }
             else
             {
@@ -305,8 +303,6 @@ namespace KeyboardRedirector
                     textBoxWindowName.Text = windowTitle.ToString();
 
                     textBoxWindowHandle.Text = "0x" + ((uint)hwnd.ToInt32()).ToString("x");
-
-                    _findFromWindowValid = true;
                 }
                 catch (Exception e)
                 {

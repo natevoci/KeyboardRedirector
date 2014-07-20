@@ -89,7 +89,7 @@ namespace KeyboardRedirector
             _keyCombinations = new Dictionary<string, KeyCombination>();
             _antiRepeatTimes = new Dictionary<SettingsKeyboardKey, double>();
 
-            _keysSeen.Timeout = HookTimeout;
+            _keysSeen.Timeout = 500;
             _keysSeen.TestModifiers = false;
 
             InitializeComponent();
@@ -323,6 +323,11 @@ namespace KeyboardRedirector
 
         void KeyboardHook_KeyEvent(object sender, KeyHookEventArgs e)
         {
+            System.Threading.Thread.CurrentThread.Name = "Hook";
+
+            var waitingTime = new System.Diagnostics.Stopwatch();
+            var keysSeen = 0;
+
             while (true)
             {
                 // See if the key has been added by the Raw Input API
@@ -330,12 +335,26 @@ namespace KeyboardRedirector
                     break;
 
                 // If not, wait until there's a change.
-                Log.MainLog.WriteDebug("  Waiting for Raw Input to see key: " + e.KeyCombination.KeyWithExtended.ToString() + " " + (e.KeyCombination.KeyDown ? "down" : "up") + "  " + _keysSeen.Count.ToString() + " keys seen");
-                if (_keysSeen.Count > 0)
-                    Log.MainLog.WriteDebug("   Keys Seen: " + _keysSeen.GetKeysString());
+                if (!waitingTime.IsRunning)
+                {
+                    WriteHookEvent("  Waiting for Raw Input to see key: " + e.KeyCombination.KeyWithExtended.ToString() + " " + (e.KeyCombination.KeyDown ? "down" : "up"));
+                    waitingTime.Start();
+                }
+
+                if (_keysSeen.Count != keysSeen)
+                {
+                    keysSeen = _keysSeen.Count;
+                    WriteHookEvent("   Keys Seen: " + _keysSeen.GetKeysString());
+                }
 
                 if (_keysSeen.ChangedEvent.WaitOne(_keysSeen.Timeout) == false)
                     break; // if we timeout then we'll just continue anyway.
+            }
+
+            if (waitingTime.IsRunning)
+            {
+                waitingTime.Stop();
+                WriteHookEvent("  Waited " + waitingTime.ElapsedMilliseconds.ToString() + "ms " + "for Raw Input to see key: " + e.KeyCombination.KeyWithExtended.ToString() + " " + (e.KeyCombination.KeyDown ? "down" : "up"));
             }
 
             bool block = false;
@@ -363,6 +382,8 @@ namespace KeyboardRedirector
         {
             if (_disableGlobalKeyboardHook == true)
                 return;
+
+            System.Threading.Thread.CurrentThread.Name = "LLHook";
 
             if (_keyDetectorFocused && _captureLowLevelChecked)
             {
@@ -427,6 +448,7 @@ namespace KeyboardRedirector
 #endif
             Call.WithTimeout(HookTimeout, false, () =>
             {
+                System.Threading.Thread.CurrentThread.Name = "RawEvent";
                 InputDevice_DeviceEvent_Worker(sender, dInfo, rawInput);
             });
 #if EXTENDED_LOGGING_FOR_WNDPROC
@@ -563,7 +585,7 @@ namespace KeyboardRedirector
         delegate void _actionPerformer_StatusMessageDelegate(string text);
         void _actionPerformer_StatusMessage(string text)
         {
-            Log.MainLog.WriteInfo(text.TrimEnd('\r', '\n'));
+            //Log.MainLog.WriteInfo(text.TrimEnd('\r', '\n'));
 
             // Note: We can't use this.Invoke here because we can end up with a 
             //       recursive call to WndProc.
@@ -639,7 +661,7 @@ namespace KeyboardRedirector
         {
             if (this.InvokeRequired)
             {
-                this.Invoke(new Action(() =>
+                this.BeginInvoke(new Action(() =>
                 {
                     if (checkBoxDisplayLogMessages.Checked)
                         richTextBoxEvents.AppendText(message);
