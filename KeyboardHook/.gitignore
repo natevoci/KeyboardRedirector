@@ -1,0 +1,7 @@
+/Debug
+/*.user
+/Release
+/bin
+/obj
+/*.aps
+/*.filters
