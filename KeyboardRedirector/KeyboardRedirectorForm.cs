@@ -337,7 +337,13 @@ namespace KeyboardRedirector
                 // If not, wait until there's a change.
                 if (!waitingTime.IsRunning)
                 {
-                    WriteHookEvent("  Waiting for Raw Input to see key: " + e.KeyCombination.KeyWithExtended.ToString() + " " + (e.KeyCombination.KeyDown ? "down" : "up"));
+                    if (e.KeyCombination.KeyWithExtended.Keys == (Keys.LButton | Keys.OemClear))
+                    {
+                        WriteHookEvent("  Ignoring remote desktop clear command: " + e.KeyCombination.KeyWithExtended.ToString() + " " + (e.KeyCombination.KeyDown ? "down" : "up") + Environment.NewLine);
+                        return;
+                    }
+
+                    WriteHookEvent("  Waiting for Raw Input to see key: " + e.KeyCombination.KeyWithExtended.ToString() + " " + (e.KeyCombination.KeyDown ? "down" : "up") + Environment.NewLine);
                     waitingTime.Start();
                 }
 
@@ -354,7 +360,7 @@ namespace KeyboardRedirector
             if (waitingTime.IsRunning)
             {
                 waitingTime.Stop();
-                WriteHookEvent("  Waited " + waitingTime.ElapsedMilliseconds.ToString() + "ms " + "for Raw Input to see key: " + e.KeyCombination.KeyWithExtended.ToString() + " " + (e.KeyCombination.KeyDown ? "down" : "up"));
+                WriteHookEvent("  Waited " + waitingTime.ElapsedMilliseconds.ToString() + "ms " + "for Raw Input to see key: " + e.KeyCombination.KeyWithExtended.ToString() + " " + (e.KeyCombination.KeyDown ? "down" : "up") + Environment.NewLine);
             }
 
             bool block = false;
