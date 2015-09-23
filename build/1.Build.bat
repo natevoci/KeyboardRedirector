@@ -11,18 +11,9 @@ if not exist "SetEnvVars.bat" (
 	
 	call exec ".\bin\fregex.exe" "r|VS10PATH=.*$|VS10PATH=$r|HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\VisualStudio\10.0\InstallDir|" -i "SetEnvVars.bat" -o "SetEnvVars.bat"
 	if not %ERRORLEVEL%==0 exit /B %ERRORLEVEL%
-
-	call exec ".\bin\fregex.exe" "r|TSVNPATH=.*$|TSVNPATH=$r|HKEY_LOCAL_MACHINE\SOFTWARE\TortoiseSVN\Directory|" -i "SetEnvVars.bat" -o "SetEnvVars.bat"
-	if not %ERRORLEVEL%==0 exit /B %ERRORLEVEL%
 )
 
 call SetEnvVars.bat
-
-if not exist "%TSVNPATH%" (
-	echo Error: TSVNPATH does not exist: "%TSVNPATH%"
-	echo Please edit your SetEnvVars.bat file to enter the correct location for the TortoiseSVN installation folder
-	goto ConfigIsWrong
-)
 
 if not exist "%VS10PATH%" (
 	echo Error: VS10PATH does not exist: "%VS10PATH%"
@@ -38,11 +29,13 @@ if not exist .\Temp mkdir .\Temp
 echo ######################## Update-VersionNumbers ########################
 
 	REM Use the rev of the repo for the version
-	call exec "%TSVNPATH%\bin\subwcrev.exe" ".." "SetVersion.bat.template" "SetVersion.bat"
+	git rev-list HEAD --count > .\Temp\version.txt
 	if not %ERRORLEVEL%==0 exit /B %ERRORLEVEL%
+
+	set /p VERSION_D=<.\Temp\version.txt
 	call SetVersion.bat
 	echo Version is %VERSION%
-	del SetVersion.bat
+	del .\Temp\version.txt
 
     REM back up files that hold versions so they can be restored after the build
     REM  (this is just so that these files don't keep showing up in the svn commit dialog)
