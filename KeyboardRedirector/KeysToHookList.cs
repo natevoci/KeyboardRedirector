@@ -23,7 +23,7 @@
 
 #endregion
 
-//#define EXTENDED_LOGGING
+#define EXTENDED_LOGGING
 
 using System;
 using System.Collections.Generic;
@@ -109,15 +109,8 @@ namespace KeyboardRedirector
                 for (int i = 0; i < _keys.Count; i++)
                 {
                     KeyToHookInformation info = _keys[i];
-                    if (DateTime.Now.Subtract(_keys[i].SeenAt).TotalMilliseconds > _timeout)
-                    {
-#if EXTENDED_LOGGING
-                        Log.MainLog.WriteDebug("     Removed (timeout): " + info.Key.ToString() + " " + (info.KeyDown ? "down" : "up"));
-#endif
-                        _keys.RemoveAt(i--);
-                        _keysRemovedDueToTimeout++;
-                    }
-                    else if (_testModifiers && (info.Key == key) && (info.KeyDown == keyDown))
+
+                    if (_testModifiers && (info.Key == key) && (info.KeyDown == keyDown))
                     {
 #if EXTENDED_LOGGING
                         Log.MainLog.WriteDebug("     Removed: " + info.Key.ToString() + " " + (info.KeyDown ? "down" : "up"));
@@ -133,6 +126,15 @@ namespace KeyboardRedirector
                         found = true;
                         _keys.RemoveAt(i--);
                     }
+                    else if (DateTime.Now.Subtract(_keys[i].SeenAt).TotalMilliseconds > _timeout)
+                    {
+#if EXTENDED_LOGGING
+                        Log.MainLog.WriteDebug("     Removed (timeout): " + info.Key.ToString() + " " + (info.KeyDown ? "down" : "up"));
+#endif
+                        _keys.RemoveAt(i--);
+                        _keysRemovedDueToTimeout++;
+                    }
+
                 }
             }
             if (found)

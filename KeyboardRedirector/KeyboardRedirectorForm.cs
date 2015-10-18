@@ -89,7 +89,7 @@ namespace KeyboardRedirector
             _keyCombinations = new Dictionary<string, KeyCombination>();
             _antiRepeatTimes = new Dictionary<SettingsKeyboardKey, double>();
 
-            _keysSeen.Timeout = 500;
+            _keysSeen.Timeout = 100;
             _keysSeen.TestModifiers = false;
 
             InitializeComponent();
@@ -325,6 +325,11 @@ namespace KeyboardRedirector
         {
             System.Threading.Thread.CurrentThread.Name = "Hook";
 
+            WriteHookEvent("Enter " + (e.KeyCombination.KeyDown ? "Down" : "Up  ") + " : " + e.KeyCombination.ToString() + Environment.NewLine);
+
+            var hookTime = new System.Diagnostics.Stopwatch();
+            hookTime.Start();
+
             var waitingTime = new System.Diagnostics.Stopwatch();
             var keysSeen = 0;
 
@@ -376,10 +381,7 @@ namespace KeyboardRedirector
                 e.Handled = true;
             }
 
-            if (e.KeyCombination.KeyDown)
-                WriteHookEvent("Down : " + blockText + e.KeyCombination.ToString() + Environment.NewLine);
-            else
-                WriteHookEvent("Up   : " + blockText + e.KeyCombination.ToString() + Environment.NewLine);
+            WriteHookEvent("Finish " + (e.KeyCombination.KeyDown ? "Down" : "Up  ") + " : " + blockText + e.KeyCombination.ToString() + " (" + hookTime.ElapsedMilliseconds.ToString() + "ms)" + Environment.NewLine);
         }
 
 
