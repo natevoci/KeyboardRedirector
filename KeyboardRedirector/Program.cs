@@ -43,7 +43,7 @@ namespace KeyboardRedirector
         {
             try
             {
-                if (IsThereAnInstanceOfThisProgramAlreadyRunning(true))
+                if (MS.ProcessWindow.IsThereAnInstanceOfThisProgramAlreadyRunning(MS.ProcessWindow.Action.Activate, "Keyboard Redirector"))
                 {
                     Application.Exit();
                     return;
@@ -87,68 +87,6 @@ namespace KeyboardRedirector
             message += Environment.NewLine;
             message += e.ToString();
             MessageBox.Show(message, "Keyboard Redirector", MessageBoxButtons.OK, MessageBoxIcon.Error);
-        }
-
-        static bool IsThereAnInstanceOfThisProgramAlreadyRunning(bool activateThePreviousInstance)
-        {
-            Process thisProcess = Process.GetCurrentProcess();
-            Process[] processList = Process.GetProcessesByName(thisProcess.ProcessName);
-
-            if (processList.Length == 1)
-                return false; // There's just the current process.
-
-            if (activateThePreviousInstance)
-            {
-                foreach (Process process in processList)
-                {
-                    if (process.Id != thisProcess.Id)
-                    {
-                        // Activate the previous instance.
-                        List<IntPtr> windowHandles = ProcessWindowHandleObtainer.GetWindowHandle(process.Id);
-                        foreach (IntPtr handle in windowHandles)
-                        {
-                            StringBuilder windowText = new StringBuilder(260);
-                            Win32.GetWindowText(handle, windowText, 260);
-                            if (windowText.ToString() == "Keyboard Redirector")
-                            {
-                                Win32.ShowWindow(handle, Win32.SW.RESTORE);
-                                Win32.SetForegroundWindow(handle);
-                            }
-                        }
-                        break;
-                    }
-                }
-            }
-
-            return true;
-        }
-
-
-    }
-
-    class ProcessWindowHandleObtainer
-    {
-        public static List<IntPtr> GetWindowHandle(int processId)
-        {
-            ProcessWindowHandleObtainer obtainer = new ProcessWindowHandleObtainer();
-            obtainer._processId = (uint)processId;
-            Win32.EnumWindowsProc proc = new Win32.EnumWindowsProc(obtainer.EnumWindowsCallback);
-            Win32.EnumWindows(proc, 0);
-            return obtainer._windowHandles;
-        }
-
-        uint _processId = 0;
-        List<IntPtr> _windowHandles = new List<IntPtr>();
-
-        private bool EnumWindowsCallback(IntPtr hwnd, int lParam)
-        {
-            uint pid;
-            Win32.GetWindowThreadProcessId(hwnd, out pid);
-            if (pid == _processId)
-            {
-                _windowHandles.Add(hwnd);
-            }
-            return true;
         }
     }
 }

@@ -45,6 +45,8 @@ echo ######################## Update-VersionNumbers ########################
 	if not %ERRORLEVEL%==0 exit /B %ERRORLEVEL%
     call exec copy /Y "..\VolumeChanger\Properties\AssemblyInfo.cs" ".\Temp\VolumeChangerAssemblyInfo.cs"
 	if not %ERRORLEVEL%==0 exit /B %ERRORLEVEL%
+    call exec copy /Y "..\OSD\Properties\AssemblyInfo.cs" ".\Temp\OSDAssemblyInfo.cs"
+	if not %ERRORLEVEL%==0 exit /B %ERRORLEVEL%
     call exec copy /Y "..\KeyboardHook\Hook.rc" ".\Temp\Hook.rc"
 	if not %ERRORLEVEL%==0 exit /B %ERRORLEVEL%
     call exec copy /Y "..\KeyboardHook\KeyboardHook.rc" ".\Temp\KeyboardHook.rc"
@@ -58,6 +60,9 @@ echo ######################## Update-VersionNumbers ########################
 	if not %ERRORLEVEL%==0 exit /B %ERRORLEVEL%
     
 	call exec ".\bin\fregex.exe" "s/AssemblyVersion.*$/AssemblyVersion(\"%VERSION%\")]/" "s/AssemblyFileVersion.*$/AssemblyFileVersion(\"%VERSION%\")]/" -i "..\VolumeChanger\Properties\AssemblyInfo.cs" -o "..\VolumeChanger\Properties\AssemblyInfo.cs"
+	if not %ERRORLEVEL%==0 exit /B %ERRORLEVEL%
+
+	call exec ".\bin\fregex.exe" "s/AssemblyVersion.*$/AssemblyVersion(\"%VERSION%\")]/" "s/AssemblyFileVersion.*$/AssemblyFileVersion(\"%VERSION%\")]/" -i "..\OSD\Properties\AssemblyInfo.cs" -o "..\OSD\Properties\AssemblyInfo.cs"
 	if not %ERRORLEVEL%==0 exit /B %ERRORLEVEL%
     
 	call exec ".\bin\fregex.exe" "s/FILEVERSION .*$/FILEVERSION %VERSION_A%,%VERSION_B%,%VERSION_C%,%VERSION_D%/" "s/FileVersion\".*$/FileVersion\", \"%VERSION%\"/" -i "..\KeyboardHook\Hook.rc" -o "..\KeyboardHook\Hook.rc"
@@ -119,6 +124,17 @@ echo ################## Build-VolumeChanger ##################
     if not %ERRORLEVEL%==0 exit /B %ERRORLEVEL%
 
 
+:Build-OSD
+echo ################## Build-OSD ##################
+
+	call exec "%VS10PATH%\devenv.exe" "..\OSD.sln" /rebuild "Release" /out devenv.log
+	if not %ERRORLEVEL%==0 exit /B %ERRORLEVEL%
+
+    REM restore AssemblyInfo.cs to original (unaltered version number)
+    call exec copy /Y ".\Temp\OSDAssemblyInfo.cs" "..\OSD\Properties\AssemblyInfo.cs"
+    if not %ERRORLEVEL%==0 exit /B %ERRORLEVEL%
+
+
 :CreateBuildOutput
 
     if not exist "..\builds" mkdir "..\builds"
@@ -131,9 +147,12 @@ echo ################## Build-VolumeChanger ##################
     copy /Y "..\ApplicationLauncher\bin\*.dll" "..\builds\KeyboardRedirector-%VERSION%"
 
     copy /Y "..\VolumeChanger\bin\VolumeChanger.exe" "..\builds\KeyboardRedirector-%VERSION%"
-	copy /Y "..\VolumeChanger\bin\VolumeChanger.exe.config" "..\builds\KeyboardRedirector-%VERSION%"
+    copy /Y "..\VolumeChanger\bin\VolumeChanger.exe.config" "..\builds\KeyboardRedirector-%VERSION%"
     copy /Y "..\VolumeChanger\bin\*.dll" "..\builds\KeyboardRedirector-%VERSION%"
 
+    copy /Y "..\OSD\bin\OSD.exe" "..\builds\KeyboardRedirector-%VERSION%"
+    copy /Y "..\OSD\bin\*.dll" "..\builds\KeyboardRedirector-%VERSION%"
+    
     copy /Y "..\KeyboardRedirector\bin\*.exe" "..\builds\KeyboardRedirector-%VERSION%"
     copy /Y "..\KeyboardRedirector\bin\*.dll" "..\builds\KeyboardRedirector-%VERSION%"
     if exist "..\builds\KeyboardRedirector-%VERSION%\KeyboardRedirector.vshost.exe" (

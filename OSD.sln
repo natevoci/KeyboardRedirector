@@ -1,0 +1,42 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OSD", "OSD\OSD.csproj", "{310D072D-40D2-4266-A8FC-8052F0EB4989}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Win32", "Win32\Win32.csproj", "{AC1273B1-6E65-4EBC-A129-63AF299B1AFB}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|Mixed Platforms = Debug|Mixed Platforms
+		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
+		Release|Mixed Platforms = Release|Mixed Platforms
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{310D072D-40D2-4266-A8FC-8052F0EB4989}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{310D072D-40D2-4266-A8FC-8052F0EB4989}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
+		{310D072D-40D2-4266-A8FC-8052F0EB4989}.Debug|Mixed Platforms.Build.0 = Debug|x86
+		{310D072D-40D2-4266-A8FC-8052F0EB4989}.Debug|x86.ActiveCfg = Debug|x86
+		{310D072D-40D2-4266-A8FC-8052F0EB4989}.Debug|x86.Build.0 = Debug|x86
+		{310D072D-40D2-4266-A8FC-8052F0EB4989}.Release|Any CPU.ActiveCfg = Release|x86
+		{310D072D-40D2-4266-A8FC-8052F0EB4989}.Release|Mixed Platforms.ActiveCfg = Release|x86
+		{310D072D-40D2-4266-A8FC-8052F0EB4989}.Release|Mixed Platforms.Build.0 = Release|x86
+		{310D072D-40D2-4266-A8FC-8052F0EB4989}.Release|x86.ActiveCfg = Release|x86
+		{310D072D-40D2-4266-A8FC-8052F0EB4989}.Release|x86.Build.0 = Release|x86
+		{AC1273B1-6E65-4EBC-A129-63AF299B1AFB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AC1273B1-6E65-4EBC-A129-63AF299B1AFB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AC1273B1-6E65-4EBC-A129-63AF299B1AFB}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{AC1273B1-6E65-4EBC-A129-63AF299B1AFB}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{AC1273B1-6E65-4EBC-A129-63AF299B1AFB}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{AC1273B1-6E65-4EBC-A129-63AF299B1AFB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AC1273B1-6E65-4EBC-A129-63AF299B1AFB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AC1273B1-6E65-4EBC-A129-63AF299B1AFB}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{AC1273B1-6E65-4EBC-A129-63AF299B1AFB}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{AC1273B1-6E65-4EBC-A129-63AF299B1AFB}.Release|x86.ActiveCfg = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
