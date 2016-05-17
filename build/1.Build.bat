@@ -47,6 +47,8 @@ echo ######################## Update-VersionNumbers ########################
 	if not %ERRORLEVEL%==0 exit /B %ERRORLEVEL%
     call exec copy /Y "..\OSD\Properties\AssemblyInfo.cs" ".\Temp\OSDAssemblyInfo.cs"
 	if not %ERRORLEVEL%==0 exit /B %ERRORLEVEL%
+    call exec copy /Y "..\kXToggle\Properties\AssemblyInfo.cs" ".\Temp\kXToggleAssemblyInfo.cs"
+	if not %ERRORLEVEL%==0 exit /B %ERRORLEVEL%
     call exec copy /Y "..\KeyboardHook\Hook.rc" ".\Temp\Hook.rc"
 	if not %ERRORLEVEL%==0 exit /B %ERRORLEVEL%
     call exec copy /Y "..\KeyboardHook\KeyboardHook.rc" ".\Temp\KeyboardHook.rc"
@@ -65,6 +67,9 @@ echo ######################## Update-VersionNumbers ########################
 	call exec ".\bin\fregex.exe" "s/AssemblyVersion.*$/AssemblyVersion(\"%VERSION%\")]/" "s/AssemblyFileVersion.*$/AssemblyFileVersion(\"%VERSION%\")]/" -i "..\OSD\Properties\AssemblyInfo.cs" -o "..\OSD\Properties\AssemblyInfo.cs"
 	if not %ERRORLEVEL%==0 exit /B %ERRORLEVEL%
     
+	call exec ".\bin\fregex.exe" "s/AssemblyVersion.*$/AssemblyVersion(\"%VERSION%\")]/" "s/AssemblyFileVersion.*$/AssemblyFileVersion(\"%VERSION%\")]/" -i "..\kXToggle\Properties\AssemblyInfo.cs" -o "..\kXToggle\Properties\AssemblyInfo.cs"
+	if not %ERRORLEVEL%==0 exit /B %ERRORLEVEL%
+
 	call exec ".\bin\fregex.exe" "s/FILEVERSION .*$/FILEVERSION %VERSION_A%,%VERSION_B%,%VERSION_C%,%VERSION_D%/" "s/FileVersion\".*$/FileVersion\", \"%VERSION%\"/" -i "..\KeyboardHook\Hook.rc" -o "..\KeyboardHook\Hook.rc"
 	if not %ERRORLEVEL%==0 exit /B %ERRORLEVEL%
 	call exec ".\bin\fregex.exe" "s/PRODUCTVERSION .*$/PRODUCTVERSION %VERSION_A%,%VERSION_B%,%VERSION_C%,%VERSION_D%/" "s/ProductVersion\".*$/ProductVersion\", \"%VERSION%\"/" -i "..\KeyboardHook\Hook.rc" -o "..\KeyboardHook\Hook.rc"
@@ -135,6 +140,17 @@ echo ################## Build-OSD ##################
     if not %ERRORLEVEL%==0 exit /B %ERRORLEVEL%
 
 
+:Build-kXToggle
+echo ################## Build-kXToggle ##################
+
+	call exec "%VS10PATH%\devenv.exe" "..\kXToggle\kXToggle.sln" /rebuild "Release" /out devenv.log
+	if not %ERRORLEVEL%==0 exit /B %ERRORLEVEL%
+
+    REM restore AssemblyInfo.cs to original (unaltered version number)
+    call exec copy /Y ".\Temp\kXToggleAssemblyInfo.cs" "..\kXToggle\Properties\AssemblyInfo.cs"
+    if not %ERRORLEVEL%==0 exit /B %ERRORLEVEL%
+
+
 :CreateBuildOutput
 
     if not exist "..\builds" mkdir "..\builds"
@@ -152,6 +168,10 @@ echo ################## Build-OSD ##################
 
     copy /Y "..\OSD\bin\OSD.exe" "..\builds\KeyboardRedirector-%VERSION%"
     copy /Y "..\OSD\bin\*.dll" "..\builds\KeyboardRedirector-%VERSION%"
+
+    copy /Y "..\kXToggle\bin\kXToggle.exe" "..\builds\KeyboardRedirector-%VERSION%"
+    copy /Y "..\kXToggle\bin\kXToggle.exe.config" "..\builds\KeyboardRedirector-%VERSION%"
+    copy /Y "..\kXToggle\bin\*.dll" "..\builds\KeyboardRedirector-%VERSION%"
     
     copy /Y "..\KeyboardRedirector\bin\*.exe" "..\builds\KeyboardRedirector-%VERSION%"
     copy /Y "..\KeyboardRedirector\bin\*.dll" "..\builds\KeyboardRedirector-%VERSION%"
