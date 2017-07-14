@@ -9,19 +9,17 @@ time /T
 if not exist "SetEnvVars.bat" (
 	copy "SetEnvVars.bat.template" "SetEnvVars.bat"
 	
-	call exec ".\bin\fregex.exe" "r|VS10PATH=.*$|VS10PATH=$r|HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\VisualStudio\10.0\InstallDir|" -i "SetEnvVars.bat" -o "SetEnvVars.bat"
+	call exec ".\bin\fregex.exe" "r|MSBUILDPATH=.*$|MSBUILDPATH=$r|HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\MSBuild\ToolsVersions\14.0\MSBuildToolsPath|" -i "SetEnvVars.bat" -o "SetEnvVars.bat"
 	if not %ERRORLEVEL%==0 exit /B %ERRORLEVEL%
 )
 
 call SetEnvVars.bat
 
-if not exist "%VS10PATH%" (
-	echo Error: VS10PATH does not exist: "%VS10PATH%"
-	echo Please edit your SetEnvVars.bat file to enter the correct location for your Visual Studio 2008 installation
+if not exist "%MSBUILDPATH%" (
+	echo Error: MSBUILDPATH does not exist: "%MSBUILDPATH%"
+	echo "Please edit your SetEnvVars.bat file to enter the correct location for msbuild. eg. C:\Program Files (x86)\MSBuild\14.0\Bin\amd64\"
 	goto ConfigIsWrong
 )
-
-if exist devenv.log del devenv.log
 
 if not exist .\Temp mkdir .\Temp
 
@@ -85,9 +83,9 @@ echo ######################## Update-VersionNumbers ########################
 :Build-Hooks
 echo ######################## Build-Hooks ########################
 
-	call exec "%VS10PATH%\devenv.exe" "..\Hooks.sln" /rebuild "Release|Win32" /out devenv.log
+	call exec "%MSBUILDPATH%\msbuild.exe" "..\Hooks.sln" /t:Rebuild /p:Configuration=Release /p:Platform="Win32"
 	if not %ERRORLEVEL%==0 exit /B %ERRORLEVEL%
-	call exec "%VS10PATH%\devenv.exe" "..\Hooks.sln" /rebuild "Release|x64" /out devenv.log
+	call exec "%MSBUILDPATH%\msbuild.exe" "..\Hooks.sln" /t:Rebuild /p:Configuration=Release /p:Platform="x64"
 	if not %ERRORLEVEL%==0 exit /B %ERRORLEVEL%
 
     REM restore resource files to original (unaltered version number)
@@ -99,7 +97,7 @@ echo ######################## Build-Hooks ########################
 :Build-Redirector
 echo ################## Build-KeyboardRedirector ##################
 
-	call exec "%VS10PATH%\devenv.exe" "..\KeyboardRedirector.sln" /rebuild "Release" /out devenv.log
+	call exec "%MSBUILDPATH%\msbuild.exe" "..\KeyboardRedirector.sln" /t:Rebuild /p:Configuration=Release
 	if not %ERRORLEVEL%==0 exit /B %ERRORLEVEL%
 
     REM restore AssemblyInfo.cs to original (unaltered version number)
@@ -110,7 +108,7 @@ echo ################## Build-KeyboardRedirector ##################
 :Build-ApplicationLauncher
 echo ################## Build-ApplicationLauncher ##################
 
-	call exec "%VS10PATH%\devenv.exe" "..\ApplicationLauncher.sln" /rebuild "Release" /out devenv.log
+	call exec "%MSBUILDPATH%\msbuild.exe" "..\ApplicationLauncher.sln" /t:Rebuild /p:Configuration=Release
 	if not %ERRORLEVEL%==0 exit /B %ERRORLEVEL%
 
     REM restore AssemblyInfo.cs to original (unaltered version number)
@@ -121,7 +119,7 @@ echo ################## Build-ApplicationLauncher ##################
 :Build-VolumeChanger
 echo ################## Build-VolumeChanger ##################
 
-	call exec "%VS10PATH%\devenv.exe" "..\VolumeChanger\VolumeChanger.sln" /rebuild "Release" /out devenv.log
+	call exec "%MSBUILDPATH%\msbuild.exe" "..\VolumeChanger\VolumeChanger.sln" /t:Rebuild /p:Configuration=Release
 	if not %ERRORLEVEL%==0 exit /B %ERRORLEVEL%
 
     REM restore AssemblyInfo.cs to original (unaltered version number)
@@ -132,7 +130,7 @@ echo ################## Build-VolumeChanger ##################
 :Build-OSD
 echo ################## Build-OSD ##################
 
-	call exec "%VS10PATH%\devenv.exe" "..\OSD.sln" /rebuild "Release" /out devenv.log
+	call exec "%MSBUILDPATH%\msbuild.exe" "..\OSD.sln" /t:Rebuild /p:Configuration=Release
 	if not %ERRORLEVEL%==0 exit /B %ERRORLEVEL%
 
     REM restore AssemblyInfo.cs to original (unaltered version number)
@@ -143,7 +141,7 @@ echo ################## Build-OSD ##################
 :Build-kXToggle
 echo ################## Build-kXToggle ##################
 
-	call exec "%VS10PATH%\devenv.exe" "..\kXToggle\kXToggle.sln" /rebuild "Release" /out devenv.log
+	call exec "%MSBUILDPATH%\msbuild.exe" "..\kXToggle\kXToggle.sln" /t:Rebuild /p:Configuration=Release
 	if not %ERRORLEVEL%==0 exit /B %ERRORLEVEL%
 
     REM restore AssemblyInfo.cs to original (unaltered version number)
