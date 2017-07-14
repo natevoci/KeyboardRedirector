@@ -135,12 +135,25 @@ namespace KeyboardRedirector
                     Action.WindowMessage.NotFoundAction = SettingsKeyboardKeyActionType.WindowMessage;
                 else
                     Action.WindowMessage.NotFoundAction = (SettingsKeyboardKeyActionType)Enum.Parse(typeof(SettingsKeyboardKeyActionType), comboBoxNotFound.Text);
-                Action.WindowMessage.Message = uint.Parse(textBoxMessageID.Text);
-                Action.WindowMessage.WParam = uint.Parse(textBoxWParam.Text);
-                Action.WindowMessage.LParam = uint.Parse(textBoxLParam.Text);
+                Action.WindowMessage.Message = parseUIntOrHex(textBoxMessageID.Text);
+                Action.WindowMessage.WParam = parseUIntOrHex(textBoxWParam.Text);
+                Action.WindowMessage.LParam = parseUIntOrHex(textBoxLParam.Text);
 
                 // Active ActionType
                 Action.ActionType = (SettingsKeyboardKeyActionType)tabControl1.SelectedTab.Tag;
+            }
+        }
+
+        private uint parseUIntOrHex(string text)
+        {
+            text = text.Trim();
+            if (text.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+            {
+                return uint.Parse(text.Substring(2), System.Globalization.NumberStyles.HexNumber);
+            }
+            else
+            {
+                return uint.Parse(text);
             }
         }
 

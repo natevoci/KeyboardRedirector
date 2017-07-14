@@ -440,7 +440,7 @@ namespace KeyboardRedirector
         /// <returns>The device description stored in the Registry entry's DeviceDesc value.</returns>
         private string ReadReg( string item, ref bool isKeyboard )
         {
-            RegistryKey OurKey = null;
+            RegistryKey key = null;
             int retryCount = 0;
             string deviceDesc = null;
             string deviceClass = null;
@@ -459,11 +459,11 @@ namespace KeyboardRedirector
                 string id_03 = split[2];    // 3&13c0b0c5&0 (Protocol code)
                 //The final part is the class GUID and is not needed here
 
-                string findme = string.Format(@"System\CurrentControlSet\Enum\{0}\{1}\{2}", id_01, id_02, id_03);
+                string keyname = string.Format(@"System\CurrentControlSet\Enum\{0}\{1}\{2}", id_01, id_02, id_03);
 
-                OurKey = Registry.LocalMachine.OpenSubKey(findme, false);
+                key = Registry.LocalMachine.OpenSubKey(keyname, false);
 
-                while (OurKey == null)
+                while (key == null)
                 {
                     if (retryCount > 20)
                     {
@@ -473,28 +473,52 @@ namespace KeyboardRedirector
                     }
 
                     System.Threading.Thread.Sleep(100);
-                    OurKey = Registry.LocalMachine.OpenSubKey(findme, false);
+                    key = Registry.LocalMachine.OpenSubKey(keyname, false);
                     retryCount++;
                 }
 
                 //Retrieve the desired information and set isKeyboard
-                deviceDesc = (string)OurKey.GetValue("DeviceDesc");
-                deviceClass = (string)OurKey.GetValue("Class");
+                deviceDesc = (string)key.GetValue("DeviceDesc");
+                deviceClass = (string)key.GetValue("Class");
 
-                if (deviceClass.ToUpper().Equals("KEYBOARD"))
+                isKeyboard = false;
+                if (deviceClass != null)
                 {
-                    isKeyboard = true;
+                    isKeyboard = string.Equals(deviceClass, "Keyboard", StringComparison.OrdinalIgnoreCase);
+                    return deviceDesc;
                 }
-                else
+
+                var deviceClassGUID = (string)key.GetValue("ClassGUID");
+
+                keyname = string.Format(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion\DeviceDisplayObjects\SetupClassInformation\{0}", deviceClassGUID);
+                key = Registry.LocalMachine.OpenSubKey(keyname, false);
+                if (key != null)
                 {
-                    isKeyboard = false;
+                    var deviceCategory = (string)key.GetValue("Category");
+                    if (deviceCategory != null)
+                    {
+                        isKeyboard = string.Equals(deviceCategory, "Input.Keyboard", StringComparison.OrdinalIgnoreCase);
+                        return deviceDesc;
+                    }
+                }
+
+                keyname = string.Format(@"SYSTEM\CurrentControlSet\Control\Class\{0}", deviceClassGUID);
+                key = Registry.LocalMachine.OpenSubKey(keyname, false);
+                if (key != null)
+                {
+                    deviceClass = (string)key.GetValue("Class");
+                    if (deviceClass != null)
+                    {
+                        isKeyboard = string.Equals(deviceClass, "Keyboard", StringComparison.OrdinalIgnoreCase);
+                        return deviceDesc;
+                    }
                 }
 
                 return deviceDesc;
             }
             catch (NullReferenceException ex)
             {
-                throw new NullReferenceException("Object reference not set to an instance of an object. item=" + item + ", OurKey " + ((OurKey == null) ? "not found" : "found") + ", retryCount=" + retryCount.ToString() + ", deviceDesc=" + deviceDesc + ", deviceClass=" + deviceClass, ex);
+                throw new NullReferenceException("Object reference not set to an instance of an object. item=" + item + ", key " + ((key == null) ? "not found" : "found") + ", retryCount=" + retryCount.ToString() + ", deviceDesc=" + deviceDesc + ", deviceClass=" + deviceClass, ex);
             }
         }
 
