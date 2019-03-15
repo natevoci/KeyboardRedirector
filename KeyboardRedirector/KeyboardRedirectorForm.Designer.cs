@@ -54,14 +54,15 @@ namespace KeyboardRedirector
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.Windows.Forms.TreeNode treeNode1 = new System.Windows.Forms.TreeNode("Node1");
-            System.Windows.Forms.TreeNode treeNode2 = new System.Windows.Forms.TreeNode("Node0", new System.Windows.Forms.TreeNode[] {
-            treeNode1});
-            System.Windows.Forms.TreeNode treeNode3 = new System.Windows.Forms.TreeNode("Node2", 2, 3);
+            System.Windows.Forms.TreeNode treeNode4 = new System.Windows.Forms.TreeNode("Node1");
+            System.Windows.Forms.TreeNode treeNode5 = new System.Windows.Forms.TreeNode("Node0", new System.Windows.Forms.TreeNode[] {
+            treeNode4});
+            System.Windows.Forms.TreeNode treeNode6 = new System.Windows.Forms.TreeNode("Node2", 2, 3);
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(KeyboardRedirectorForm));
             this.richTextBoxEvents = new KeyboardRedirector.RichTextBoxEx();
             this.contextMenuStripNotifyIcon = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.restoreToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.openSettingsFolderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripSeparator();
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
@@ -117,6 +118,7 @@ namespace KeyboardRedirector
             this.richTextBoxKeyDetector = new System.Windows.Forms.RichTextBox();
             this.splitContainer2 = new System.Windows.Forms.SplitContainer();
             this.splitContainer3 = new System.Windows.Forms.SplitContainer();
+            this.checkBoxLogging = new System.Windows.Forms.CheckBox();
             this.checkBoxCaptureLowLevel = new System.Windows.Forms.CheckBox();
             this.checkBoxMinimiseOnStart = new System.Windows.Forms.CheckBox();
             this.checkBoxDisplayLogMessages = new System.Windows.Forms.CheckBox();
@@ -124,7 +126,6 @@ namespace KeyboardRedirector
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPageMessages = new System.Windows.Forms.TabPage();
             this.timerMinimiseOnStart = new System.Windows.Forms.Timer(this.components);
-            this.openSettingsFolderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.contextMenuStripNotifyIcon.SuspendLayout();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -172,7 +173,7 @@ namespace KeyboardRedirector
             this.toolStripMenuItem1,
             this.exitToolStripMenuItem});
             this.contextMenuStripNotifyIcon.Name = "contextMenuStripNotifyIcon";
-            this.contextMenuStripNotifyIcon.Size = new System.Drawing.Size(185, 98);
+            this.contextMenuStripNotifyIcon.Size = new System.Drawing.Size(185, 76);
             // 
             // restoreToolStripMenuItem
             // 
@@ -181,6 +182,13 @@ namespace KeyboardRedirector
             this.restoreToolStripMenuItem.Size = new System.Drawing.Size(184, 22);
             this.restoreToolStripMenuItem.Text = "Restore";
             this.restoreToolStripMenuItem.Click += new System.EventHandler(this.restoreToolStripMenuItem_Click);
+            // 
+            // openSettingsFolderToolStripMenuItem
+            // 
+            this.openSettingsFolderToolStripMenuItem.Name = "openSettingsFolderToolStripMenuItem";
+            this.openSettingsFolderToolStripMenuItem.Size = new System.Drawing.Size(184, 22);
+            this.openSettingsFolderToolStripMenuItem.Text = "Open Settings Folder";
+            this.openSettingsFolderToolStripMenuItem.Click += new System.EventHandler(this.openSettingsFolderToolStripMenuItem_Click);
             // 
             // toolStripMenuItem1
             // 
@@ -229,18 +237,18 @@ namespace KeyboardRedirector
             this.treeViewKeys.ImageList = this.imageListTreeViewKey;
             this.treeViewKeys.Location = new System.Drawing.Point(3, 3);
             this.treeViewKeys.Name = "treeViewKeys";
-            treeNode1.Name = "Node1";
-            treeNode1.SelectedImageIndex = 3;
-            treeNode1.Text = "Node1";
-            treeNode2.Name = "Node0";
-            treeNode2.Text = "Node0";
-            treeNode3.ImageIndex = 2;
-            treeNode3.Name = "Node2";
-            treeNode3.SelectedImageIndex = 3;
-            treeNode3.Text = "Node2";
+            treeNode4.Name = "Node1";
+            treeNode4.SelectedImageIndex = 3;
+            treeNode4.Text = "Node1";
+            treeNode5.Name = "Node0";
+            treeNode5.Text = "Node0";
+            treeNode6.ImageIndex = 2;
+            treeNode6.Name = "Node2";
+            treeNode6.SelectedImageIndex = 3;
+            treeNode6.Text = "Node2";
             this.treeViewKeys.Nodes.AddRange(new System.Windows.Forms.TreeNode[] {
-            treeNode2,
-            treeNode3});
+            treeNode5,
+            treeNode6});
             this.treeViewKeys.SelectedImageIndex = 0;
             this.treeViewKeys.ShowLines = false;
             this.treeViewKeys.Size = new System.Drawing.Size(281, 454);
@@ -858,6 +866,7 @@ namespace KeyboardRedirector
             // 
             // splitContainer3.Panel1
             // 
+            this.splitContainer3.Panel1.Controls.Add(this.checkBoxLogging);
             this.splitContainer3.Panel1.Controls.Add(this.checkBoxCaptureLowLevel);
             this.splitContainer3.Panel1.Controls.Add(this.checkBoxMinimiseOnStart);
             this.splitContainer3.Panel1.Controls.Add(this.richTextBoxKeyDetector);
@@ -868,6 +877,17 @@ namespace KeyboardRedirector
             this.splitContainer3.Size = new System.Drawing.Size(724, 497);
             this.splitContainer3.SplitterDistance = 29;
             this.splitContainer3.TabIndex = 0;
+            // 
+            // checkBoxLogging
+            // 
+            this.checkBoxLogging.AutoSize = true;
+            this.checkBoxLogging.Location = new System.Drawing.Point(319, 9);
+            this.checkBoxLogging.Name = "checkBoxLogging";
+            this.checkBoxLogging.Size = new System.Drawing.Size(64, 17);
+            this.checkBoxLogging.TabIndex = 3;
+            this.checkBoxLogging.Text = "Logging";
+            this.checkBoxLogging.UseVisualStyleBackColor = true;
+            this.checkBoxLogging.CheckedChanged += new System.EventHandler(this.CheckBoxLogging_CheckedChanged);
             // 
             // checkBoxCaptureLowLevel
             // 
@@ -941,13 +961,6 @@ namespace KeyboardRedirector
             // timerMinimiseOnStart
             // 
             this.timerMinimiseOnStart.Tick += new System.EventHandler(this.timerMinimiseOnStart_Tick);
-            // 
-            // openSettingsFolderToolStripMenuItem
-            // 
-            this.openSettingsFolderToolStripMenuItem.Name = "openSettingsFolderToolStripMenuItem";
-            this.openSettingsFolderToolStripMenuItem.Size = new System.Drawing.Size(184, 22);
-            this.openSettingsFolderToolStripMenuItem.Text = "Open Settings Folder";
-            this.openSettingsFolderToolStripMenuItem.Click += new System.EventHandler(this.openSettingsFolderToolStripMenuItem_Click);
             // 
             // KeyboardRedirectorForm
             // 
@@ -1062,5 +1075,6 @@ namespace KeyboardRedirector
         private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.CheckBox checkBoxDisplayLogMessages;
         private System.Windows.Forms.ToolStripMenuItem openSettingsFolderToolStripMenuItem;
+        private System.Windows.Forms.CheckBox checkBoxLogging;
     }
 }

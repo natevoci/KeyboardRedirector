@@ -141,6 +141,9 @@ namespace KeyboardRedirector
 
             ToolTip toolTip = new ToolTip();
             toolTip.SetToolTip(this.checkBoxCaptureLowLevel, "Capture low level keystrokes (not keyboard specific)");
+
+            LoggingOnOff();
+            checkBoxLogging.Checked = Settings.Current.LogOn;
         }
 
         private void timerMinimiseOnStart_Tick(object sender, EventArgs e)
@@ -1664,7 +1667,20 @@ namespace KeyboardRedirector
             System.Diagnostics.Process.Start(Settings.SettingsPath);
         }
 
+        private void CheckBoxLogging_CheckedChanged(object sender, EventArgs e)
+        {
+            if (Settings.Current.LogOn != checkBoxLogging.Checked)
+            {
+                Settings.Current.LogOn = checkBoxLogging.Checked;
+                Settings.Save();
+                LoggingOnOff();
+            }
+        }
 
-
+        private void LoggingOnOff()
+        {
+            if (Settings.Current.LogOn) Log.MainLog.LogOn();
+            else Log.MainLog.LogOff();
+        }
     }
 }
