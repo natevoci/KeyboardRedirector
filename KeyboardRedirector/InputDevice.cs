@@ -60,7 +60,9 @@ namespace KeyboardRedirector
         
         private const int VK_OEM_CLEAR      = 0xFE;
         private const int VK_LAST_KEY       = VK_OEM_CLEAR; // this is a made up value used as a sentinel
-       
+
+        private const string Prefix = @"\\?\"; //Windows 10 Virtual Keyboard
+
         #endregion const definitions
 
         #region structs & enums
@@ -449,17 +451,26 @@ namespace KeyboardRedirector
                 // Example Device Identification string
                 // @"\??\ACPI#PNP0303#3&13c0b0c5&0#{884b96c3-56ef-11d1-bc8c-00a0c91405dd}";
 
-                // remove the \??\
-                item = item.Substring(4);
+                #region OLD
+                //// remove the \??\
+                //item = item.Substring(4);
 
-                string[] split = item.Split('#');
+                //string[] split = item.Split('#');
 
-                string id_01 = split[0];    // ACPI (Class code)
-                string id_02 = split[1];    // PNP0303 (SubClass code)
-                string id_03 = split[2];    // 3&13c0b0c5&0 (Protocol code)
-                //The final part is the class GUID and is not needed here
+                //string id_01 = split[0];    // ACPI (Class code)
+                //string id_02 = split[1];    // PNP0303 (SubClass code)
+                //string id_03 = split[2];    // 3&13c0b0c5&0 (Protocol code)
+                ////The final part is the class GUID and is not needed here
 
-                string keyname = string.Format(@"System\CurrentControlSet\Enum\{0}\{1}\{2}", id_01, id_02, id_03);
+                //string keyname = string.Format(@"System\CurrentControlSet\Enum\{0}\{1}\{2}", id_01, id_02, id_03);
+                #endregion
+
+                #region Fix
+                if (item == null || !item.StartsWith(Prefix)) return item;
+                string[] array = item.Substring(Prefix.Length).Split('#');
+                if (array.Length < 3) return item;
+                string keyname = string.Format(@"System\CurrentControlSet\Enum\{0}\{1}\{2}", array[0], array[1], array[2]);
+                #endregion
 
                 key = Registry.LocalMachine.OpenSubKey(keyname, false);
 

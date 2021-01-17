@@ -72,6 +72,7 @@ namespace KeyboardRedirector
         #endregion
 
         public bool MinimizeOnStart = false;
+        public bool LogOn = true;
         public SettingsKeyboardDeviceList KeyboardDevices = new SettingsKeyboardDeviceList();
         public SettingsKeyboardList Keyboards = new SettingsKeyboardList();
         public SettingsKeyboard LowLevelKeyboard = new SettingsKeyboard();

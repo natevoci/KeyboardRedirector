@@ -95,12 +95,6 @@ namespace KeyboardRedirector
             InitializeComponent();
 
             treeViewKeys.Nodes.Clear();
-            panelKeyboardProperties.Location = new Point(3, 3);
-            panelKeyboardProperties.Size = new Size(panelKeyboardProperties.Parent.Size.Width - 6, panelKeyboardProperties.Parent.Size.Height - 6);
-            panelKeyProperties.Location = new Point(3, 3);
-            panelKeyProperties.Size = new Size(panelKeyProperties.Parent.Size.Width - 6, panelKeyProperties.Parent.Size.Height - 6);
-            panelDevices.Location = new Point(3, 3);
-            panelDevices.Size = new Size(panelDevices.Parent.Size.Width - 6, panelDevices.Parent.Size.Height - 6);
 
             _actionPerformer = new ActionPerformer();
             _actionPerformer.StatusMessage += new ActionPerformer.StatusMessageHandler(_actionPerformer_StatusMessage);
@@ -141,6 +135,9 @@ namespace KeyboardRedirector
 
             ToolTip toolTip = new ToolTip();
             toolTip.SetToolTip(this.checkBoxCaptureLowLevel, "Capture low level keystrokes (not keyboard specific)");
+
+            LoggingOnOff();
+            checkBoxLogging.Checked = Settings.Current.LogOn;
         }
 
         private void timerMinimiseOnStart_Tick(object sender, EventArgs e)
@@ -208,7 +205,7 @@ namespace KeyboardRedirector
                                 else
                                     WriteEvent("Keyboard Added : " + keyboard.Name + Environment.NewLine);
                             }
-                        }                        
+                        }
                     }
                     else
                     {
@@ -495,7 +492,7 @@ namespace KeyboardRedirector
                     rawInput.data.keyboard.Flags,
                     rawInput.data.keyboard.ExtraInformation,
                     extended);
-                
+
                 if (rawInput.data.keyboard.VKey == 0xff)
                 {
                     WriteWMInputEvent("0x" + dInfo.DeviceHandle.ToInt32().ToString("x8") + " " + rawInput.data.keyboard.Message.ToString().PadRight(10) + " : " + text + " (ignoring VK 0xff)" + Environment.NewLine);
@@ -667,16 +664,17 @@ namespace KeyboardRedirector
 
         private void AppendToEventsTextBox(string message)
         {
-            if (this.InvokeRequired)
+            //if (this.InvokeRequired)
+            //{
+            this.BeginInvoke(new Action(() =>
             {
-                this.BeginInvoke(new Action(() =>
-                {
-                    if (checkBoxDisplayLogMessages.Checked)
-                        richTextBoxEvents.AppendText(message);
-                }));
-            }
-            if (checkBoxDisplayLogMessages.Checked)
-                richTextBoxEvents.AppendText(message);
+                if (checkBoxDisplayLogMessages.Checked)
+                    richTextBoxEvents.AppendText(message);
+
+            }));
+            //}
+            //if (checkBoxDisplayLogMessages.Checked)
+            //    richTextBoxEvents.AppendText(message);
         }
 
 
@@ -1664,7 +1662,20 @@ namespace KeyboardRedirector
             System.Diagnostics.Process.Start(Settings.SettingsPath);
         }
 
+        private void CheckBoxLogging_CheckedChanged(object sender, EventArgs e)
+        {
+            if (Settings.Current.LogOn != checkBoxLogging.Checked)
+            {
+                Settings.Current.LogOn = checkBoxLogging.Checked;
+                Settings.Save();
+                LoggingOnOff();
+            }
+        }
 
-
+        private void LoggingOnOff()
+        {
+            if (Settings.Current.LogOn) Log.MainLog.LogOn();
+            else Log.MainLog.LogOff();
+        }
     }
 }
