@@ -126,8 +126,8 @@ namespace KeyboardRedirector
             this.buttonClear = new System.Windows.Forms.Button();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPageMessages = new System.Windows.Forms.TabPage();
-            this.timerMinimiseOnStart = new System.Windows.Forms.Timer(this.components);
             this.contextMenuStripNotifyIcon.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
             this.splitContainer1.SuspendLayout();
@@ -135,19 +135,23 @@ namespace KeyboardRedirector
             this.panelKeyProperties.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownAntiRepeat)).BeginInit();
             this.groupBoxActions.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer4)).BeginInit();
             this.splitContainer4.Panel1.SuspendLayout();
             this.splitContainer4.Panel2.SuspendLayout();
             this.splitContainer4.SuspendLayout();
             this.panelDevices.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.groupBox1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer7)).BeginInit();
             this.splitContainer7.Panel1.SuspendLayout();
             this.splitContainer7.Panel2.SuspendLayout();
             this.splitContainer7.SuspendLayout();
             this.panelKeyboardProperties.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer2)).BeginInit();
             this.splitContainer2.Panel1.SuspendLayout();
             this.splitContainer2.Panel2.SuspendLayout();
             this.splitContainer2.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer3)).BeginInit();
             this.splitContainer3.Panel1.SuspendLayout();
             this.splitContainer3.Panel2.SuspendLayout();
             this.splitContainer3.SuspendLayout();
@@ -825,7 +829,9 @@ namespace KeyboardRedirector
             this.richTextBoxKeyDetector.Size = new System.Drawing.Size(232, 27);
             this.richTextBoxKeyDetector.TabIndex = 0;
             this.richTextBoxKeyDetector.Text = "Type here to detect keys";
+            this.richTextBoxKeyDetector.GotFocus += new System.EventHandler(this.richTextBoxKeyDetector_GotFocus);
             this.richTextBoxKeyDetector.KeyDown += new System.Windows.Forms.KeyEventHandler(this.richTextBoxKeyDetector_KeyDown);
+            this.richTextBoxKeyDetector.LostFocus += new System.EventHandler(this.richTextBoxKeyDetector_LostFocus);
             // 
             // splitContainer2
             // 
@@ -874,7 +880,7 @@ namespace KeyboardRedirector
             // 
             // buttonSetting
             // 
-            this.buttonSetting.Location = new System.Drawing.Point(390, 4);
+            this.buttonSetting.Location = new System.Drawing.Point(395, 4);
             this.buttonSetting.Name = "buttonSetting";
             this.buttonSetting.Size = new System.Drawing.Size(61, 23);
             this.buttonSetting.TabIndex = 4;
@@ -885,7 +891,7 @@ namespace KeyboardRedirector
             // checkBoxLogging
             // 
             this.checkBoxLogging.AutoSize = true;
-            this.checkBoxLogging.Location = new System.Drawing.Point(319, 8);
+            this.checkBoxLogging.Location = new System.Drawing.Point(324, 8);
             this.checkBoxLogging.Name = "checkBoxLogging";
             this.checkBoxLogging.Size = new System.Drawing.Size(66, 16);
             this.checkBoxLogging.TabIndex = 3;
@@ -902,7 +908,7 @@ namespace KeyboardRedirector
             this.checkBoxCaptureLowLevel.TabIndex = 1;
             this.checkBoxCaptureLowLevel.Text = "Low level";
             this.checkBoxCaptureLowLevel.UseVisualStyleBackColor = true;
-            this.checkBoxCaptureLowLevel.CheckedChanged += new System.EventHandler(this.checkBoxMinimiseOnStart_CheckedChanged);
+            this.checkBoxCaptureLowLevel.CheckedChanged += new System.EventHandler(this.checkBoxCaptureLowLevel_CheckedChanged);
             // 
             // checkBoxMinimiseOnStart
             // 
@@ -962,10 +968,6 @@ namespace KeyboardRedirector
             this.tabPageMessages.Text = "Messages";
             this.tabPageMessages.UseVisualStyleBackColor = true;
             // 
-            // timerMinimiseOnStart
-            // 
-            this.timerMinimiseOnStart.Tick += new System.EventHandler(this.timerMinimiseOnStart_Tick);
-            // 
             // KeyboardRedirectorForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -979,6 +981,7 @@ namespace KeyboardRedirector
             this.contextMenuStripNotifyIcon.ResumeLayout(false);
             this.splitContainer1.Panel1.ResumeLayout(false);
             this.splitContainer1.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
             this.splitContainer1.ResumeLayout(false);
             this.contextMenuStripTreeViewEvents.ResumeLayout(false);
             this.panelKeyProperties.ResumeLayout(false);
@@ -987,6 +990,7 @@ namespace KeyboardRedirector
             this.groupBoxActions.ResumeLayout(false);
             this.splitContainer4.Panel1.ResumeLayout(false);
             this.splitContainer4.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer4)).EndInit();
             this.splitContainer4.ResumeLayout(false);
             this.panelDevices.ResumeLayout(false);
             this.groupBox2.ResumeLayout(false);
@@ -994,16 +998,19 @@ namespace KeyboardRedirector
             this.splitContainer7.Panel1.ResumeLayout(false);
             this.splitContainer7.Panel2.ResumeLayout(false);
             this.splitContainer7.Panel2.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer7)).EndInit();
             this.splitContainer7.ResumeLayout(false);
             this.panelKeyboardProperties.ResumeLayout(false);
             this.panelKeyboardProperties.PerformLayout();
             this.splitContainer2.Panel1.ResumeLayout(false);
             this.splitContainer2.Panel2.ResumeLayout(false);
             this.splitContainer2.Panel2.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer2)).EndInit();
             this.splitContainer2.ResumeLayout(false);
             this.splitContainer3.Panel1.ResumeLayout(false);
             this.splitContainer3.Panel1.PerformLayout();
             this.splitContainer3.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer3)).EndInit();
             this.splitContainer3.ResumeLayout(false);
             this.tabControl1.ResumeLayout(false);
             this.tabPageMessages.ResumeLayout(false);
@@ -1039,7 +1046,6 @@ namespace KeyboardRedirector
         private System.Windows.Forms.ToolStripMenuItem deleteToolStripMenuItem;
         private System.Windows.Forms.SplitContainer splitContainer3;
         private System.Windows.Forms.CheckBox checkBoxMinimiseOnStart;
-        private System.Windows.Forms.Timer timerMinimiseOnStart;
         private System.Windows.Forms.GroupBox groupBoxActions;
         private System.Windows.Forms.ListView listViewActions;
         private System.Windows.Forms.ColumnHeader columnHeader1;

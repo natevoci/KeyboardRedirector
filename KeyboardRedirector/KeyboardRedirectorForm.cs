@@ -53,15 +53,9 @@ namespace KeyboardRedirector
         Dictionary<string, KeyCombination> _keyCombinations;
         ActionPerformer _actionPerformer;
         IconExtractor.ExecutableImageList _imageList;
-        static bool _disableGlobalKeyboardHook = false;
-
         Dictionary<SettingsKeyboardKey, double> _antiRepeatTimes;
 
-        public static bool DisableGlobalKeyboardHook
-        {
-            get { return _disableGlobalKeyboardHook; }
-            set { _disableGlobalKeyboardHook = value; }
-        }
+        public static bool DisableGlobalKeyboardHook { get; set; } = false;
 
         class DeviceInformation
         {
@@ -110,7 +104,6 @@ namespace KeyboardRedirector
                 Settings.Save();
             }
             listViewApplicationsInFocus.AddColumn("Application in focus", -1, "ApplicationName");
-
         }
 
         private void KeyboardRedirectorForm_Load(object sender, EventArgs e)
@@ -128,10 +121,8 @@ namespace KeyboardRedirector
             {
                 KeyboardHookExternal.Current.SetHook(Handle, 0x401, 0x402);
                 KeyboardHookExternal.Current.KeyEvent += new KeyHookEventHandler(KeyboardHook_KeyEvent);
-                KeyboardHookExternal.Current.KeyEventLowLevel += new KeyHookEventHandler(KeyboardHook_KeyEventLowLevel);
+                //KeyboardHookExternal.Current.KeyEventLowLevel += new KeyHookEventHandler(KeyboardHook_KeyEventLowLevel);
             }
-
-            timerMinimiseOnStart.Start();
 
             ToolTip toolTip = new ToolTip();
             toolTip.SetToolTip(this.checkBoxCaptureLowLevel, "Capture low level keystrokes (not keyboard specific)");
@@ -140,9 +131,15 @@ namespace KeyboardRedirector
             checkBoxLogging.Checked = Settings.Current.LogOn;
         }
 
-        private void timerMinimiseOnStart_Tick(object sender, EventArgs e)
+        protected override void OnHandleCreated(EventArgs e)
         {
-            timerMinimiseOnStart.Stop();
+            base.OnHandleCreated(e);
+            _handle = this.Handle;
+        }
+
+        protected override void OnShown(EventArgs e)
+        {
+            base.OnShown(e);
             if (Settings.Current.MinimizeOnStart)
             {
                 checkBoxMinimiseOnStart.Checked = Settings.Current.MinimizeOnStart;
@@ -231,10 +228,9 @@ namespace KeyboardRedirector
 #endif
         protected override void WndProc(ref Message message)
         {
-            if (_inputDevice != null)
+            if (KeyboardHookExternal.Current.IsHookMessage(message))
             {
-                if (_inputDevice.IsInputMessage(message) || KeyboardHookExternal.Current.IsHookMessage(message))
-                {
+                #region
 #if EXTENDED_LOGGING_FOR_WNDPROC
                     System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
                     string logPrefix = System.Threading.Thread.CurrentThread.ManagedThreadId.ToString() + " " + _logCounter++.ToString();
@@ -243,53 +239,40 @@ namespace KeyboardRedirector
                     Log.MainLog.WriteInfo("ENTER: " + logPrefix + "  " + message.ToString());
                     Log.MainLog.WriteDebug(StackTrace.GetStackTrace());
 #endif
-                    _keyDetectorFocused = richTextBoxKeyDetector.Focused;
-                    _captureLowLevelChecked = checkBoxCaptureLowLevel.Checked;
-                    _handle = this.Handle;
-
-                    try
+                #endregion
+                try
+                {
+                    // If there's a WM_INPUT message in the message queue then we'll process that first
+                    Win32.MSG msg;
+                    Win32.PeekMessage(out msg, _handle, (uint)Win32.WM.INPUT, (uint)Win32.WM.INPUT, Win32.PeekMessageRemoveFlag.PM_REMOVE);
+                    if (msg.msg != 0)
                     {
-                        int result = 0;
-
-                        if (KeyboardHookExternal.Current.IsHookMessage(message))
-                        {
-                            // If there's a WM_INPUT message in the message queue then we'll process that first
-                            Win32.MSG msg;
-                            Win32.PeekMessage(out msg, _handle, (uint)Win32.WM.INPUT, (uint)Win32.WM.INPUT, Win32.PeekMessageRemoveFlag.PM_REMOVE);
-                            if (msg.msg != 0)
-                            {
+                        #region
 #if EXTENDED_LOGGING_FOR_WNDPROC
-                                Log.MainLog.WriteInfo("  PeekMessage found WM_INPUT message waiting : " + msg.ToString());
+                        Log.MainLog.WriteInfo("  PeekMessage found WM_INPUT message waiting : " + msg.ToString());
 #endif
-                                _inputDevice.ProcessMessage(msg);
+                        #endregion
+                        if (_inputDevice != null)
+                            _inputDevice.ProcessMessage(msg);
+                        #region
 #if EXTENDED_LOGGING_FOR_WNDPROC
-                                Log.MainLog.WriteInfo("  EndPeekMessage found WM_INPUT message waiting : " + msg.ToString());
+                        Log.MainLog.WriteInfo("  EndPeekMessage found WM_INPUT message waiting : " + msg.ToString());
 #endif
-                            }
-
-                            result = ProcessExternalHookMessage(message);
-                            if (result != 0)
-                            {
-                                message.Result = new IntPtr(-1);
-                                return;
-                            }
-                        }
-
-                        // This has to be after
-                        if (_inputDevice.IsInputMessage(message))
-                        {
-                            _inputDevice.ProcessMessage(message);
-                        }
-
-                        if (message.Msg == (int)Win32.WM.DEVICECHANGE)
-                        {
-                            RefreshDevices();
-                        }
+                        #endregion
                     }
-                    catch (Exception e)
+
+                    int result = ProcessExternalHookMessage(message);
+                    if (result != 0)
                     {
-                        Log.LogException(e);
+                        message.Result = new IntPtr(-1);
+                        return;
                     }
+                }
+                catch (Exception e)
+                {
+                    Log.LogException(e);
+                }
+                #region
 #if EXTENDED_LOGGING_FOR_WNDPROC
                     finally
                     {
@@ -299,8 +282,31 @@ namespace KeyboardRedirector
                                 Log.MainLog.WriteInfo("EXIT : " + logPrefix + "  " + stopwatch.ElapsedMilliseconds.ToString());
                     }
 #endif
+                #endregion
+            }
+            else if (_inputDevice != null && _inputDevice.IsInputMessage(message))
+            {
+                try
+                {
+                    // This has to be after
+                    _inputDevice.ProcessMessage(message);
+                }
+                catch (Exception e)
+                {
+                    Log.LogException(e);
                 }
             }
+            //else if (message.Msg == (int)Win32.WM.DEVICECHANGE)
+            //{
+            //    try
+            //    {
+            //        RefreshDevices();
+            //    }
+            //    catch (Exception e)
+            //    {
+            //        Log.LogException(e);
+            //    }
+            //}
 
             base.WndProc(ref message);
         }
@@ -381,11 +387,10 @@ namespace KeyboardRedirector
             WriteHookEvent("Finish " + (e.KeyCombination.KeyDown ? "Down" : "Up  ") + " : " + blockText + e.KeyCombination.ToString() + " (" + hookTime.ElapsedMilliseconds.ToString() + "ms)" + Environment.NewLine);
         }
 
-
         KeyCombination _lastLowLevelKeyCombo = null;
         void KeyboardHook_KeyEventLowLevel(object sender, KeyHookEventArgs e)
         {
-            if (_disableGlobalKeyboardHook == true)
+            if (DisableGlobalKeyboardHook == true)
                 return;
 
             System.Threading.Thread.CurrentThread.Name = "LLHook";
@@ -1674,8 +1679,30 @@ namespace KeyboardRedirector
 
         private void LoggingOnOff()
         {
-            if (Settings.Current.LogOn) Log.MainLog.LogOn();
-            else Log.MainLog.LogOff();
+            if (Settings.Current.LogOn)
+                Log.MainLog.LogOn();
+            else
+                Log.MainLog.LogOff();
+        }
+
+        private void richTextBoxKeyDetector_LostFocus(object sender, System.EventArgs e)
+        {
+            _keyDetectorFocused = false;
+
+        }
+
+        private void richTextBoxKeyDetector_GotFocus(object sender, System.EventArgs e)
+        {
+            _keyDetectorFocused = true;
+        }
+
+        private void checkBoxCaptureLowLevel_CheckedChanged(object sender, EventArgs e)
+        {
+            _captureLowLevelChecked = checkBoxCaptureLowLevel.Checked;
+            if (_captureLowLevelChecked)
+                KeyboardHookExternal.Current.KeyEventLowLevel += KeyboardHook_KeyEventLowLevel;
+            else
+                KeyboardHookExternal.Current.KeyEventLowLevel -= KeyboardHook_KeyEventLowLevel;
         }
     }
 }

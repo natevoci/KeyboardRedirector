@@ -78,7 +78,7 @@ namespace KeyboardRedirector
         private double _logWriteTime = 0.0;
         private double _totalLogWriteTime = 0.0;
         private int _logWrites = 0;
-        private bool _logOn = true;
+        private bool _logOn = false;
         #endregion
 
         public bool KeepFileOpen
@@ -125,7 +125,7 @@ namespace KeyboardRedirector
         private void Write(string level, string message)
         {
             if (!_logOn) return;
-            string prefix = System.Threading.Thread.CurrentThread.Name;
+             string prefix = System.Threading.Thread.CurrentThread.Name;
             if (prefix == null)
                 prefix = "";
             if (prefix.Length > PREFIX_LENGTH)
@@ -152,7 +152,7 @@ namespace KeyboardRedirector
 
             lock (this)
             {
-                if (_logWriterThread == null || _logWriterThread.ThreadState == ThreadState.Stopped)
+                if (_logWriterThread == null)
                 {
                     _logWriterThread = new Thread(new ThreadStart(LogWriterThread));
                     _logWriterThread.IsBackground = true;
@@ -276,7 +276,11 @@ namespace KeyboardRedirector
 
         public void LogOff()
         {
-            if (_logWriterThread != null || _logWriterThread.ThreadState == ThreadState.Running) _logWriterThread.Abort();
+            if (_logWriterThread != null && _logWriterThread.ThreadState == ThreadState.Running)
+            {
+                _logWriterThread.Abort();
+            }
+
             _logOn = false;
         }
 
