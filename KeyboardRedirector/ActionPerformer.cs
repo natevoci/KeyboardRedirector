@@ -33,7 +33,7 @@ using System.Diagnostics;
 using MS;
 
 namespace KeyboardRedirector
-{
+{ 
     class ActionPerformer
     {
         class KeyInformation

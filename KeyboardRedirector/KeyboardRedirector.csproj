@@ -49,7 +49,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
+    <DefineConstants>TRACE;RAWINPUT,!LOG</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -142,6 +142,9 @@
       <DesignTime>True</DesignTime>
     </Compile>
     <None Include="app.config" />
+    <None Include="bin\KeyboardRedirector.exe.config" />
+    <None Include="COPYING" />
+    <None Include="Images\TreeViewIcons.pdn" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -159,7 +162,27 @@
     <Compile Include="XMLFileStore.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="bin\Hook32.exe" />
+    <Content Include="bin\Hook64.exe" />
+    <Content Include="bin\IconExtractor.dll" />
+    <Content Include="bin\IconExtractor.pdb" />
+    <Content Include="bin\KeyboardHook32.dll" />
+    <Content Include="bin\KeyboardHook64.dll" />
+    <Content Include="bin\KeyboardHookLib.dll" />
+    <Content Include="bin\KeyboardHookLib.pdb" />
+    <Content Include="bin\KeyboardRedirector.exe" />
+    <Content Include="bin\KeyboardRedirector.pdb" />
+    <Content Include="bin\Win32.dll" />
+    <Content Include="bin\Win32.pdb" />
     <Content Include="Icon.ico" />
+    <Content Include="Images\Config.png" />
+    <Content Include="Images\DefaultApplication.png" />
+    <Content Include="Images\DefaultApplicationNotFound.png" />
+    <Content Include="Images\TreeViewIcon-Blue-Yellow.png" />
+    <Content Include="Images\TreeViewIcon-Blue.png" />
+    <Content Include="Images\TreeViewIcon-Green.png" />
+    <Content Include="Images\TreeViewIcon-Red.png" />
+    <Content Include="Images\TreeViewIcon-Yellow.png" />
     <Content Include="TODO.txt" />
   </ItemGroup>
   <ItemGroup>
@@ -168,7 +191,7 @@
       <Name>IconExtractor</Name>
     </ProjectReference>
     <ProjectReference Include="..\KeyboardHookLib\KeyboardHookLib.csproj">
-      <Project>{5802C646-7DC1-4D87-A5D9-82F31CDDCF36}</Project>
+      <Project>{5802c646-7dc1-4d87-a5d9-82f31cddcf36}</Project>
       <Name>KeyboardHookLib</Name>
     </ProjectReference>
     <ProjectReference Include="..\Win32\Win32.csproj">

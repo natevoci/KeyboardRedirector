@@ -29,6 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
@@ -140,6 +141,7 @@ namespace KeyboardRedirector
         protected override void OnShown(EventArgs e)
         {
             base.OnShown(e);
+            treeViewKeys.Focus();
             if (Settings.Current.MinimizeOnStart)
             {
                 checkBoxMinimiseOnStart.Checked = Settings.Current.MinimizeOnStart;
@@ -189,18 +191,29 @@ namespace KeyboardRedirector
                                 keyboard = new SettingsKeyboard();
                                 keyboard.Name = info.Name;
                                 keyboard.KeyboardId = keyboardDevice.KeyboardId;
+#if RAWINPUT
+                                if (keyboardDevice.DeviceName.Contains(DEVICE_HID))
+                                {
+                                    keyboard.CaptureAllKeys = true;
+                                }
+#endif
                                 Settings.Current.Keyboards.Add(keyboard);
                                 Settings.Current.KeyboardDevices.Add(keyboardDevice);
                                 Settings.Save();
+#if LOG
                                 WriteEvent("New Keyboard Added : " + keyboard.Name + Environment.NewLine);
+#endif
                             }
                             else
                             {
                                 keyboard = Settings.Current.Keyboards.FindByKeyboardId(keyboardDevice.KeyboardId);
+
+#if LOG
                                 if (keyboard == null)
                                     WriteEvent("Keyboard Not Used : " + keyboardDevice.DeviceName + Environment.NewLine);
                                 else
                                     WriteEvent("Keyboard Added : " + keyboard.Name + Environment.NewLine);
+#endif
                             }
                         }
                     }
@@ -214,8 +227,9 @@ namespace KeyboardRedirector
                 {
                     DeviceInformation deviceInformation = FindKeyboardDeviceInformation(deviceName);
                     _keyboards.Remove(deviceInformation);
-
+#if LOG
                     WriteEvent("Keyboard Removed : " + deviceInformation.DeviceInfo.Name + Environment.NewLine);
+#endif
                 }
 
                 RefreshTreeView();
@@ -324,11 +338,38 @@ namespace KeyboardRedirector
             return result;
         }
 
+        private const string CONST_STR_Hook = "Hook";
+        private const string CONST_STR_LLHook = "LLHook";
+        private const string CONST_STR_RawEvent = "RawEvent";
+        private const string DEVICE_HID = @"\\?\HID#VID_04D9&PID_1203"; //设置默认屏蔽键盘（可以优化一下，做成配置文件读取）
+#if LOG
+        private const string CONST_STR_Enter = "Enter ";
+        private const string CONST_STR_Down = "Down";
+        private const string CONST_STR_Up = "Up  ";
+        private const string CONST_STR_Colon = " : ";
+        private const string CONST_STR_RawInput = "RawInput";
+#endif
+
+#if !RAWINPUT //sct
+        private const int WM_COPYDATA = 0x004A;
+        private const string PTT_DOWN = "PTT_DOWN";
+        private const string PTT_UP = "PTT_UP";
+        private const string SCT_DC = "SCT.DC";
+#endif
+
         void KeyboardHook_KeyEvent(object sender, KeyHookEventArgs e)
         {
-            System.Threading.Thread.CurrentThread.Name = "Hook";
-
-            WriteHookEvent("Enter " + (e.KeyCombination.KeyDown ? "Down" : "Up  ") + " : " + e.KeyCombination.ToString() + Environment.NewLine);
+            System.Threading.Thread.CurrentThread.Name = CONST_STR_Hook;
+#if LOG
+            StringBuilder sb = new StringBuilder();
+            sb.Append(CONST_STR_Enter);
+            sb.Append((e.KeyCombination.KeyDown ? CONST_STR_Down : CONST_STR_Up));
+            sb.Append(CONST_STR_Colon);
+            sb.Append(e.KeyCombination.ToString());
+            sb.Append(Environment.NewLine);
+            WriteHookEvent(sb.ToString());
+            //WriteHookEvent("Enter " + (e.KeyCombination.KeyDown ? "Down" : "Up  ") + " : " + e.KeyCombination.ToString() + Environment.NewLine);
+#endif
 
             var hookTime = new System.Diagnostics.Stopwatch();
             hookTime.Start();
@@ -347,18 +388,24 @@ namespace KeyboardRedirector
                 {
                     if (e.KeyCombination.KeyWithExtended.Keys == (Keys.LButton | Keys.OemClear))
                     {
+#if LOG
                         WriteHookEvent("  Ignoring remote desktop clear command: " + e.KeyCombination.KeyWithExtended.ToString() + " " + (e.KeyCombination.KeyDown ? "down" : "up") + Environment.NewLine);
+#endif
                         return;
                     }
 
+#if LOG
                     WriteHookEvent("  Waiting for Raw Input to see key: " + e.KeyCombination.KeyWithExtended.ToString() + " " + (e.KeyCombination.KeyDown ? "down" : "up") + Environment.NewLine);
+#endif
                     waitingTime.Start();
                 }
 
                 if (_keysSeen.Count != keysSeen)
                 {
                     keysSeen = _keysSeen.Count;
+#if LOG
                     WriteHookEvent("   Keys Seen: " + _keysSeen.GetKeysString());
+#endif
                 }
 
                 if (_keysSeen.ChangedEvent.WaitOne(_keysSeen.Timeout) == false)
@@ -368,7 +415,9 @@ namespace KeyboardRedirector
             if (waitingTime.IsRunning)
             {
                 waitingTime.Stop();
+#if LOG
                 WriteHookEvent("  Waited " + waitingTime.ElapsedMilliseconds.ToString() + "ms " + "for Raw Input to see key: " + e.KeyCombination.KeyWithExtended.ToString() + " " + (e.KeyCombination.KeyDown ? "down" : "up") + Environment.NewLine);
+#endif
             }
 
             bool block = false;
@@ -377,23 +426,52 @@ namespace KeyboardRedirector
             //DEBUG: Disable blocking for testing purposes.
             //block = false;
 
+#if LOG
             string blockText = "      ";
+#endif
             if (block)
             {
+#if LOG
                 blockText = "block ";
+#endif
                 e.Handled = true;
             }
 
+#if LOG
             WriteHookEvent("Finish " + (e.KeyCombination.KeyDown ? "Down" : "Up  ") + " : " + blockText + e.KeyCombination.ToString() + " (" + hookTime.ElapsedMilliseconds.ToString() + "ms)" + Environment.NewLine);
+#endif
+
+#if !RAWINPUT //sct
+            if (e.Handled)
+            {
+                //sct we want to win message to DC
+                var msg = e.KeyCombination.KeyDown ? PTT_DOWN : PTT_UP;
+                var hdls = Process.GetProcessesByName(SCT_DC);
+                byte[] sarr = System.Text.Encoding.Default.GetBytes(msg);
+                int len = sarr.Length;
+                Win32.COPYDATASTRUCT cds;
+                cds.dwData = (IntPtr)100;
+                cds.lpData = msg;
+                cds.cbData = len + 1;
+                foreach (var process in hdls)
+                {
+                    if (process.MainWindowHandle != IntPtr.Zero)
+                    {
+                        Win32.SendMessage(process.MainWindowHandle, WM_COPYDATA, 0, ref cds);
+                    }
+                }
+            }
+#endif
         }
 
         KeyCombination _lastLowLevelKeyCombo = null;
+        
         void KeyboardHook_KeyEventLowLevel(object sender, KeyHookEventArgs e)
         {
             if (DisableGlobalKeyboardHook == true)
                 return;
 
-            System.Threading.Thread.CurrentThread.Name = "LLHook";
+            System.Threading.Thread.CurrentThread.Name = CONST_STR_LLHook;
 
             if (_keyDetectorFocused && _captureLowLevelChecked)
             {
@@ -401,7 +479,9 @@ namespace KeyboardRedirector
 
                 if (e.KeyCombination.TransitionToKeyUp)
                 {
+#if LOG
                     WriteLowLevelEvent("Adding key" + Environment.NewLine);
+#endif
                     AddAndSelectKey("LowLevel", _lastLowLevelKeyCombo);
                 }
             }
@@ -438,6 +518,7 @@ namespace KeyboardRedirector
 
             _lastLowLevelKeyCombo = e.KeyCombination;
 
+#if LOG
             string blockText = "      ";
             if (e.Handled)
                 blockText = "block ";
@@ -445,6 +526,7 @@ namespace KeyboardRedirector
                 WriteLowLevelEvent("Down : " + blockText + e.KeyCombination.ToString() + Environment.NewLine);
             else
                 WriteLowLevelEvent("Up   : " + blockText + e.KeyCombination.ToString() + Environment.NewLine);
+#endif
         }
 
 #if EXTENDED_LOGGING_FOR_WNDPROC
@@ -458,7 +540,7 @@ namespace KeyboardRedirector
 #endif
             Call.WithTimeout(HookTimeout, false, () =>
             {
-                System.Threading.Thread.CurrentThread.Name = "RawEvent";
+                System.Threading.Thread.CurrentThread.Name = CONST_STR_RawEvent;
                 InputDevice_DeviceEvent_Worker(sender, dInfo, rawInput);
             });
 #if EXTENDED_LOGGING_FOR_WNDPROC
@@ -468,6 +550,16 @@ namespace KeyboardRedirector
 
         void InputDevice_DeviceEvent_Worker(object sender, InputDevice.DeviceInfo dInfo, InputDevice.RAWINPUT rawInput)
         {
+#if !RAWINPUT
+            //sct
+            if (dInfo?.DeviceName.StartsWith(DEVICE_HID) == true)
+            {
+                Sct_KeyHook(sender, dInfo, rawInput);
+                return;
+            }
+            //sct end
+#endif
+
 #if EXTENDED_LOGGING_FOR_WNDPROC
             Log.MainLog.WriteDebug("    Begin  InputDevice_DeviceEvent_Worker");
 #endif
@@ -477,7 +569,9 @@ namespace KeyboardRedirector
                 {
                     // found a problem
                     //MessageBox.Show(this, "KeyboardRedirector detected that it's keyboard hooks are not working correctly." + Environment.NewLine + "You may need to restart KeyboardRedirector", "KeyboardRedirector", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+#if LOG
                     WriteEvent("Detected hooks not working correctly. Restarting hooks." + Environment.NewLine);
+#endif
                     KeyboardHookExternal.Current.RestartHooks();
                     _keysToHook.Clear();
                 }
@@ -489,7 +583,7 @@ namespace KeyboardRedirector
                 bool keyDown = ((rawInput.data.keyboard.Message == Win32.WM.KEYDOWN) ||
                                 (rawInput.data.keyboard.Message == Win32.WM.SYSKEYDOWN));
                 bool extended = ((rawInput.data.keyboard.Flags & InputDevice.RawKeyboardFlags.E0) != 0);
-
+#if LOG
                 string text = string.Format("0x{0:x}({1}) makecode:0x{2:x} flags:0x{3:x} extraInfo:{4} ext:{5}",
                     rawInput.data.keyboard.VKey,
                     key,
@@ -497,14 +591,19 @@ namespace KeyboardRedirector
                     rawInput.data.keyboard.Flags,
                     rawInput.data.keyboard.ExtraInformation,
                     extended);
+#endif
 
                 if (rawInput.data.keyboard.VKey == 0xff)
                 {
+#if LOG
                     WriteWMInputEvent("0x" + dInfo.DeviceHandle.ToInt32().ToString("x8") + " " + rawInput.data.keyboard.Message.ToString().PadRight(10) + " : " + text + " (ignoring VK 0xff)" + Environment.NewLine);
+#endif
                     return;
                 }
 
+#if LOG
                 WriteWMInputEvent("0x" + dInfo.DeviceHandle.ToInt32().ToString("x8") + " " + rawInput.data.keyboard.Message.ToString().PadRight(10) + " : " + text + Environment.NewLine);
+#endif
 
                 if (_keyCombinations.ContainsKey(dInfo.DeviceName) == false)
                 {
@@ -547,7 +646,11 @@ namespace KeyboardRedirector
                             if ((settingsKey != null) && settingsKey.Enabled)
                             {
                                 // Intercept key if we need to
+#if !RAWINPUT
+                                if (keyboard.CaptureAllKeys || (settingsKey.Capture))//sct,删除keyCombo.KeyDown &&
+#else
                                 if (keyboard.CaptureAllKeys || (keyCombo.KeyDown && settingsKey.Capture))
+#endif
                                 {
 #if EXTENDED_LOGGING_FOR_WNDPROC
                                     Log.MainLog.WriteDebug("RawInput-AddingKeyForCapture: " + keyCombo.ToString());
@@ -592,6 +695,17 @@ namespace KeyboardRedirector
             }
         }
 
+#if !RAWINPUT
+        void Sct_KeyHook(object sender, InputDevice.DeviceInfo dInfo, InputDevice.RAWINPUT rawInput)
+        {
+            Keys key = (Keys)rawInput.data.keyboard.VKey;
+            bool keyDown = ((rawInput.data.keyboard.Message == Win32.WM.KEYDOWN) ||
+                            (rawInput.data.keyboard.Message == Win32.WM.SYSKEYDOWN));
+            bool extended = ((rawInput.data.keyboard.Flags & InputDevice.RawKeyboardFlags.E0) != 0);
+            _keysToHook.Add(new KeysWithExtended(key, extended), keyDown);
+        }
+#endif
+
         delegate void _actionPerformer_StatusMessageDelegate(string text);
         void _actionPerformer_StatusMessage(string text)
         {
@@ -607,16 +721,20 @@ namespace KeyboardRedirector
             }
             else
             {
+#if LOG
                 WriteEvent(text + Environment.NewLine, false);
+#endif
             }
         }
 
         void _actionPerformer_StatusMessage_Invoke(string text)
         {
+#if LOG
             if (this.InvokeRequired)
                 this.Invoke(new WriteDelegate(WriteEvent), text + Environment.NewLine, false);
             else
                 WriteEvent(text + Environment.NewLine, false);
+#endif
         }
 
         private delegate void WriteDelegate(string message, bool toLogAsWell);
@@ -889,7 +1007,9 @@ namespace KeyboardRedirector
                 SettingsKeyboardKey key = keyboard.Keys.FindKey(keyCombo);
                 if (key != null)
                 {
+#if LOG
                     WriteEvent("Selecting Key: " + keyCombo.ToString() + Environment.NewLine);
+#endif
 
                     TreeNode node = FindTreeNode(key, keyboardNode.Nodes, true);
                     if (node != null)
@@ -897,7 +1017,9 @@ namespace KeyboardRedirector
                 }
                 else
                 {
+#if LOG
                     WriteEvent("Adding Key: " + keyCombo.ToString() + Environment.NewLine);
+#endif
 
                     key = new SettingsKeyboardKey(keyCombo);
                     keyboard.Keys.Add(key);

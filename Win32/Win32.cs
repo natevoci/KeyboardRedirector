@@ -1697,5 +1697,18 @@ namespace MS
 
         #endregion
 
+
+        public struct COPYDATASTRUCT  //sct
+        {
+            public IntPtr dwData;
+            public int cbData;
+            [MarshalAs(UnmanagedType.LPStr)]
+            public string lpData;
+        }
+
+        #region SendMessage //sct
+        [DllImport("User32.dll")]
+        public static extern int SendMessage(IntPtr hWnd, int Msg, int wParam, ref COPYDATASTRUCT lParam);
+        #endregion
     }
 }
