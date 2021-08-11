@@ -1679,8 +1679,10 @@ namespace KeyboardRedirector
 
         private void LoggingOnOff()
         {
-            if (Settings.Current.LogOn) Log.MainLog.LogOn();
-            else Log.MainLog.LogOff();
+            if (Settings.Current.LogOn)
+                Log.MainLog.LogOn();
+            else
+                Log.MainLog.LogOff();
         }
     }
 }

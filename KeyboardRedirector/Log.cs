@@ -276,7 +276,8 @@ namespace KeyboardRedirector
 
         public void LogOff()
         {
-            if (_logWriterThread != null || _logWriterThread.ThreadState == ThreadState.Running) _logWriterThread.Abort();
+            if (_logWriterThread != null || _logWriterThread.ThreadState == ThreadState.Running)
+                _logWriterThread.Abort();
             _logOn = false;
         }
 
