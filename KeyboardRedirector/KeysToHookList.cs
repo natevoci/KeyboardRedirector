@@ -23,7 +23,9 @@
 
 #endregion
 
+#if LOG
 #define EXTENDED_LOGGING
+#endif
 
 using System;
 using System.Collections.Generic;
